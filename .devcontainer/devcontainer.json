@@ -1,0 +1,47 @@
+{
+  "name": "F# .NET (Paket + Fun.Build + Ionide)",
+  "image": "ghcr.io/e-st/fstarter:latest",
+  "remoteUser": "vscode",
+  "postCreateCommand": "echo '✅ Dev container ready — newf <ProjectName> scaffolds a backend | newf <ProjectName> --ui scaffolds an Elmish Land frontend | watchf to start watch mode'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ionide.ionide-fsharp",
+        "ionide.ionide-paket",
+        "ionide.ionide-fantomas",
+        "ms-dotnettools.csharp"
+      ],
+      "settings": {
+        // === Reduce intrusive autocompletions while typing ===
+        "editor.inlineSuggest.enabled": false,
+        "editor.parameterHints.enabled": false,
+        "editor.acceptSuggestionOnEnter": "off",
+        "[fsharp]": {
+          "editor.quickSuggestions": false,
+          "editor.suggestOnTriggerCharacters": false
+        },
+        // === Inlay Hints: HM-style types shown AFTER the code (on demand) ===
+        "dotnet.defaultSolution": "solution.slnx",
+        "FSharp.enableMSBuildProjectGraph": true,
+        "editor.inlayHints.enabled": "on",
+        "FSharp.inlayHints.typeAnnotations": false,
+        "FSharp.inlayHints.parameterNames": true,
+        "FSharp.inlayHints.enabled": true, // kept for compatibility (the above editor. setting is preferred)
+        "FSharp.linter": true,
+        "FSharp.enableAnalyzers": true,
+        "FSharp.unusedDeclarationsAnalyzer": true, // Best for detecting unused code
+        "FSharp.codeLenses.references.enabled": false, // Optional: shows "X references" above lines
+        "editor.formatOnSave": true,
+        "files.exclude": {
+          "**/obj": true,
+          "**/bin": true,
+          "**/.paket": true
+        }
+      }
+    }
+  },
+  "features": {},
+  "remoteEnv": {
+    "DOTNET_ROLL_FORWARD": "Major"
+  }
+}

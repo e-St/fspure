@@ -1,0 +1,19 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.fs]
+indent_size = 4
+
+# Fantomas formatting settings (fsharp_* keys are read by `dotnet fantomas`).
+# See https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html
+fsharp_max_line_length = 120
+fsharp_space_before_parameter = true
+fsharp_space_before_lowercase_invocation = true
+fsharp_multiline_bracket_style = aligned
+fsharp_newline_before_multiline_computation_expression = true

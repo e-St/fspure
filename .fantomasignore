@@ -1,0 +1,6 @@
+# Generated / vendored code that should not be reformatted or linted
+**/obj/**
+**/bin/**
+**/.elmish-land/**
+**/paket-files/**
+**/node_modules/**

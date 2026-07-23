@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <!-- === Compiler Strictness ===
+         FS0025 = incomplete pattern match. Treating this as an error turns F#'s
+         exhaustive matching into a hard compile-time guarantee (see
+         https://fsharpforfunandprofit.com on domain modeling / exhaustive matching). -->
+    <WarningsAsErrors>$(WarningsAsErrors);FS0025</WarningsAsErrors>
+
+    <!-- Modern .NET defaults -->
+    <Nullable>enable</Nullable>
+
+    <!-- Stricter in Release/CI builds: fail on any warning, with a small allow-list. -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors Condition="'$(Configuration)' == 'Release'">$(WarningsNotAsErrors);FS0049;FS0020</WarningsNotAsErrors>
+  </PropertyGroup>
+</Project>

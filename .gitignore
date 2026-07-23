@@ -1,0 +1,4 @@
+**/paket-files/paket.restore.cached
+**/obj/
+**/bin/
+.fake
