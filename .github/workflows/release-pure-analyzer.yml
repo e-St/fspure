@@ -1,0 +1,69 @@
+name: Release Pure Analyzer
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to pack (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determine version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${GITHUB_REF_NAME}
+          else
+            VERSION=${{ github.event.inputs.version }}
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Restore tools and paket
+        run: |
+          set -euo pipefail
+          dotnet tool restore
+          cd FSharp.PureAnalyzer
+          paket restore
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          cd FSharp.PureAnalyzer
+          dotnet build -c Release --no-restore
+
+      - name: Pack
+        run: |
+          set -euo pipefail
+          cd FSharp.PureAnalyzer
+          dotnet pack FSharp.PureAnalyzer.fsproj \
+            -c Release \
+            -o ./nupkgs \
+            /p:Version=${{ steps.version.outputs.VERSION }} \
+            --no-build
+
+      - name: Publish to GitHub Packages
+        run: |
+          set -euo pipefail
+          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+            --skip-duplicate

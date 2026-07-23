@@ -1,0 +1,7 @@
+source https://api.nuget.org/v3/index.json
+source /usr/share/dotnet/sdk/$(dotnet --version)/FSharp/library-packs
+
+storage: none
+
+nuget FSharp.Core
+nuget FSharp.Analyzers.SDK 0.37.2
