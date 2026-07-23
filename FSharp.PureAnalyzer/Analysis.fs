@@ -43,8 +43,6 @@ module Analysis =
 
         let collector =
             { new TypedTreeCollectorBase() with
-                override _.WalkMemberOrFunctionOrValue value _ _ = setCurrent value
-
                 override _.WalkCall _ memberOrFunc _ _ _ _ = addCallee memberOrFunc
 
                 override _.WalkApplication funcExpr _ _ =
