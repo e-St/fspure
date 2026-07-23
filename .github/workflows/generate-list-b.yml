@@ -1,0 +1,62 @@
+name: Generate List B
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/list-a/list-a.pure.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-list-b:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate List B dummy proposal
+        run: |
+          set -euo pipefail
+          mkdir -p data/list-b
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          with open("data/list-a/list-a.pure.json", "r") as f:
+              list_a = json.load(f)
+
+          list_b = {
+              "schemaVersion": list_a.get("schemaVersion", "1.0"),
+              "packageId": list_a.get("packageId", "FSharp.Core+BCL"),
+              "packageVersion": list_a.get("packageVersion", "0.0.0"),
+              "generatedAt": datetime.now(timezone.utc).isoformat(),
+              "generator": "fsharp-pure-analyzer/list-b-agent/0.1.0",
+              "pureMethods": [
+                  {
+                      "fullName": "Dummy.Placeholder.ProposedPureFunction",
+                      "origin": "automatic"
+                  }
+              ]
+          }
+
+          with open("data/list-b/list-b.pure.json", "w") as f:
+              json.dump(list_b, f, indent=2)
+          PY
+
+      - name: Commit List B
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/list-b/list-b.pure.json
+          if git diff --staged --quiet; then
+            echo "No List B changes to commit."
+          else
+            git commit -m "chore(list-b): add agentic proposal list"
+            git push
+          fi
