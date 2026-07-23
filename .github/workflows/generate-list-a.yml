@@ -40,12 +40,13 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           push: never
-          skipContainerUserIdUpdate: true
           env: |
             PACKAGE_ID
             PUBLIC_ONLY
           runCmd: |
             set -euo pipefail
+            export TMPDIR="$HOME/.nuget-tmp"
+            mkdir -p "$TMPDIR"
             cd purity-collector
             paket install
             dotnet build -c Release --nologo
