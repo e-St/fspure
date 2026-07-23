@@ -40,6 +40,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           push: never
+          skipContainerUserIdUpdate: true
           env: |
             PACKAGE_ID
             PUBLIC_ONLY
