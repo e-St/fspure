@@ -1,0 +1,9 @@
+source https://api.nuget.org/v3/index.json
+source /usr/share/dotnet/sdk/$(dotnet --version)/FSharp/library-packs
+
+storage: none
+
+nuget FSharp.Core
+nuget FSharp.SystemTextJson
+nuget System.Reflection.Metadata
+nuget System.CommandLine 2.0.0-beta4.22272.1

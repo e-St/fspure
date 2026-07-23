@@ -1,0 +1,74 @@
+name: Bundle purity-collector
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "purity-collector/**"
+      - ".github/workflows/bundle-purity-collector.yml"
+  pull_request:
+    paths:
+      - "purity-collector/**"
+      - ".github/workflows/bundle-purity-collector.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR (devcontainer image)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and bundle purity-collector in the project devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: |
+            set -euo pipefail
+            cd purity-collector
+            paket install
+            BINARY_PATH=$(bundlef -p | tail -n 1)
+            echo "Binary: $BINARY_PATH"
+            ls -lh "$BINARY_PATH"
+            mkdir -p ../artifacts
+            cp "$BINARY_PATH" ../artifacts/purity-collector
+            chmod +x ../artifacts/purity-collector
+            ../artifacts/purity-collector --help
+
+      - name: Upload purity-collector artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: purity-collector-linux-x64
+          path: artifacts/purity-collector
+          if-no-files-found: error
+
+      - name: Publish release asset on main
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: purity-collector-latest
+          name: purity-collector (latest standalone)
+          files: artifacts/purity-collector
+          prerelease: true
+          generate_release_notes: false
+          body: |
+            Standalone `purity-collector` linux-x64 single-file executable, built with `bundlef`
+            inside the project'"'"'s devcontainer (ghcr.io/e-st/fstarter).
+            Note: as a self-contained single-file bundle, its managed assemblies are embedded
+            rather than present as loose files, so `--defaults` assembly auto-discovery does not
+            apply to the bundle itself. Pass explicit `--assembly <path>...` when running it
+            standalone. The monthly List A workflow instead runs purity-collector from source via
+            `dotnet run` inside the same devcontainer, where auto-discovery works.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

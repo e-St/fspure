@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>purity_collector</RootNamespace>
+    <AssemblyName>purity-collector</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="ImpurityRules.fs" />
+    <Compile Include="IlAnalyzer.fs" />
+    <Compile Include="PurityEngine.fs" />
+    <Compile Include="JsonCodec.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <Import Project=".paket\Paket.Restore.targets" />
+</Project>

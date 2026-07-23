@@ -1,2 +1,3 @@
 <Solution>
+  <Project Path="purity-collector/purity-collector.fsproj" />
 </Solution>

@@ -1,0 +1,100 @@
+name: Generate List A
+
+on:
+  schedule:
+    # 06:00 UTC on the 1st of every month
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      package_id:
+        description: "packageId written into list-a.pure.json"
+        required: false
+        default: "FSharp.Core+BCL"
+      public_only:
+        description: "Emit only publicly visible pure methods (true/false)"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  generate-list-a:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR (devcontainer image)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate List A inside the project devcontainer
+        env:
+          PACKAGE_ID: ${{ github.event.inputs.package_id || 'FSharp.Core+BCL' }}
+          PUBLIC_ONLY: ${{ github.event.inputs.public_only || 'true' }}
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          env: |
+            PACKAGE_ID
+            PUBLIC_ONLY
+          runCmd: |
+            set -euo pipefail
+            cd purity-collector
+            paket install
+            dotnet build -c Release --nologo
+
+            mkdir -p ../artifacts/list-a
+            dotnet run -c Release --no-build -- \
+              --defaults true \
+              --package-id "$PACKAGE_ID" \
+              --public-only "$PUBLIC_ONLY" \
+              -o ../artifacts/list-a/list-a.pure.json \
+              --report ../artifacts/list-a/list-a.report.json
+
+            echo "Generated:"
+            ls -lh ../artifacts/list-a
+
+      - name: Summarize List A
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          d = json.load(open("artifacts/list-a/list-a.pure.json"))
+          print(f"pure methods: {len(d['pureMethods'])}")
+          print(f"package: {d['packageId']} {d['packageVersion']}")
+          print("sample:")
+          for m in d["pureMethods"][:20]:
+              print(" ", m["fullName"])
+          PY
+
+      - name: Upload List A artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: list-a
+          path: artifacts/list-a/
+          if-no-files-found: error
+
+      - name: Commit List A into repo
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p data/list-a
+          cp artifacts/list-a/list-a.pure.json data/list-a/list-a.pure.json
+          cp artifacts/list-a/list-a.report.json data/list-a/list-a.report.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/list-a/list-a.pure.json data/list-a/list-a.report.json
+          if git diff --staged --quiet; then
+            echo "No List A changes to commit."
+          else
+            git commit -m "chore(list-a): refresh foundational pure set"
+            git push
+          fi
