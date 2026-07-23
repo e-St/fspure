@@ -4,4 +4,4 @@ source /usr/share/dotnet/sdk/$(dotnet --version)/FSharp/library-packs
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Analyzers.SDK 0.37.2
+nuget FSharp.Analyzers.SDK 0.35.0

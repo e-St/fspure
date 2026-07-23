@@ -1,13 +1,13 @@
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Analyzers.SDK (0.37.2)
-      FSharp.Compiler.Service (>= 43.12.201) - restriction: >= net8.0
-      FSharp.Core (10.1.201) - restriction: >= net8.0
+    FSharp.Analyzers.SDK (0.35)
+      FSharp.Compiler.Service (43.10.101) - restriction: >= net8.0
+      FSharp.Core (10.0.101) - restriction: >= net8.0
       McMaster.NETCore.Plugins (>= 2.0) - restriction: >= net8.0
       Microsoft.Extensions.Logging.Abstractions (>= 6.0) - restriction: >= net8.0
-    FSharp.Compiler.Service (43.12.201) - restriction: >= net8.0
-      FSharp.Core (10.1.201) - restriction: >= netstandard2.0
+    FSharp.Compiler.Service (43.10.101) - restriction: >= net8.0
+      FSharp.Core (10.0.101) - restriction: >= netstandard2.0
       System.Buffers (>= 4.6) - restriction: >= netstandard2.0
       System.Collections.Immutable (>= 9.0) - restriction: >= netstandard2.0
       System.Diagnostics.DiagnosticSource (>= 9.0) - restriction: >= netstandard2.0
@@ -15,7 +15,7 @@ NUGET
       System.Reflection.Emit (>= 4.7) - restriction: >= netstandard2.0
       System.Reflection.Metadata (>= 9.0) - restriction: >= netstandard2.0
       System.Runtime.CompilerServices.Unsafe (>= 6.1) - restriction: >= netstandard2.0
-    FSharp.Core (10.1.201)
+    FSharp.Core (10.0.101)
     McMaster.NETCore.Plugins (2.0) - restriction: >= net8.0
     Microsoft.Extensions.DependencyInjection.Abstractions (10.0.10) - restriction: >= net8.0
     Microsoft.Extensions.Logging.Abstractions (10.0.10) - restriction: >= net8.0

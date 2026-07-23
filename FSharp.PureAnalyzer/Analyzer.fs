@@ -28,7 +28,7 @@ module Analyzer =
 
             let isCallableSymbol (symbol: FSharpSymbol) =
                 match symbol with
-                | :? FSharpMemberOrFunctionOrValue as v -> v.IsFunction || v.IsMember || v.IsConstructor
+                | :? FSharpMemberOrFunctionOrValue as v -> v.IsFunction || v.IsMember || v.IsConstructor || v.IsProperty
                 | _ -> false
 
             // PURE001: flag non-pure call sites in the current file.
