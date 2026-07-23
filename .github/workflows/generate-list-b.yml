@@ -1,4 +1,4 @@
-name: Generate List B
+name: Generate List B and foundational pure set
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PURE_BOT_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Generate List B dummy proposal
         run: |
@@ -46,17 +48,66 @@ jobs:
               json.dump(list_b, f, indent=2)
           PY
 
-      - name: Commit List B
+      - name: Merge foundational pure set
+        run: |
+          set -euo pipefail
+          mkdir -p data/foundational
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          with open("data/list-a/list-a.pure.json", "r") as f:
+              list_a = json.load(f)
+          with open("data/list-b/list-b.pure.json", "r") as f:
+              list_b = json.load(f)
+
+          # Deterministic merge: accept all of List A, then accept List B entries
+          # only when they do not conflict (List A takes precedence).
+          # List C and definitely.proven are never consulted here.
+          merged = {m["fullName"]: m for m in list_a["pureMethods"]}
+          for m in list_b["pureMethods"]:
+              if m["fullName"] not in merged:
+                  merged[m["fullName"]] = m
+
+          pure_methods = sorted(merged.values(), key=lambda m: m["fullName"])
+
+          foundational = {
+              "schemaVersion": list_a.get("schemaVersion", "1.0"),
+              "packageId": list_a.get("packageId", "FSharp.Core+BCL"),
+              "packageVersion": list_a.get("packageVersion", "0.0.0"),
+              "generatedAt": datetime.now(timezone.utc).isoformat(),
+              "generator": "fsharp-pure-analyzer/merge/0.1.0",
+              "pureMethods": pure_methods
+          }
+
+          with open("data/foundational/foundational.pure.json", "w") as f:
+              json.dump(foundational, f, indent=2)
+          PY
+
+      - name: Summarize
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          a = json.load(open("data/list-a/list-a.pure.json"))
+          b = json.load(open("data/list-b/list-b.pure.json"))
+          f = json.load(open("data/foundational/foundational.pure.json"))
+          print(f"List A entries: {len(a['pureMethods'])}")
+          print(f"List B entries: {len(b['pureMethods'])}")
+          print(f"Merged entries: {len(f['pureMethods'])}")
+          PY
+
+      - name: Commit List B and foundational pure set
         if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/list-b/list-b.pure.json
+          git add data/list-b/list-b.pure.json data/foundational/foundational.pure.json
           if git diff --staged --quiet; then
-            echo "No List B changes to commit."
+            echo "No List B / foundational changes to commit."
           else
-            git commit -m "chore(list-b): add agentic proposal list"
+            git commit -m "chore(list-b): add agentic proposal list and merge foundational pure set"
             git push
           fi
