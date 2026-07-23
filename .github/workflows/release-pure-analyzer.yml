@@ -21,10 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+      - name: Log in to GHCR (devcontainer image)
+        uses: docker/login-action@v3
         with:
-          dotnet-version: '10.0.x'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Determine version
         id: version
@@ -37,33 +39,25 @@ jobs:
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Restore tools and paket
-        run: |
-          set -euo pipefail
-          dotnet tool restore
-          cd FSharp.PureAnalyzer
-          paket restore
-
-      - name: Build
-        run: |
-          set -euo pipefail
-          cd FSharp.PureAnalyzer
-          dotnet build -c Release --no-restore
-
-      - name: Pack
-        run: |
-          set -euo pipefail
-          cd FSharp.PureAnalyzer
-          dotnet pack FSharp.PureAnalyzer.fsproj \
-            -c Release \
-            -o ./nupkgs \
-            /p:Version=${{ steps.version.outputs.VERSION }} \
-            --no-build
-
-      - name: Publish to GitHub Packages
-        run: |
-          set -euo pipefail
-          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
-            --api-key ${{ secrets.GITHUB_TOKEN }} \
-            --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
-            --skip-duplicate
+      - name: Pack and publish Pure Analyzer inside the project devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          env: |
+            VERSION
+          runCmd: |
+            set -euo pipefail
+            export TMPDIR="$HOME/.nuget-tmp"
+            mkdir -p "$TMPDIR"
+            cd FSharp.PureAnalyzer
+            paket restore
+            dotnet build -c Release
+            dotnet pack FSharp.PureAnalyzer.fsproj \
+              -c Release \
+              -o ./nupkgs \
+              /p:Version="$VERSION" \
+              --no-build
+            dotnet nuget push ./nupkgs/*.nupkg \
+              --api-key ${{ secrets.GITHUB_TOKEN }} \
+              --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+              --skip-duplicate
