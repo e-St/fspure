@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "packageId": "FSharp.Core+BCL",
+  "packageVersion": "10.1.0",
+  "generatedAt": "2026-07-23T17:41:34.585627+00:00",
+  "generator": "fsharp-pure-analyzer/list-b-agent/0.1.0",
+  "pureMethods": [
+    {
+      "fullName": "Dummy.Placeholder.ProposedPureFunction",
+      "origin": "automatic"
+    }
+  ]
+}
