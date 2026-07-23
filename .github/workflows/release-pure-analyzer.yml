@@ -38,7 +38,7 @@ jobs:
             mkdir -p "$TMPDIR"
 
             if [ "${{ github.event_name }}" = "release" ]; then
-              VERSION="${GITHUB_REF_NAME}"
+              VERSION="${{ github.ref_name }}"
             else
               VERSION="${{ github.event.inputs.version }}"
             fi
