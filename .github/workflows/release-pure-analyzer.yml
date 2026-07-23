@@ -28,17 +28,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine version
-        id: version
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "release" ]; then
-            VERSION=${GITHUB_REF_NAME}
-          else
-            VERSION=${{ github.event.inputs.version }}
-          fi
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
       - name: Pack and publish Pure Analyzer inside the project devcontainer
         uses: devcontainers/ci@v0.3
         with:
@@ -47,6 +36,13 @@ jobs:
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
+
+            if [ "${{ github.event_name }}" = "release" ]; then
+              VERSION="${GITHUB_REF_NAME}"
+            else
+              VERSION="${{ github.event.inputs.version }}"
+            fi
+
             cd FSharp.PureAnalyzer
             paket restore
             dotnet build -c Release
