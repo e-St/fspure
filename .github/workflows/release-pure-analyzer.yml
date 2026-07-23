@@ -37,14 +37,12 @@ jobs:
           else
             VERSION=${{ github.event.inputs.version }}
           fi
-          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Pack and publish Pure Analyzer inside the project devcontainer
         uses: devcontainers/ci@v0.3
         with:
           push: never
-          env: |
-            VERSION
           runCmd: |
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
