@@ -8,7 +8,7 @@ open System.Text.Json
 
 /// DTO for the embedded foundational.pure.json resource.
 [<CLIMutable>]
-type private PureMethodDto =
+type PureMethodDto =
     {
         fullName: string
         origin: string
@@ -16,7 +16,7 @@ type private PureMethodDto =
     }
 
 [<CLIMutable>]
-type private PureFileDto =
+type PureFileDto =
     {
         schemaVersion: string
         packageId: string
