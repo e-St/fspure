@@ -1,2 +1,4 @@
 # fspure
-F# fspure - push impurity to the edge
+A code analyser and vscode plugin, which helps you spot impure functions.
+
+![alt text](image.png)
