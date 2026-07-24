@@ -9,7 +9,6 @@ This works by assembling a list of known "pure" functions. As long as your funct
 
 Currently, the following core libraries are scanned and included:
 
-````
     "System.Private.CoreLib"
     "System.Runtime"
     "System.Console"
@@ -43,4 +42,3 @@ Currently, the following core libraries are scanned and included:
     "System.Diagnostics.DiagnosticSource" // Activity is impure, some helpers pure
     "System.Net.Http.Json"                // JsonContent pure helpers
     "System.Text.Json.Serialization" 
-```
