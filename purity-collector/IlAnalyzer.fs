@@ -471,112 +471,157 @@ module IlAnalyzer =
                 safeDispose asm.PEReader
 
     /// Default assemblies that form the foundational List A surface.
-    let defaultAssemblyPaths () : string list =
-        let tpa =
-            match AppContext.GetData "TRUSTED_PLATFORM_ASSEMBLIES" with
-            | :? string as s when not (String.IsNullOrWhiteSpace s) ->
-                s.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                |> Array.toList
-            | _ -> []
+/// Default assemblies that form the foundational List A surface.
+/// Extended with high-value pure-leaning libraries commonly used in F# codebases.
+let defaultAssemblyPaths () : string list =
+    let tpa =
+        match AppContext.GetData "TRUSTED_PLATFORM_ASSEMBLIES" with
+        | :? string as s when not (String.IsNullOrWhiteSpace s) ->
+            s.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            |> Array.toList
+        | _ -> []
 
-        let wanted =
-            set
-                [
-                    "System.Private.CoreLib"
-                    "System.Runtime"
-                    "System.Console"
-                    "System.Linq"
-                    "System.Collections"
-                    "System.Collections.Concurrent"
-                    "System.Collections.Immutable"
-                    "System.Memory"
-                    "System.Threading"
-                    "System.Threading.Tasks"
-                    "System.Text.RegularExpressions"
-                    "System.ObjectModel"
-                    "System.Numerics"
-                    "FSharp.Core"
-                ]
+    // -----------------------------------------------------------------
+    // Expanded wanted set
+    // -----------------------------------------------------------------
+    let wanted =
+        set
+            [
+                "System.Private.CoreLib"
+                "System.Runtime"
+                "System.Console"
+                "System.Linq"
+                "System.Collections"
+                "System.Collections.Concurrent"
+                "System.Collections.Immutable"
+                "System.Memory"
+                "System.Threading"
+                "System.Threading.Tasks"
+                "System.Text.RegularExpressions"
+                "System.ObjectModel"
+                "System.Numerics"
+                "FSharp.Core"
+                "System.Text.Json"                    // JsonSerializer, JsonNode, Utf8JsonReader (pure parts)
+                "System.Text.Encodings.Web"           // HtmlEncoder, UrlEncoder
+                "System.Xml.Linq"                     // XElement / XDocument construction
+                "System.Xml.XDocument"                // (some runtimes ship this separately)
+                "System.Xml"                          // core XML
+                "System.Globalization"               // CultureInfo pure helpers, formatting
+                "System.Buffers"                      // ArrayPool is impure, many helpers pure
+                "System.IO.Pipelines"                 // PipeReader/Writer pure helpers (careful)
+                "System.Runtime.CompilerServices.Unsafe"
+                "System.Runtime.InteropServices"      // limited pure surface
+                "Microsoft.Extensions.Primitives"     // StringValues, StringSegment
+                "Microsoft.Extensions.DependencyInjection.Abstractions" // rarely pure, but small
+                "System.ComponentModel"               // TypeConverter pure bits
+                "System.ComponentModel.Primitives"
+                "System.ComponentModel.TypeConverter"
+                "System.Diagnostics.DiagnosticSource" // Activity is impure, some helpers pure
+                "System.Net.Http.Json"                // JsonContent pure helpers
+                "System.Text.Json.Serialization"      // (if present as separate assembly)
+            ]
 
-        let fromTpa =
-            tpa
-            |> List.filter (fun p ->
-                match Path.GetFileNameWithoutExtension p with
-                | null -> false
-                | name -> wanted.Contains name)
+    // -----------------------------------------------------------------
+    // Discovery (unchanged structure, slightly more locations)
+    // -----------------------------------------------------------------
+    let fromTpa =
+        tpa
+        |> List.filter (fun p ->
+            match Path.GetFileNameWithoutExtension p with
+            | null -> false
+            | name -> wanted.Contains name)
 
-        let runtimeDirs =
-            let candidates = ResizeArray<string>()
+    let runtimeDirs =
+        let candidates = ResizeArray<string>()
 
-            let addIfExists (dir: string) =
-                if not (String.IsNullOrWhiteSpace dir) && Directory.Exists dir then
-                    candidates.Add(dir)
+        let addIfExists (dir: string) =
+            if not (String.IsNullOrWhiteSpace dir) && Directory.Exists dir then
+                candidates.Add(dir)
 
-            addIfExists AppContext.BaseDirectory
-            addIfExists Environment.CurrentDirectory
-            addIfExists (RuntimeEnvironment.GetRuntimeDirectory())
+        addIfExists AppContext.BaseDirectory
+        addIfExists Environment.CurrentDirectory
+        addIfExists (RuntimeEnvironment.GetRuntimeDirectory())
 
-            let dotnetRoot =
-                match Environment.GetEnvironmentVariable "DOTNET_ROOT" with
-                | null -> None
-                | v when String.IsNullOrWhiteSpace v -> None
-                | v -> Some v
+        // DOTNET_ROOT / shared frameworks
+        let dotnetRoot =
+            match Environment.GetEnvironmentVariable "DOTNET_ROOT" with
+            | null | "" -> None
+            | v -> Some v
 
-            match dotnetRoot with
-            | Some r ->
-                let sharedDir = Path.Combine(r, "shared", "Microsoft.NETCore.App")
-                addIfExists sharedDir
+        match dotnetRoot with
+        | Some r ->
+            let sharedNetCore = Path.Combine(r, "shared", "Microsoft.NETCore.App")
+            addIfExists sharedNetCore
+            if Directory.Exists sharedNetCore then
+                for versionDir in Directory.GetDirectories sharedNetCore do
+                    addIfExists versionDir
 
-                if Directory.Exists sharedDir then
-                    for versionDir in Directory.GetDirectories sharedDir do
-                        addIfExists versionDir
-            | None -> ()
+            // Also look in ASP.NET shared framework (System.Text.Json often lives here)
+            let sharedAspNet = Path.Combine(r, "shared", "Microsoft.AspNetCore.App")
+            addIfExists sharedAspNet
+            if Directory.Exists sharedAspNet then
+                for versionDir in Directory.GetDirectories sharedAspNet do
+                    addIfExists versionDir
+        | None -> ()
 
-            let frameworkDir =
-                Path.Combine(AppContext.BaseDirectory, "shared", "Microsoft.NETCore.App")
+        // NuGet package cache (user + machine)
+        let nugetRoots =
+            [
+                Path.Combine(
+                    Environment.GetFolderPath Environment.SpecialFolder.UserProfile,
+                    ".nuget",
+                    "packages"
+                )
+                match Environment.GetEnvironmentVariable "NUGET_PACKAGES" with
+                | null | "" -> None
+                | p -> Some p
+                |> Option.toList
+            ]
+            |> List.distinct
 
-            addIfExists frameworkDir
+        for root in nugetRoots do
+            if Directory.Exists root then
+                // We only add the root; the later EnumerateFiles will not recurse deeply
+                // for performance. Callers can still pass explicit -a paths for deep NuGet hits.
+                addIfExists root
 
-            let appDir = AppContext.BaseDirectory
+        List.ofSeq candidates |> List.distinctBy (fun p -> Path.GetFullPath p)
 
-            if not (String.IsNullOrWhiteSpace appDir) then
-                let runtime = Path.Combine(appDir, "runtime")
-                addIfExists runtime
-
-            List.ofSeq candidates |> List.distinctBy (fun p -> Path.GetFullPath p)
-
-        let runtimeCandidates =
-            runtimeDirs
-            |> List.collect (fun dir ->
-                Directory.EnumerateFiles(dir, "*.dll")
+    let runtimeCandidates =
+        runtimeDirs
+        |> List.collect (fun dir ->
+            try
+                Directory.EnumerateFiles(dir, "*.dll", SearchOption.TopDirectoryOnly)
                 |> Seq.filter (fun p ->
                     match Path.GetFileNameWithoutExtension p with
                     | null -> false
-                    | name -> not (String.IsNullOrWhiteSpace name) && wanted.Contains name)
-                |> Seq.toList)
-            |> List.distinctBy (fun p -> Path.GetFullPath p)
-
-        let fscoreLoc =
-            let loc = typeof<unit>.Assembly.Location
-
-            if String.IsNullOrWhiteSpace loc then None
-            elif File.Exists loc then Some loc
-            else None
-
-        let localFs = Path.Combine(AppContext.BaseDirectory, "FSharp.Core.dll")
-
-        let extras =
-            [
-                match fscoreLoc with
-                | Some p -> yield p
-                | None -> ()
-                if File.Exists localFs then
-                    yield localFs
-            ]
-
-        (fromTpa @ runtimeCandidates @ extras)
+                    | name -> wanted.Contains name)
+                |> Seq.toList
+            with _ ->
+                [])
         |> List.distinctBy (fun p -> Path.GetFullPath p)
-        |> List.sort
+
+    // Explicit FSharp.Core location
+    let fscoreLoc =
+        let loc = typeof<unit>.Assembly.Location
+        if String.IsNullOrWhiteSpace loc then None
+        elif File.Exists loc then Some loc
+        else None
+
+    let localFs = Path.Combine(AppContext.BaseDirectory, "FSharp.Core.dll")
+
+    let extras =
+        [
+            match fscoreLoc with
+            | Some p -> yield p
+            | None -> ()
+            if File.Exists localFs then
+                yield localFs
+        ]
+
+    (fromTpa @ runtimeCandidates @ extras)
+    |> List.distinctBy (fun p -> Path.GetFullPath p)
+    |> List.sort
 
     let analyzeAssemblies (paths: string list) : AnalyzedMethod list * string list =
         let analyzed = ResizeArray<string>()
