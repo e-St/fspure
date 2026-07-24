@@ -209,28 +209,3 @@ module Analyzer =
     [<CliAnalyzer("FSharp.PureAnalyzer")>]
     let pureAnalyzerCli (ctx: CliContext) : Async<Message list> =
         tryAnalyzeWithProjectResults ctx.FileName ctx.CheckProjectResults
-
-    [<EditorAnalyzer("FSharp.PureAnalyzer")>]
-    let pureAnalyzerEditor (ctx: EditorContext) : Async<Message list> =
-        async {
-            match ctx.CheckProjectResults with
-            | None ->
-                let r = Range.mkRange ctx.FileName (Position.mkPos 1 1) (Position.mkPos 1 2)
-
-                return
-                    [
-                        {
-                            Type = "Pure analyzer"
-                            Message = "DEBUG PureAnalyzer | CheckProjectResults = None"
-                            Code = "PURE000"
-                            Severity = Severity.Warning
-                            Range = r
-                            Fixes = []
-                        }
-                    ]
-            | Some projectResults -> return! tryAnalyzeWithProjectResults ctx.FileName projectResults
-        }
-
-    [<CliAnalyzer("FSharp.PureAnalyzer")>]
-    let pureAnalyzerCli (ctx: CliContext) : Async<Message list> =
-        tryAnalyzeWithProjectResults ctx.FileName ctx.CheckProjectResults
