@@ -26,8 +26,8 @@ module Analysis =
 
     /// Does range `outer` fully contain range `inner`?
     let private contains (outer: range) (inner: range) =
-        not (Range.equals outer Range.Zero)
-        && not (Range.equals inner Range.Zero)
+        not (Range.equals outer Range.range0)
+        && not (Range.equals inner Range.range0)
         && outer.FileName = inner.FileName
         && Range.rangeContainsRange outer inner
 
@@ -76,7 +76,7 @@ module Analysis =
                     let name = Name.fullNameOfMember v
                     let fullRange = v.DeclarationLocation
 
-                    if not (Range.equals fullRange Range.Zero) then
+                    if not (Range.equals fullRange Range.range0) then
                         definitions.Add(fullRange, name)
                 | _ -> ()
 
