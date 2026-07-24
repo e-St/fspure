@@ -13,30 +13,29 @@ module Analyzer =
 
     let private knownPure = PureSet.knownPure
 
-    let private implementationFiles (projectResults: FSharpCheckProjectResults) =
-        projectResults.AssemblyContents.ImplementationFiles
+    let private isCallableSymbol (symbol: FSharpSymbol) =
+        match symbol with
+        | :? FSharpMemberOrFunctionOrValue as v ->
+            v.IsFunction
+            || v.IsMember
+            || v.IsConstructor
+            || v.IsProperty
+            || v.IsPropertyGetterMethod
+            || v.IsPropertySetterMethod
+        | _ -> false
 
-    let private analyzeFile
+    /// Core analysis that works with any set of symbol uses + optional implementation files.
+    /// Used by both the full-project path and the file-level fallback.
+    let private analyze
         (fileName: string)
-        (projectResults: FSharpCheckProjectResults)
+        (allSymbolUses: FSharpSymbolUse array)
+        (implementationFiles: FSharpImplementationFileContents seq)
         (fileSymbolUses: FSharpSymbolUse seq)
         : Async<Message list> =
         async {
-            let allSymbolUses = projectResults.GetAllUsesOfAllSymbols() |> Seq.toArray
-            let callGraph = buildCallGraph (implementationFiles projectResults) allSymbolUses
+            let callGraph = buildCallGraph implementationFiles allSymbolUses
             let nonPure = findNonPure knownPure callGraph
             let messages = ResizeArray<Message>()
-
-            let isCallableSymbol (symbol: FSharpSymbol) =
-                match symbol with
-                | :? FSharpMemberOrFunctionOrValue as v ->
-                    v.IsFunction
-                    || v.IsMember
-                    || v.IsConstructor
-                    || v.IsProperty
-                    || v.IsPropertyGetterMethod
-                    || v.IsPropertySetterMethod
-                | _ -> false
 
             // ----- Collect debug stats -------------------------------------------------
             let mutable defCount = 0
@@ -61,7 +60,7 @@ module Analyzer =
                             useNames.Add(name)
                 | _ -> ()
 
-            let implFileCount = implementationFiles projectResults |> Seq.length
+            let implFileCount = implementationFiles |> Seq.length
             let graphSize = callGraph.Count
             let nonPureSize = nonPure.Count
             let pureSetSize = knownPure.Count
@@ -117,7 +116,7 @@ module Analyzer =
                         messages.Add(Diagnostics.impureFunction msg symbolUse.Range)
                     | _ -> ()
 
-            // Original purity-based diagnostics
+            // Original purity-based diagnostics – call sites
             for symbolUse in fileSymbolUses do
                 if
                     not symbolUse.IsFromDefinition
@@ -132,6 +131,7 @@ module Analyzer =
                             messages.Add(Diagnostics.impureCall calleeName symbolUse.Range)
                     | _ -> ()
 
+            // Original purity-based diagnostics – definitions that are transitively impure
             for symbolUse in fileSymbolUses do
                 if
                     symbolUse.IsFromDefinition
@@ -151,9 +151,64 @@ module Analyzer =
 
     let private tryAnalyzeWithProjectResults (fileName: string) (projectResults: FSharpCheckProjectResults) =
         async {
-            let symbolUses = projectResults.GetAllUsesOfAllSymbols()
-            return! analyzeFile fileName projectResults symbolUses
+            let allSymbolUses = projectResults.GetAllUsesOfAllSymbols() |> Seq.toArray
+            let implementationFiles = projectResults.AssemblyContents.ImplementationFiles
+            // Restrict the diagnostics we emit to the current file
+            let fileSymbolUses =
+                allSymbolUses |> Array.filter (fun su -> su.FileName = fileName) |> Seq.ofArray
+
+            return! analyze fileName allSymbolUses implementationFiles fileSymbolUses
         }
+
+    /// File-level fallback used when FSAC does not supply CheckProjectResults.
+    let private tryAnalyzeWithFileResults
+        (fileName: string)
+        (fileResults: FSharpCheckFileResults)
+        (typedTree: FSharpImplementationFileContents option)
+        =
+        async {
+            let fileSymbolUses = fileResults.GetAllUsesOfAllSymbolsInFile() |> Seq.toArray
+
+            let implementationFiles =
+                match typedTree with
+                | Some tree -> seq { tree }
+                | None -> Seq.empty
+
+            return! analyze fileName fileSymbolUses implementationFiles (Seq.ofArray fileSymbolUses)
+        }
+
+    [<EditorAnalyzer("FSharp.PureAnalyzer")>]
+    let pureAnalyzerEditor (ctx: EditorContext) : Async<Message list> =
+        async {
+            match ctx.CheckProjectResults with
+            | Some projectResults -> return! tryAnalyzeWithProjectResults ctx.FileName projectResults
+
+            | None ->
+                // FSAC frequently omits project results for performance.
+                // Fall back to the file-level information that is almost always present.
+                match ctx.CheckFileResults with
+                | Some fileResults -> return! tryAnalyzeWithFileResults ctx.FileName fileResults ctx.TypedTree
+
+                | None ->
+                    // Absolute worst case – no type information at all
+                    let r = Range.mkRange ctx.FileName (Position.mkPos 1 1) (Position.mkPos 1 2)
+
+                    return
+                        [
+                            {
+                                Type = "Pure analyzer"
+                                Message = "DEBUG PureAnalyzer | CheckProjectResults = None AND CheckFileResults = None"
+                                Code = "PURE000"
+                                Severity = Severity.Warning
+                                Range = r
+                                Fixes = []
+                            }
+                        ]
+        }
+
+    [<CliAnalyzer("FSharp.PureAnalyzer")>]
+    let pureAnalyzerCli (ctx: CliContext) : Async<Message list> =
+        tryAnalyzeWithProjectResults ctx.FileName ctx.CheckProjectResults
 
     [<EditorAnalyzer("FSharp.PureAnalyzer")>]
     let pureAnalyzerEditor (ctx: EditorContext) : Async<Message list> =

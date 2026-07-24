@@ -24,6 +24,17 @@ module Analysis =
         && not (Range.equals inner Range.range0)
         && Range.rangeContainsRange outer inner
 
+    /// Builds a call graph from a collection of symbol uses.
+    /// Works for both full-project and single-file scenarios.
+    ///
+    /// Strategy:
+    /// 1. Collect every callable definition (IsFromDefinition) together with its
+    ///    DeclarationLocation range.
+    /// 2. For every use, find the tightest enclosing definition by range containment.
+    /// 3. If no edges are discovered (common when DeclarationLocation is missing or
+    ///    ranges do not nest cleanly) fall back to a complete bipartite connection
+    ///    between every definition and every use. This is conservative but guarantees
+    ///    that transitive impurity is still detected for small files.
     let buildCallGraph (_files: FSharpImplementationFileContents seq) (allSymbolUses: FSharpSymbolUse seq) : CallGraph =
 
         let definitions = ResizeArray<range * string>()
@@ -41,6 +52,10 @@ module Analysis =
                     if not (Range.equals fullRange Range.range0) then
                         definitions.Add(fullRange, name)
                         declarationSet.Add(name) |> ignore
+                    else
+                        // Still record the definition even if the range is missing
+                        // so that the fallback path can see it.
+                        declarationSet.Add(name) |> ignore
                 else
                     uses.Add(su.Range, name)
             | _ -> ()
@@ -55,6 +70,7 @@ module Analysis =
                     match best with
                     | None -> best <- Some(defRange, defName)
                     | Some(bestRange, _) ->
+                        // Prefer the tightest (innermost) enclosing definition
                         if Range.rangeContainsRange bestRange defRange then
                             best <- Some(defRange, defName)
 
@@ -62,9 +78,11 @@ module Analysis =
             | Some(_, callerName) when callerName <> calleeName -> edges.Add(callerName, calleeName)
             | _ -> ()
 
-        // Fallback when ranges do not match: attribute every use to every definition
-        if edges.Count = 0 && definitions.Count > 0 && uses.Count > 0 then
-            for (_, defName) in definitions do
+        // Fallback when ranges do not match: attribute every use to every definition.
+        // This is deliberately over-approximating so that impurity still propagates
+        // in the small single-file case that FSAC usually gives us.
+        if edges.Count = 0 && declarationSet.Count > 0 && uses.Count > 0 then
+            for defName in declarationSet do
                 for (_, calleeName) in uses do
                     if defName <> calleeName then
                         edges.Add(defName, calleeName)
@@ -84,7 +102,7 @@ module Analysis =
     let isPure (knownPure: IReadOnlySet<string>) (callGraph: CallGraph) (name: string) =
         let rec check visited name =
             if Set.contains name visited then
-                true
+                true // cycle – treat as pure to avoid infinite recursion
             elif knownPure.Contains(name) then
                 true
             else
@@ -92,7 +110,9 @@ module Analysis =
                 | Some callees ->
                     let visited = Set.add name visited
                     callees |> List.forall (check visited)
-                | None -> false
+                | None ->
+                    // Unknown external symbol that is not in the pure set → impure
+                    false
 
         check Set.empty name
 
