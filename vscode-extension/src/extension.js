@@ -48,15 +48,14 @@ function createDecorations() {
   const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A")); // orange
   const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955")); // green
 
-  // No leading/trailing spaces inside the badge text.
+  // No border/box — bold-italic colored label only
   impureBadge = vscode.window.createTextEditorDecorationType({
     after: {
       contentText: "impure",
       color: impureColor,
-      backgroundColor: "rgba(226, 166, 106, 0.15)",
-      border: `1px solid ${impureColor}`,
       margin: "0 0 0 1.2em",
-      fontWeight: "600",
+      fontWeight: "700",
+      fontStyle: "italic",
     },
   });
 
@@ -64,10 +63,9 @@ function createDecorations() {
     after: {
       contentText: "pure",
       color: pureColor,
-      backgroundColor: "rgba(106, 153, 85, 0.15)",
-      border: `1px solid ${pureColor}`,
       margin: "0 0 0 1.2em",
-      fontWeight: "600",
+      fontWeight: "700",
+      fontStyle: "italic",
     },
   });
 }
@@ -106,11 +104,8 @@ function updateEditor(editor) {
 
     if (PURE_CODES.has(code)) {
       pureOpts.push(opt);
-    } else if (code === "PURE002" || code === "PURE001") {
-      // Definitions (and optionally call sites) marked impure
-      if (code === "PURE002") {
-        impureOpts.push(opt);
-      }
+    } else if (code === "PURE002") {
+      impureOpts.push(opt);
     }
   }
 
