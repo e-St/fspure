@@ -18,8 +18,8 @@ module Diagnostics =
 
     /// PURE001: a call site invokes a function that is not known to be pure.
     let impureCall (calleeName: string) (range: range) : Message =
-        mkMessage "PURE001" Severity.Warning $"Call to '%s{calleeName}' is not known to be pure." range
+        mkMessage "PURE001" Severity.Info $"Call to '%s{calleeName}' is not known to be pure." range
 
     /// PURE002: a declared function is not transitively pure.
     let impureFunction (functionName: string) (range: range) : Message =
-        mkMessage "PURE002" Severity.Warning $"Function '%s{functionName}' is not transitively pure." range
+        mkMessage "PURE002" Severity.Info $"Function '%s{functionName}' is not transitively pure." range
