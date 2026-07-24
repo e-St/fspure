@@ -2,7 +2,7 @@
   "name": "fsharp-pure-decorations",
   "displayName": "F# Pure Analyzer Decorations",
   "description": "Shows pure/impure badges for FSharp.PureAnalyzer diagnostics (PURE002 / PURE003).",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "e-st",
   "license": "MIT",
   "repository": {

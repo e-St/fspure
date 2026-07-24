@@ -34,6 +34,22 @@ function isPureAnalyzerDiagnostic(d) {
   );
 }
 
+/**
+ * Anchor for `after` text: last non-empty character of the line.
+ * Zero-width end-of-line ranges often do not render `after` content in VS Code.
+ * @param {vscode.TextEditor} editor
+ * @param {vscode.Diagnostic} d
+ */
+function endOfLineAnchor(editor, d) {
+  const line = editor.document.lineAt(d.range.start.line);
+  const end = line.range.end;
+  if (end.character === 0) {
+    return new vscode.Range(end, end);
+  }
+  const start = end.translate(0, -1);
+  return new vscode.Range(start, end);
+}
+
 function disposeDecorations() {
   impureBadge?.dispose();
   pureBadge?.dispose();
@@ -45,16 +61,16 @@ function createDecorations() {
   disposeDecorations();
 
   const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
-  const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A")); // orange
-  const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955")); // green
+  const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A"));
+  const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955"));
 
   // No border/box — bold-italic colored label only
   impureBadge = vscode.window.createTextEditorDecorationType({
     after: {
       contentText: "impure",
       color: impureColor,
-      margin: "0 0 0 1.2em",
-      fontWeight: "700",
+      margin: "0 0 0 1.5em",
+      fontWeight: "bold",
       fontStyle: "italic",
     },
   });
@@ -63,8 +79,8 @@ function createDecorations() {
     after: {
       contentText: "pure",
       color: pureColor,
-      margin: "0 0 0 1.2em",
-      fontWeight: "700",
+      margin: "0 0 0 1.5em",
+      fontWeight: "bold",
       fontStyle: "italic",
     },
   });
@@ -96,11 +112,8 @@ function updateEditor(editor) {
 
   for (const d of diagnostics) {
     const code = diagnosticCode(d);
-    // Badge only at end of the signature line — never decorate the function name.
-    const line = editor.document.lineAt(d.range.start.line);
-    const endOfLine = line.range.end;
-    const endRange = new vscode.Range(endOfLine, endOfLine);
-    const opt = { range: endRange, hoverMessage: d.message };
+    const range = endOfLineAnchor(editor, d);
+    const opt = { range, hoverMessage: d.message };
 
     if (PURE_CODES.has(code)) {
       pureOpts.push(opt);
