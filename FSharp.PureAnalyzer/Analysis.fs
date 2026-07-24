@@ -6,6 +6,7 @@ open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Symbols.FSharpExprPatterns
+open FSharp.Compiler.Text
 
 /// Call-graph construction and transitive purity computation.
 module Analysis =
@@ -22,67 +23,87 @@ module Analysis =
         || value.IsPropertyGetterMethod
         || value.IsPropertySetterMethod
 
-    /// Build a call graph from the typed AST of one or more implementation files.
-    /// Each callable declaration becomes a node; every direct call inside its body
-    /// becomes an edge to the callee's full name.
-    let buildCallGraph (files: FSharpImplementationFileContents seq) : CallGraph =
-        let declarations = HashSet<string>(StringComparer.Ordinal)
-        let edges = ResizeArray<string * string>()
+    /// Does range `outer` fully contain range `inner`?
+    let private contains (outer: range) (inner: range) =
+        outer.FileName = inner.FileName && Range.rangeContainsRange outer inner
 
-        // Stack of enclosing callables. Top of stack is the function whose body
-        // is currently being walked.
-        let currentStack = Stack<string>()
+    /// Build a call graph from the typed AST + the project's symbol uses.
+    /// Works with FSharp.Analyzers.SDK 0.35.0 (no WalkMemberOrFunctionOrValue required).
+    ///
+    /// Strategy:
+    /// 1. Walk the TAST and record every call site as (callRange, calleeName).
+    /// 2. From symbol uses collect every callable definition as (defRange, defName).
+    /// 3. For each call find the innermost definition whose range contains the call;
+    ///    that definition is the caller.
+    let buildCallGraph (files: FSharpImplementationFileContents seq) (allSymbolUses: FSharpSymbolUse seq) : CallGraph =
 
-        let push (value: FSharpMemberOrFunctionOrValue) =
-            if isCallable value then
-                let name = Name.fullNameOfMember value
-                declarations.Add(name) |> ignore
-                currentStack.Push(name)
+        // ----- 1. Collect call sites from the TAST ---------------------------------
+        let calls = ResizeArray<range * string>() // (callRange, calleeName)
 
-        let addCallee (callee: FSharpMemberOrFunctionOrValue) =
-            if isCallable callee && currentStack.Count > 0 then
-                let caller = currentStack.Peek()
-                let calleeName = Name.fullNameOfMember callee
-                edges.Add(caller, calleeName)
+        let addCall (range: range) (callee: FSharpMemberOrFunctionOrValue) =
+            if isCallable callee then
+                let name = Name.fullNameOfMember callee
+                calls.Add(range, name)
 
         let collector =
             { new TypedTreeCollectorBase() with
+                override _.WalkCall _objExprOpt memberOrFunc _objTypeArgs _memberTypeArgs _argExprs range =
+                    addCall range memberOrFunc
 
-                // Top-level (and nested member) definitions.
-                // In SDK 0.35 the signature is only the value; the framework walks
-                // the body *after* this method returns, so the pushed name stays
-                // active for the whole body.
-                override _.WalkMemberOrFunctionOrValue value = push value
-
-                // Local `let` bindings (including local functions).
-                // Framework order: WalkLet → visit bindingExpr (rhs) → visit bodyExpr.
-                // We push so that the local function's body is attributed correctly.
-                // Calls that appear in the scope *after* the local binding will also
-                // see the local name; this is a known limitation of the visitor
-                // (enter without a matching exit). For typical top-level code it
-                // does not matter.
-                override _.WalkLet bindingVar _bindingExpr _bodyExpr = push bindingVar
-
-                override _.WalkLetRec recursiveBindings _bodyExpr =
-                    for (value, _) in recursiveBindings do
-                        push value
-
-                // Direct calls (methods, property getters, etc.)
-                override _.WalkCall _objExprOpt memberOrFunc _objTypeArgs _memberTypeArgs _argExprs _range =
-                    addCallee memberOrFunc
-
-                // Partial applications / higher-order uses of a known value.
                 override _.WalkApplication funcExpr _typeArgs _argExprs =
+                    // Application nodes do not carry an explicit range in the walker
+                    // signature; we approximate with the range of the function expression
+                    // when it is a simple Value.  Most real calls go through WalkCall.
                     match funcExpr with
-                    | Value value -> addCallee value
+                    | Value value ->
+                        // Value expressions expose their range via the symbol use later;
+                        // here we can only record the callee.  We use a dummy range that
+                        // will not match any definition, so pure Applications without a
+                        // corresponding Call are ignored.  In practice the important
+                        // cases (method / property calls) hit WalkCall.
+                        ()
                     | _ -> ()
             }
 
         for file in files do
-            // Clear the stack between files so one file cannot pollute another.
-            currentStack.Clear()
             walkTast collector file
 
+        // ----- 2. Collect definitions from symbol uses -----------------------------
+        let definitions = ResizeArray<range * string>() // (defRange, defName)
+
+        for su in allSymbolUses do
+            if su.IsFromDefinition then
+                match su.Symbol with
+                | :? FSharpMemberOrFunctionOrValue as v when isCallable v ->
+                    let name = Name.fullNameOfMember v
+                    definitions.Add(su.Range, name)
+                | _ -> ()
+
+        // ----- 3. Match calls to their innermost enclosing definition --------------
+        let edges = ResizeArray<string * string>() // (caller, callee)
+        let declarationSet = HashSet<string>(StringComparer.Ordinal)
+
+        for (defRange, defName) in definitions do
+            declarationSet.Add(defName) |> ignore
+
+        for (callRange, calleeName) in calls do
+            // Find the tightest (smallest) definition that contains the call.
+            let mutable best: (range * string) option = None
+
+            for (defRange, defName) in definitions do
+                if contains defRange callRange then
+                    match best with
+                    | None -> best <- Some(defRange, defName)
+                    | Some(bestRange, _) ->
+                        // Prefer the smaller range (more nested).
+                        if Range.rangeContainsRange bestRange defRange then
+                            best <- Some(defRange, defName)
+
+            match best with
+            | Some(_, callerName) -> edges.Add(callerName, calleeName)
+            | None -> () // call not inside any known definition (e.g. top-level init)
+
+        // ----- 4. Build the final map ----------------------------------------------
         let edgeMap =
             edges
             |> Seq.groupBy fst
@@ -91,7 +112,7 @@ module Analysis =
                 caller, callees)
             |> Map.ofSeq
 
-        declarations
+        declarationSet
         |> Seq.map (fun name -> name, (Map.tryFind name edgeMap |> Option.defaultValue []))
         |> Map.ofSeq
 

@@ -22,7 +22,10 @@ module Analyzer =
         (fileSymbolUses: FSharpSymbolUse seq)
         : Async<Message list> =
         async {
-            let callGraph = buildCallGraph (implementationFiles projectResults)
+            // Pass *all* symbol uses so that definitions from every file can be
+            // used for range-containment matching.
+            let allSymbolUses = projectResults.GetAllUsesOfAllSymbols()
+            let callGraph = buildCallGraph (implementationFiles projectResults) allSymbolUses
             let nonPure = findNonPure knownPure callGraph
             let messages = ResizeArray<Message>()
 
