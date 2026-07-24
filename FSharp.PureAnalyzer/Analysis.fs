@@ -26,14 +26,18 @@ module Analysis =
 
     /// Does range `outer` fully contain range `inner`?
     let private contains (outer: range) (inner: range) =
-        outer.FileName = inner.FileName && Range.rangeContainsRange outer inner
+        not (Range.equals outer Range.Zero)
+        && not (Range.equals inner Range.Zero)
+        && outer.FileName = inner.FileName
+        && Range.rangeContainsRange outer inner
 
     /// Build a call graph from the typed AST + the project's symbol uses.
     /// Works with FSharp.Analyzers.SDK 0.35.0 (no WalkMemberOrFunctionOrValue required).
     ///
     /// Strategy:
     /// 1. Walk the TAST and record every call site as (callRange, calleeName).
-    /// 2. From symbol uses collect every callable definition as (defRange, defName).
+    /// 2. From symbol uses collect every callable definition as (defRange, defName)
+    ///    using the *full* DeclarationLocation (not just the name identifier).
     /// 3. For each call find the innermost definition whose range contains the call;
     ///    that definition is the caller.
     let buildCallGraph (files: FSharpImplementationFileContents seq) (allSymbolUses: FSharpSymbolUse seq) : CallGraph =
@@ -53,7 +57,6 @@ module Analysis =
 
                 override _.WalkApplication _funcExpr _typeArgs _argExprs =
                     // Most real method / property calls go through WalkCall.
-                    // Pure Applications without a corresponding Call are ignored.
                     ()
             }
 
@@ -61,6 +64,9 @@ module Analysis =
             walkTast collector file
 
         // ----- 2. Collect definitions from symbol uses -----------------------------
+        // Use DeclarationLocation (full let-binding range) rather than su.Range
+        // (which is usually only the identifier). This is essential so that calls
+        // inside the body are considered "contained" by the definition.
         let definitions = ResizeArray<range * string>() // (defRange, defName)
 
         for su in allSymbolUses do
@@ -68,7 +74,10 @@ module Analysis =
                 match su.Symbol with
                 | :? FSharpMemberOrFunctionOrValue as v when isCallable v ->
                     let name = Name.fullNameOfMember v
-                    definitions.Add(su.Range, name)
+                    let fullRange = v.DeclarationLocation
+
+                    if not (Range.equals fullRange Range.Zero) then
+                        definitions.Add(fullRange, name)
                 | _ -> ()
 
         // ----- 3. Match calls to their innermost enclosing definition --------------
@@ -93,7 +102,7 @@ module Analysis =
 
             match best with
             | Some(_, callerName) -> edges.Add(callerName, calleeName)
-            | None -> () // call not inside any known definition (e.g. module init)
+            | None -> () // call not inside any known definition
 
         // ----- 4. Build the final map ----------------------------------------------
         let edgeMap =
