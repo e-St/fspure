@@ -1,0 +1,83 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "vscode-extension/**"
+      - ".github/workflows/publish-vscode-extension.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode-extension
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Read extension version
+        id: ver
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=vscode-extension-v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "vsix=${NAME}-${VERSION}.vsix" >> "$GITHUB_OUTPUT"
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Package VSIX
+        run: vsce package --allow-missing-repository
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: vscode-extension/${{ steps.ver.outputs.vsix }}
+          if-no-files-found: error
+
+      - name: Create / update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.ver.outputs.tag }}"
+          VSIX="${{ steps.ver.outputs.vsix }}"
+          TITLE="VS Code extension ${{ steps.ver.outputs.version }}"
+
+          # Create release if it does not exist yet
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes "Automated build of **fsharp-pure-decorations** v${{ steps.ver.outputs.version }}." \
+              --latest=false
+          fi
+
+          # Upload / replace the VSIX asset
+          gh release upload "$TAG" "$VSIX" --clobber
+
+          # Also publish under a floating tag that consumers can pin to
+          FLOAT_TAG="vscode-extension-latest"
+          if ! gh release view "$FLOAT_TAG" >/dev/null 2>&1; then
+            gh release create "$FLOAT_TAG" \
+              --title "VS Code extension (latest)" \
+              --notes "Floating release always pointing at the newest VSIX." \
+              --latest=false
+          fi
+          gh release upload "$FLOAT_TAG" "$VSIX" --clobber
+
+          echo "Published $VSIX to releases $TAG and $FLOAT_TAG"

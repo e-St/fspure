@@ -1,0 +1,60 @@
+{
+  "name": "fsharp-pure-decorations",
+  "displayName": "F# Pure Analyzer Decorations",
+  "description": "Shows a boxed 'impure' badge for FSharp.PureAnalyzer diagnostics (PURE001 / PURE002).",
+  "version": "0.1.0",
+  "publisher": "e-st",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/e-St/fspure.git"
+  },
+  "bugs": {
+    "url": "https://github.com/e-St/fspure/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "fsharp",
+    "f#",
+    "pure",
+    "analyzer",
+    "impure"
+  ],
+  "activationEvents": [
+    "onLanguage:fsharp"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "F# Pure Decorations",
+      "properties": {
+        "fsharpPureDecorations.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show impure badges for PureAnalyzer diagnostics."
+        },
+        "fsharpPureDecorations.style": {
+          "type": "string",
+          "enum": [
+            "badge-end-of-line",
+            "badge-after-name",
+            "box-name-only"
+          ],
+          "default": "badge-end-of-line",
+          "description": "Where and how to show the impure marker.\n- badge-end-of-line: boxed 'impure' at end of the signature line (next to type hint)\n- badge-after-name: boxed 'impure' right after the function name\n- box-name-only: blue box around the function name only (no text)"
+        },
+        "fsharpPureDecorations.color": {
+          "type": "string",
+          "default": "#4FC1FF",
+          "description": "Accent color for the impure badge / box."
+        }
+      }
+    }
+  }
+}
