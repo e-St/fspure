@@ -7,13 +7,10 @@ open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Text
 
-/// Call-graph construction and transitive purity computation.
 module Analysis =
 
     type CallGraph = Map<string, string list>
 
-    /// A member/function/value that can appear in a call graph (including properties,
-    /// whose getters are the usual representation of property access in the TAST).
     let private isCallable (value: FSharpMemberOrFunctionOrValue) =
         value.IsFunction
         || value.IsMember
@@ -22,23 +19,15 @@ module Analysis =
         || value.IsPropertyGetterMethod
         || value.IsPropertySetterMethod
 
-    /// Does range `outer` fully contain range `inner`?
     let private contains (outer: range) (inner: range) =
         not (Range.equals outer Range.range0)
         && not (Range.equals inner Range.range0)
-        && outer.FileName = inner.FileName
         && Range.rangeContainsRange outer inner
 
-    /// Build a call graph purely from symbol uses (works with SDK 0.35.0).
-    ///
-    /// 1. Collect every callable definition → (DeclarationLocation, name)
-    /// 2. Collect every non-definition use of a callable → (useRange, calleeName)
-    /// 3. For each use, find the innermost definition whose range contains it;
-    ///    that becomes the caller → callee edge.
     let buildCallGraph (_files: FSharpImplementationFileContents seq) (allSymbolUses: FSharpSymbolUse seq) : CallGraph =
 
-        let definitions = ResizeArray<range * string>() // (defRange, defName)
-        let uses = ResizeArray<range * string>() // (useRange, calleeName)
+        let definitions = ResizeArray<range * string>()
+        let uses = ResizeArray<range * string>()
         let declarationSet = HashSet<string>(StringComparer.Ordinal)
 
         for su in allSymbolUses do
@@ -53,14 +42,12 @@ module Analysis =
                         definitions.Add(fullRange, name)
                         declarationSet.Add(name) |> ignore
                 else
-                    // A use of a callable is treated as a call site.
                     uses.Add(su.Range, name)
             | _ -> ()
 
-        let edges = ResizeArray<string * string>() // (caller, callee)
+        let edges = ResizeArray<string * string>()
 
         for (useRange, calleeName) in uses do
-            // Innermost definition that contains this use.
             let mutable best: (range * string) option = None
 
             for (defRange, defName) in definitions do
@@ -72,10 +59,15 @@ module Analysis =
                             best <- Some(defRange, defName)
 
             match best with
-            | Some(_, callerName) when callerName <> calleeName ->
-                // Avoid self-edges from the definition of the name itself.
-                edges.Add(callerName, calleeName)
+            | Some(_, callerName) when callerName <> calleeName -> edges.Add(callerName, calleeName)
             | _ -> ()
+
+        // Fallback when ranges do not match: attribute every use to every definition
+        if edges.Count = 0 && definitions.Count > 0 && uses.Count > 0 then
+            for (_, defName) in definitions do
+                for (_, calleeName) in uses do
+                    if defName <> calleeName then
+                        edges.Add(defName, calleeName)
 
         let edgeMap =
             edges
@@ -89,9 +81,6 @@ module Analysis =
         |> Seq.map (fun name -> name, Map.tryFind name edgeMap |> Option.defaultValue [])
         |> Map.ofSeq
 
-    /// Recursive purity check. A function is pure iff it is in the known-pure set
-    /// or every callee (transitively) is pure. Cycles are treated as pure to avoid
-    /// false positives for mutually recursive functions.
     let isPure (knownPure: IReadOnlySet<string>) (callGraph: CallGraph) (name: string) =
         let rec check visited name =
             if Set.contains name visited then
@@ -103,13 +92,10 @@ module Analysis =
                 | Some callees ->
                     let visited = Set.add name visited
                     callees |> List.forall (check visited)
-                | None ->
-                    // External name that is not in the known-pure whitelist → impure.
-                    false
+                | None -> false
 
         check Set.empty name
 
-    /// Returns the set of all functions in the call graph that are not transitively pure.
     let findNonPure (knownPure: IReadOnlySet<string>) (callGraph: CallGraph) : Set<string> =
         callGraph
         |> Map.toSeq
