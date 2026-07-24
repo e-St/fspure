@@ -14,7 +14,7 @@ module Analyzer =
     let private knownPure = PureSet.knownPure
 
     // Set to true while developing; set to false for normal use.
-    let private emitDebugSummary = true
+    let private emitDebugSummary = false
 
     let private isCallableSymbol (symbol: FSharpSymbol) =
         match symbol with
@@ -72,13 +72,13 @@ module Analyzer =
                         Type = "Pure analyzer"
                         Message = sb.ToString()
                         Code = "PURE000"
-                        Severity = Severity.Warning
+                        Severity = Severity.Hint
                         Range = summaryRange
                         Fixes = []
                     }
                 )
 
-            // PURE001 – call sites of impure functions
+            // PURE001 – call sites of impure functions (optional; Hint = very subtle)
             for symbolUse in fileSymbolUses do
                 if
                     not symbolUse.IsFromDefinition
@@ -93,7 +93,7 @@ module Analyzer =
                             messages.Add(Diagnostics.impureCall calleeName symbolUse.Range)
                     | _ -> ()
 
-            // PURE002 – definitions that are transitively impure
+            // PURE002 / PURE003 – definitions
             for symbolUse in fileSymbolUses do
                 if
                     symbolUse.IsFromDefinition
@@ -104,8 +104,13 @@ module Analyzer =
                     | :? FSharpMemberOrFunctionOrValue as value ->
                         let name = Name.fullNameOfMember value
 
-                        if Set.contains name nonPure then
-                            messages.Add(Diagnostics.impureFunction name symbolUse.Range)
+                        // Only report user-facing definitions that appear in the call graph
+                        // (skips compiler-generated clo* / arg* helpers).
+                        if Map.containsKey name callGraph then
+                            if Set.contains name nonPure then
+                                messages.Add(Diagnostics.impureFunction name symbolUse.Range)
+                            else
+                                messages.Add(Diagnostics.pureFunction name symbolUse.Range)
                     | _ -> ()
 
             return messages |> Seq.toList

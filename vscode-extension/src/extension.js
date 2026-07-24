@@ -4,27 +4,12 @@
 const vscode = require("vscode");
 
 /** @type {vscode.TextEditorDecorationType | undefined} */
-let badgeDecoration;
+let impureBadge;
 /** @type {vscode.TextEditorDecorationType | undefined} */
-let boxDecoration;
+let pureBadge;
 
-const PURE_CODES = new Set(["PURE001", "PURE002"]);
-
-/**
- * @param {vscode.Diagnostic} d
- */
-function isPureDiagnostic(d) {
-  const code =
-    typeof d.code === "object" && d.code !== null
-      ? String(/** @type {{ value?: unknown }} */ (d.code).value ?? "")
-      : String(d.code ?? "");
-  const source = String(d.source ?? "");
-  return (
-    PURE_CODES.has(code) ||
-    source.includes("Pure analyzer") ||
-    source.includes("FSharp.PureAnalyzer")
-  );
-}
+const IMPURE_CODES = new Set(["PURE001", "PURE002"]);
+const PURE_CODES = new Set(["PURE003"]);
 
 /**
  * @param {vscode.Diagnostic} d
@@ -35,34 +20,55 @@ function diagnosticCode(d) {
     : String(d.code ?? "");
 }
 
+/**
+ * @param {vscode.Diagnostic} d
+ */
+function isPureAnalyzerDiagnostic(d) {
+  const code = diagnosticCode(d);
+  const source = String(d.source ?? "");
+  return (
+    IMPURE_CODES.has(code) ||
+    PURE_CODES.has(code) ||
+    source.includes("Pure analyzer") ||
+    source.includes("FSharp.PureAnalyzer")
+  );
+}
+
 function disposeDecorations() {
-  badgeDecoration?.dispose();
-  boxDecoration?.dispose();
-  badgeDecoration = undefined;
-  boxDecoration = undefined;
+  impureBadge?.dispose();
+  pureBadge?.dispose();
+  impureBadge = undefined;
+  pureBadge = undefined;
 }
 
 function createDecorations() {
   disposeDecorations();
 
   const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
-  const color = /** @type {string} */ (cfg.get("color", "#4FC1FF"));
+  const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A")); // orange
+  const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955")); // green
 
-  badgeDecoration = vscode.window.createTextEditorDecorationType({
+  // No leading/trailing spaces inside the badge text.
+  impureBadge = vscode.window.createTextEditorDecorationType({
     after: {
-      contentText: " impure ",
-      color: color,
-      backgroundColor: "rgba(79, 193, 255, 0.12)",
-      border: `1px solid ${color}`,
+      contentText: "impure",
+      color: impureColor,
+      backgroundColor: "rgba(226, 166, 106, 0.15)",
+      border: `1px solid ${impureColor}`,
       margin: "0 0 0 1.2em",
       fontWeight: "600",
     },
   });
 
-  boxDecoration = vscode.window.createTextEditorDecorationType({
-    border: `1px solid ${color}`,
-    borderRadius: "3px",
-    backgroundColor: "rgba(79, 193, 255, 0.08)",
+  pureBadge = vscode.window.createTextEditorDecorationType({
+    after: {
+      contentText: "pure",
+      color: pureColor,
+      backgroundColor: "rgba(106, 153, 85, 0.15)",
+      border: `1px solid ${pureColor}`,
+      margin: "0 0 0 1.2em",
+      fontWeight: "600",
+    },
   });
 }
 
@@ -76,48 +82,40 @@ function updateEditor(editor) {
 
   const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
   if (!cfg.get("enabled", true)) {
-    if (badgeDecoration) editor.setDecorations(badgeDecoration, []);
-    if (boxDecoration) editor.setDecorations(boxDecoration, []);
+    if (impureBadge) editor.setDecorations(impureBadge, []);
+    if (pureBadge) editor.setDecorations(pureBadge, []);
     return;
   }
 
-  const style = /** @type {string} */ (cfg.get("style", "badge-end-of-line"));
   const diagnostics = vscode.languages
     .getDiagnostics(editor.document.uri)
-    .filter(isPureDiagnostic);
+    .filter(isPureAnalyzerDiagnostic);
 
   /** @type {vscode.DecorationOptions[]} */
-  const badgeOpts = [];
+  const impureOpts = [];
   /** @type {vscode.DecorationOptions[]} */
-  const boxOpts = [];
+  const pureOpts = [];
 
   for (const d of diagnostics) {
     const code = diagnosticCode(d);
-
-    if (style === "box-name-only") {
-      boxOpts.push({ range: d.range, hoverMessage: d.message });
-      continue;
-    }
-
-    if (style === "badge-after-name") {
-      badgeOpts.push({ range: d.range, hoverMessage: d.message });
-      continue;
-    }
-
-    // badge-end-of-line (default): badge at end of signature line + box on name
+    // Badge only at end of the signature line — never decorate the function name.
     const line = editor.document.lineAt(d.range.start.line);
     const endOfLine = line.range.end;
     const endRange = new vscode.Range(endOfLine, endOfLine);
+    const opt = { range: endRange, hoverMessage: d.message };
 
-    if (code === "PURE002" || code === "") {
-      badgeOpts.push({ range: endRange, hoverMessage: d.message });
+    if (PURE_CODES.has(code)) {
+      pureOpts.push(opt);
+    } else if (code === "PURE002" || code === "PURE001") {
+      // Definitions (and optionally call sites) marked impure
+      if (code === "PURE002") {
+        impureOpts.push(opt);
+      }
     }
-
-    boxOpts.push({ range: d.range, hoverMessage: d.message });
   }
 
-  if (badgeDecoration) editor.setDecorations(badgeDecoration, badgeOpts);
-  if (boxDecoration) editor.setDecorations(boxDecoration, boxOpts);
+  if (impureBadge) editor.setDecorations(impureBadge, impureOpts);
+  if (pureBadge) editor.setDecorations(pureBadge, pureOpts);
 }
 
 function updateAllEditors() {

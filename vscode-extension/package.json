@@ -1,8 +1,8 @@
 {
   "name": "fsharp-pure-decorations",
   "displayName": "F# Pure Analyzer Decorations",
-  "description": "Shows a boxed 'impure' badge for FSharp.PureAnalyzer diagnostics (PURE001 / PURE002).",
-  "version": "0.1.0",
+  "description": "Shows pure/impure badges for FSharp.PureAnalyzer diagnostics (PURE002 / PURE003).",
+  "version": "0.2.0",
   "publisher": "e-st",
   "license": "MIT",
   "repository": {
@@ -37,22 +37,17 @@
         "fsharpPureDecorations.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Show impure badges for PureAnalyzer diagnostics."
+          "description": "Show pure/impure badges for PureAnalyzer diagnostics."
         },
-        "fsharpPureDecorations.style": {
+        "fsharpPureDecorations.impureColor": {
           "type": "string",
-          "enum": [
-            "badge-end-of-line",
-            "badge-after-name",
-            "box-name-only"
-          ],
-          "default": "badge-end-of-line",
-          "description": "Where and how to show the impure marker.\n- badge-end-of-line: boxed 'impure' at end of the signature line (next to type hint)\n- badge-after-name: boxed 'impure' right after the function name\n- box-name-only: blue box around the function name only (no text)"
+          "default": "#E2A66A",
+          "description": "Accent color for the impure badge (orange by default)."
         },
-        "fsharpPureDecorations.color": {
+        "fsharpPureDecorations.pureColor": {
           "type": "string",
-          "default": "#4FC1FF",
-          "description": "Accent color for the impure badge / box."
+          "default": "#6A9955",
+          "description": "Accent color for the pure badge (green by default)."
         }
       }
     }
