@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.TASTCollecting
+open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Symbols.FSharpExprPatterns
 open FSharp.Compiler.Text
@@ -40,29 +41,20 @@ module Analysis =
         // ----- 1. Collect call sites from the TAST ---------------------------------
         let calls = ResizeArray<range * string>() // (callRange, calleeName)
 
-        let addCall (range: range) (callee: FSharpMemberOrFunctionOrValue) =
+        let addCall (r: range) (callee: FSharpMemberOrFunctionOrValue) =
             if isCallable callee then
                 let name = Name.fullNameOfMember callee
-                calls.Add(range, name)
+                calls.Add(r, name)
 
         let collector =
             { new TypedTreeCollectorBase() with
-                override _.WalkCall _objExprOpt memberOrFunc _objTypeArgs _memberTypeArgs _argExprs range =
-                    addCall range memberOrFunc
+                override _.WalkCall _objExprOpt memberOrFunc _objTypeArgs _memberTypeArgs _argExprs r =
+                    addCall r memberOrFunc
 
-                override _.WalkApplication funcExpr _typeArgs _argExprs =
-                    // Application nodes do not carry an explicit range in the walker
-                    // signature; we approximate with the range of the function expression
-                    // when it is a simple Value.  Most real calls go through WalkCall.
-                    match funcExpr with
-                    | Value value ->
-                        // Value expressions expose their range via the symbol use later;
-                        // here we can only record the callee.  We use a dummy range that
-                        // will not match any definition, so pure Applications without a
-                        // corresponding Call are ignored.  In practice the important
-                        // cases (method / property calls) hit WalkCall.
-                        ()
-                    | _ -> ()
+                override _.WalkApplication _funcExpr _typeArgs _argExprs =
+                    // Most real method / property calls go through WalkCall.
+                    // Pure Applications without a corresponding Call are ignored.
+                    ()
             }
 
         for file in files do
@@ -83,7 +75,7 @@ module Analysis =
         let edges = ResizeArray<string * string>() // (caller, callee)
         let declarationSet = HashSet<string>(StringComparer.Ordinal)
 
-        for (defRange, defName) in definitions do
+        for (_, defName) in definitions do
             declarationSet.Add(defName) |> ignore
 
         for (callRange, calleeName) in calls do
@@ -101,7 +93,7 @@ module Analysis =
 
             match best with
             | Some(_, callerName) -> edges.Add(callerName, calleeName)
-            | None -> () // call not inside any known definition (e.g. top-level init)
+            | None -> () // call not inside any known definition (e.g. module init)
 
         // ----- 4. Build the final map ----------------------------------------------
         let edgeMap =
@@ -113,7 +105,7 @@ module Analysis =
             |> Map.ofSeq
 
         declarationSet
-        |> Seq.map (fun name -> name, (Map.tryFind name edgeMap |> Option.defaultValue []))
+        |> Seq.map (fun name -> name, Map.tryFind name edgeMap |> Option.defaultValue [])
         |> Map.ofSeq
 
     /// Recursive purity check. A function is pure iff it is in the known-pure set
