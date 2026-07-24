@@ -24,17 +24,9 @@ module Analysis =
         && not (Range.equals inner Range.range0)
         && Range.rangeContainsRange outer inner
 
-    /// Builds a call graph from a collection of symbol uses.
-    /// Works for both full-project and single-file scenarios.
-    ///
-    /// Strategy:
-    /// 1. Collect every callable definition (IsFromDefinition) together with its
-    ///    DeclarationLocation range.
-    /// 2. For every use, find the tightest enclosing definition by range containment.
-    /// 3. If no edges are discovered (common when DeclarationLocation is missing or
-    ///    ranges do not nest cleanly) fall back to a complete bipartite connection
-    ///    between every definition and every use. This is conservative but guarantees
-    ///    that transitive impurity is still detected for small files.
+    /// Builds a call graph from symbol uses.
+    /// Uses DeclarationLocation range containment to discover caller → callee edges.
+    /// No bipartite fallback – a definition with no discovered callees is treated as pure.
     let buildCallGraph (_files: FSharpImplementationFileContents seq) (allSymbolUses: FSharpSymbolUse seq) : CallGraph =
 
         let definitions = ResizeArray<range * string>()
@@ -51,11 +43,8 @@ module Analysis =
 
                     if not (Range.equals fullRange Range.range0) then
                         definitions.Add(fullRange, name)
-                        declarationSet.Add(name) |> ignore
-                    else
-                        // Still record the definition even if the range is missing
-                        // so that the fallback path can see it.
-                        declarationSet.Add(name) |> ignore
+
+                    declarationSet.Add(name) |> ignore
                 else
                     uses.Add(su.Range, name)
             | _ -> ()
@@ -78,15 +67,6 @@ module Analysis =
             | Some(_, callerName) when callerName <> calleeName -> edges.Add(callerName, calleeName)
             | _ -> ()
 
-        // Fallback when ranges do not match: attribute every use to every definition.
-        // This is deliberately over-approximating so that impurity still propagates
-        // in the small single-file case that FSAC usually gives us.
-        if edges.Count = 0 && declarationSet.Count > 0 && uses.Count > 0 then
-            for defName in declarationSet do
-                for (_, calleeName) in uses do
-                    if defName <> calleeName then
-                        edges.Add(defName, calleeName)
-
         let edgeMap =
             edges
             |> Seq.groupBy fst
@@ -95,6 +75,8 @@ module Analysis =
                 caller, callees)
             |> Map.ofSeq
 
+        // Every definition appears in the graph (even with an empty callee list).
+        // An empty list means "no impure calls discovered" → treated as pure by isPure.
         declarationSet
         |> Seq.map (fun name -> name, Map.tryFind name edgeMap |> Option.defaultValue [])
         |> Map.ofSeq
@@ -109,9 +91,10 @@ module Analysis =
                 match Map.tryFind name callGraph with
                 | Some callees ->
                     let visited = Set.add name visited
+                    // empty list → forall returns true → pure
                     callees |> List.forall (check visited)
                 | None ->
-                    // Unknown external symbol that is not in the pure set → impure
+                    // External symbol not in the pure set → impure
                     false
 
         check Set.empty name
