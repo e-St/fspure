@@ -29,7 +29,7 @@ module Analysis =
         let declarations = HashSet<string>(StringComparer.Ordinal)
         let edges = ResizeArray<string * string>()
 
-        // Stack of enclosing callables.  Top of stack is the function whose body
+        // Stack of enclosing callables. Top of stack is the function whose body
         // is currently being walked.
         let currentStack = Stack<string>()
 
@@ -49,46 +49,33 @@ module Analysis =
             { new TypedTreeCollectorBase() with
 
                 // Top-level (and nested member) definitions.
-                // The framework calls WalkMemberOrFunctionOrValue *before* visiting the body,
-                // so the push stays active for the whole body.
-                override _.WalkMemberOrFunctionOrValue(value, _curriedArgs, _body) = push value
-                // Note: we deliberately do *not* pop here.  The body is walked by the
-                // framework after this method returns.  For sequential top-level
-                // declarations the next WalkMemberOrFunctionOrValue will push a new
-                // name; the previous name simply stays on the stack until the next
-                // declaration (which is fine because the previous body has already
-                // been fully walked).  Nested members are handled by the same logic.
+                // In SDK 0.35 the signature is only the value; the framework walks
+                // the body *after* this method returns, so the pushed name stays
+                // active for the whole body.
+                override _.WalkMemberOrFunctionOrValue value = push value
 
                 // Local `let` bindings (including local functions).
                 // Framework order: WalkLet → visit bindingExpr (rhs) → visit bodyExpr.
-                // We push before the rhs is walked so that the local function's body is
-                // attributed correctly.  We cannot easily restore the outer current for
-                // the *bodyExpr* of the let (the scope after the binding) without
-                // controlling the walk ourselves; for the common case of top-level
-                // functions and for purity analysis this is acceptable – calls that
-                // appear after a local function definition are still rare relative to
-                // the bodies themselves.
-                override _.WalkLet(bindingVar, _bindingExpr, _bodyExpr) = push bindingVar
+                // We push so that the local function's body is attributed correctly.
+                // Calls that appear in the scope *after* the local binding will also
+                // see the local name; this is a known limitation of the visitor
+                // (enter without a matching exit). For typical top-level code it
+                // does not matter.
+                override _.WalkLet bindingVar _bindingExpr _bodyExpr = push bindingVar
 
-                override _.WalkLetRec(recursiveBindings, _bodyExpr) =
+                override _.WalkLetRec recursiveBindings _bodyExpr =
                     for (value, _) in recursiveBindings do
                         push value
 
-                // Direct calls (the most common form for methods, property getters, etc.)
-                override _.WalkCall(_objExprOpt, memberOrFunc, _objTypeArgs, _memberTypeArgs, _argExprs, _range) =
+                // Direct calls (methods, property getters, etc.)
+                override _.WalkCall _objExprOpt memberOrFunc _objTypeArgs _memberTypeArgs _argExprs _range =
                     addCallee memberOrFunc
 
                 // Partial applications / higher-order uses of a known value.
-                override _.WalkApplication(funcExpr, _typeArgs, _argExprs) =
+                override _.WalkApplication funcExpr _typeArgs _argExprs =
                     match funcExpr with
                     | Value value -> addCallee value
                     | _ -> ()
-
-            // Some property / field accesses appear as FSharpFieldGet.
-            // We cannot obtain an MFV from an FSharpField reliably, so we leave
-            // them for the Call path (static/instance property getters are
-            // normally represented as Call).
-            // override _.WalkFSharpFieldGet ... = ()
             }
 
         for file in files do
