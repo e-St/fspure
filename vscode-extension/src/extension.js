@@ -38,10 +38,10 @@ function isPureAnalyzerDiagnostic(d) {
  * Anchor for `after` text: last non-empty character of the line.
  * Zero-width end-of-line ranges often do not render `after` content in VS Code.
  * @param {vscode.TextEditor} editor
- * @param {vscode.Diagnostic} d
+ * @param {number} lineNumber
  */
-function endOfLineAnchor(editor, d) {
-  const line = editor.document.lineAt(d.range.start.line);
+function endOfLineAnchor(editor, lineNumber) {
+  const line = editor.document.lineAt(lineNumber);
   const end = line.range.end;
   if (end.character === 0) {
     return new vscode.Range(end, end);
@@ -64,7 +64,6 @@ function createDecorations() {
   const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A"));
   const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955"));
 
-  // No border/box — bold-italic colored label only
   impureBadge = vscode.window.createTextEditorDecorationType({
     after: {
       contentText: "impure",
@@ -105,20 +104,42 @@ function updateEditor(editor) {
     .getDiagnostics(editor.document.uri)
     .filter(isPureAnalyzerDiagnostic);
 
+  // Per line: impure wins over pure (never show "impure pure").
+  /** @type {Map<number, { impure?: vscode.Diagnostic, pure?: vscode.Diagnostic }>} */
+  const byLine = new Map();
+
+  for (const d of diagnostics) {
+    const code = diagnosticCode(d);
+    const line = d.range.start.line;
+    let entry = byLine.get(line);
+    if (!entry) {
+      entry = {};
+      byLine.set(line, entry);
+    }
+    if (code === "PURE002") {
+      entry.impure = d;
+    } else if (code === "PURE003") {
+      entry.pure = d;
+    }
+  }
+
   /** @type {vscode.DecorationOptions[]} */
   const impureOpts = [];
   /** @type {vscode.DecorationOptions[]} */
   const pureOpts = [];
 
-  for (const d of diagnostics) {
-    const code = diagnosticCode(d);
-    const range = endOfLineAnchor(editor, d);
-    const opt = { range, hoverMessage: d.message };
-
-    if (PURE_CODES.has(code)) {
-      pureOpts.push(opt);
-    } else if (code === "PURE002") {
-      impureOpts.push(opt);
+  for (const [line, entry] of byLine) {
+    const range = endOfLineAnchor(editor, line);
+    if (entry.impure) {
+      impureOpts.push({
+        range,
+        hoverMessage: entry.impure.message,
+      });
+    } else if (entry.pure) {
+      pureOpts.push({
+        range,
+        hoverMessage: entry.pure.message,
+      });
     }
   }
 
