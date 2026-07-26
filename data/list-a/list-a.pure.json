@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "packageId": "FSharp.Core\u002BBCL",
+  "packageId": "FSharp.Core\u002BBCL\u002BExtras",
   "packageVersion": "10.1.0",
-  "generatedAt": "2026-07-23T16:20:59.4280334\u002B00:00",
+  "generatedAt": "2026-07-26T17:49:10.2478397\u002B00:00",
   "generator": "fsharp-pure-analyzer/purity-collector/0.1.0",
   "pureMethods": [
     {
@@ -51,6 +51,10 @@
     },
     {
       "fullName": "AdjustmentRule.get_DaylightTransitionStart",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "AllListenerObservable..ctor",
       "origin": "automatic"
     },
     {
@@ -151,6 +155,14 @@
     },
     {
       "fullName": "AtanDynamicImplTable\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "BaggageLinkedList.GetEnumerator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "BaggageLinkedList.get_First",
       "origin": "automatic"
     },
     {
@@ -386,6 +398,10 @@
       "origin": "automatic"
     },
     {
+      "fullName": "CacheEntry..ctor",
+      "origin": "automatic"
+    },
+    {
       "fullName": "Cache\u00604..ctor",
       "origin": "automatic"
     },
@@ -402,6 +418,18 @@
       "origin": "automatic"
     },
     {
+      "fullName": "CachingContext..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CachingContext.get_HashCode",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CachingContext.get_Options",
+      "origin": "automatic"
+    },
+    {
       "fullName": "CallbackContext.get_CreationException",
       "origin": "automatic"
     },
@@ -411,6 +439,14 @@
     },
     {
       "fullName": "CallbackNode..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CallbackObserver\u00601.OnCompleted",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CallbackObserver\u00601.OnError",
       "origin": "automatic"
     },
     {
@@ -562,6 +598,30 @@
       "origin": "automatic"
     },
     {
+      "fullName": "ComImportDetails..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ComImportDetails.get_Iid",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ComImportDetails.get_Implementation",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ComImportDetails.get_ManagedVirtualMethodTable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CommandHandler.IsSharedSession",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "CommandHandler.get_Parent",
+      "origin": "automatic"
+    },
+    {
       "fullName": "CompatSeedImpl.NextInt64",
       "origin": "automatic"
     },
@@ -658,6 +718,14 @@
       "origin": "automatic"
     },
     {
+      "fullName": "ConverterList..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ConverterList.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
       "fullName": "CosDynamicImplTable\u00601..ctor",
       "origin": "automatic"
     },
@@ -722,11 +790,19 @@
       "origin": "automatic"
     },
     {
+      "fullName": "CurrentActivityPropertyFetch..ctor",
+      "origin": "automatic"
+    },
+    {
       "fullName": "Database.get_Term",
       "origin": "automatic"
     },
     {
       "fullName": "DateBuffer..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DateTimeParseData.get_OffsetNegative",
       "origin": "automatic"
     },
     {
@@ -763,6 +839,10 @@
     },
     {
       "fullName": "DebugView.get_TargetScheduler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DebugView.get_Value",
       "origin": "automatic"
     },
     {
@@ -806,6 +886,10 @@
       "origin": "automatic"
     },
     {
+      "fullName": "DefaultPipeWriter.get_CanGetUnflushedBytes",
+      "origin": "automatic"
+    },
+    {
       "fullName": "DelayHelper.HasBlockingAdjustmentDelayElapsed",
       "origin": "automatic"
     },
@@ -830,6 +914,26 @@
       "origin": "automatic"
     },
     {
+      "fullName": "DerivedJsonTypeInfo..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DerivedJsonTypeInfo.get_JsonTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DerivedJsonTypeInfo.get_TypeDiscriminator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DerivedTypeList..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DerivedTypeList.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
       "fullName": "DestroyScout..ctor",
       "origin": "automatic"
     },
@@ -839,6 +943,10 @@
     },
     {
       "fullName": "DfaStateHandler.IsNullableFor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "DiagnosticSubscription..ctor",
       "origin": "automatic"
     },
     {
@@ -966,6 +1074,22 @@
       "origin": "automatic"
     },
     {
+      "fullName": "EnumFieldInfo.get_JsonName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumFieldInfo.get_Key",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumFieldInfo.get_Kind",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumFieldInfo.get_OriginalName",
+      "origin": "automatic"
+    },
+    {
       "fullName": "EnumerableDropIndices.Dispose",
       "origin": "automatic"
     },
@@ -987,6 +1111,18 @@
     },
     {
       "fullName": "EnumerableSorter\u00601.QuickSort",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumeratePropertyFetch..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumeratePropertyFetch\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EnumeratePropertyFetch\u00601.Fetch",
       "origin": "automatic"
     },
     {
@@ -1014,7 +1150,15 @@
       "origin": "automatic"
     },
     {
+      "fullName": "Enumerator\u00601.GetEnumerator",
+      "origin": "automatic"
+    },
+    {
       "fullName": "EphemerisCorrectionAlgorithmMap..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "EqualityComparer..ctor",
       "origin": "automatic"
     },
     {
@@ -1222,6 +1366,18 @@
       "origin": "automatic"
     },
     {
+      "fullName": "GenerationState..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "GenerationState.get_ExporterOptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "GenerationState.get_Options",
+      "origin": "automatic"
+    },
+    {
       "fullName": "Generator\u00601.get_Apply",
       "origin": "automatic"
     },
@@ -1263,6 +1419,10 @@
     },
     {
       "fullName": "HashCompare.PhysicalEqualityIntrinsic",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "Helpers.IsSupportedTypeCode",
       "origin": "automatic"
     },
     {
@@ -1475,6 +1635,10 @@
     },
     {
       "fullName": "ICaseSensitivity.TransformInput",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "IComImportAdapter.GetRuntimeCallableWrapper",
       "origin": "automatic"
     },
     {
@@ -1806,6 +1970,10 @@
       "origin": "automatic"
     },
     {
+      "fullName": "ImplicitTransformEntry..ctor",
+      "origin": "automatic"
+    },
+    {
       "fullName": "IndexOfAnyResultMapper\u00601.get_NotFound",
       "origin": "automatic"
     },
@@ -1915,6 +2083,14 @@
     },
     {
       "fullName": "Iterator\u00601.get_Current",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "JsonPropertyInfoList..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "JsonPropertyInfoList.get_IsReadOnly",
       "origin": "automatic"
     },
     {
@@ -2063,6 +2239,22 @@
     },
     {
       "fullName": "MapEnumerator\u00601.DoMoveNext",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "MetricSpec..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "MetricSpec.ToString",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "MetricSpec.get_InstrumentName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "MetricSpec.get_MeterName",
       "origin": "automatic"
     },
     {
@@ -4150,6 +4342,14 @@
       "origin": "automatic"
     },
     {
+      "fullName": "ModifierCollection..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ModifierCollection.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
       "fullName": "MoreEventInfo..ctor",
       "origin": "automatic"
     },
@@ -4442,7 +4642,27 @@
       "origin": "automatic"
     },
     {
+      "fullName": "ParameterLookupKey..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ParameterLookupKey.Equals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ParameterLookupKey.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "ParameterLookupKey.get_Type",
+      "origin": "automatic"
+    },
+    {
       "fullName": "ParsedMount.get_MountPoint",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PartialStateForRollback..ctor",
       "origin": "automatic"
     },
     {
@@ -4515,6 +4735,34 @@
     },
     {
       "fullName": "ProperIntegralRangeEnumerator\u00602.Step",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertyFetch..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertyFetch.Fetch",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertyNameComparer..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertyNameSet.Dispose",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertySpec..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertySpec.get_IsStatic",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "PropertySpec.get_Next",
       "origin": "automatic"
     },
     {
@@ -4690,7 +4938,35 @@
       "origin": "automatic"
     },
     {
+      "fullName": "Runner..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "RunnerFactory..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "RunnerFactory.CreateInstance",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SchedulingContext..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SchedulingContext.get_ExecutionContext",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SchedulingContext.get_SynchronizationContext",
+      "origin": "automatic"
+    },
+    {
       "fullName": "Scope..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SegmentAsValueType.op_Implicit",
       "origin": "automatic"
     },
     {
@@ -4795,6 +5071,18 @@
     },
     {
       "fullName": "SpanSplitEnumerator\u00601.get_Source",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SpecLookupKey..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SpecLookupKeyComparer..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "SpecLookupKeyComparer.Equals",
       "origin": "automatic"
     },
     {
@@ -9386,6 +9674,10 @@
       "origin": "automatic"
     },
     {
+      "fullName": "System.HexConverter.FromLowerChar",
+      "origin": "automatic"
+    },
+    {
       "fullName": "System.HexConverter.IsHexChar",
       "origin": "automatic"
     },
@@ -10527,6 +10819,10 @@
     },
     {
       "fullName": "System.LoaderOptimizationAttribute.get_Value",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.LocalAppContextSwitches.get_DefaultActivityIdFormatIsHierarchial",
       "origin": "automatic"
     },
     {
@@ -19758,6 +20054,1870 @@
       "origin": "automatic"
     },
     {
+      "fullName": "System.Text.Encodings.Web.DefaultHtmlEncoder.get_MaxOutputCharactersPerInputCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.DefaultJavaScriptEncoder.get_MaxOutputCharactersPerInputCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.DefaultUrlEncoder.get_MaxOutputCharactersPerInputCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.HtmlEncoder..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.HtmlEncoder.get_Default",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.JavaScriptEncoder..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.JavaScriptEncoder.Create",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.JavaScriptEncoder.get_Default",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.JavaScriptEncoder.get_UnsafeRelaxedJsonEscaping",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.ScalarEscaperBase..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.TextEncoder..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.TextEncoder.WillEncode",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.TextEncoder.get_MaxOutputCharactersPerInputCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.TextEncoderSettings..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.UrlEncoder..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Encodings.Web.UrlEncoder.get_Default",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.AppContextSwitchHelper.get_IsSourceGenReflectionFallbackEnabled",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.AppContextSwitchHelper.get_RespectNullableAnnotationsDefault",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.AppContextSwitchHelper.get_RespectRequiredConstructorParametersDefault",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.ArgumentState..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Arguments\u00604..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.BitStack.Peek",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.BitStack.get_CurrentDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonCamelCaseNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocument.ParseValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocument.TryParseValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocument.get_RootElement",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocumentOptions.get_AllowDuplicateProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocumentOptions.get_AllowTrailingCommas",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocumentOptions.get_CommentHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonDocumentOptions.get_MaxDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonElement.Parse",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonElement.ParseValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonEncodedText.Equals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonEncodedText.ToString",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonEncodedText.get_Value",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonException.get_BytePositionInLine",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonException.get_LineNumber",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonException.get_Path",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonHelpers.IsDigit",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonHelpers.IsFinite",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonHelpers.IsInRangeInclusive",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonHelpers.IsValidDateTimeOffsetParseLength",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonHelpers.IsValidUnescapedDateTimeOffsetParseLength",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonKebabCaseLowerNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonKebabCaseUpperNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.ConvertName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.get_CamelCase",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.get_KebabCaseLower",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.get_KebabCaseUpper",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.get_SnakeCaseLower",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonNamingPolicy.get_SnakeCaseUpper",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonProperty.NameEquals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonProperty.get_Value",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderHelper.IsHexDigit",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderHelper.IsTokenTypePrimitive",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderOptions.get_AllowMultipleValues",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderOptions.get_AllowTrailingCommas",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderOptions.get_CommentHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderOptions.get_MaxDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonReaderState.get_Options",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializer.get_IsReflectionEnabledByDefault",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_AllowDuplicateProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_AllowOutOfOrderMetadataProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_AllowTrailingCommas",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_DefaultBufferSize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_DefaultIgnoreCondition",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_DictionaryKeyPolicy",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_Encoder",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IgnoreNullValues",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IgnoreReadOnlyFields",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IgnoreReadOnlyProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IncludeFields",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IndentCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IndentSize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_MaxDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_PreferredObjectCreationHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_PropertyNameCaseInsensitive",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_PropertyNamingPolicy",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_ReadCommentHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_ReferenceHandler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_RespectNullableAnnotations",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_RespectRequiredConstructorParameters",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_TypeInfoResolver",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_UnknownTypeHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_UnmappedMemberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSerializerOptions.get_WriteIndented",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSnakeCaseLowerNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonSnakeCaseUpperNamingPolicy..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterHelper.EscapeString",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterHelper.GetMaxEscapedLength",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_Encoder",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_IndentCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_IndentSize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_Indented",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_MaxDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.JsonWriterOptions.get_SkipValidation",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.DeepClone",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.DeepEquals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.GetValueKind",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.WriteTo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.get_Parent",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNode.get_Root",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonNodeOptions.get_PropertyNameCaseInsensitive",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonObject.TryAdd",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonObject.TryGetPropertyValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonValue.TryGetValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Nodes.JsonValueOfElement..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.PooledByteBufferWriter.get_CanGetUnflushedBytes",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.ReadStack.get_IsContinuation",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.ReadStackFrame.IsProcessingDictionary",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.ReadStackFrame.IsProcessingEnumerable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.ReadStackFrame.get_BaseJsonTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Reflection.ReflectionExtensions.CreateInstanceNoWrapExceptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Reflection.ReflectionExtensions.IsVirtual",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Reflection.ReflectionExtensions.TryGetDeserializationConstructor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.CreateFalseSchema",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.CreateTrueSchema",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_AdditionalProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_AnyOf",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Comment",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Constant",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_DefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Enum",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_ExporterContext",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Format",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_HasDefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Items",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_MaxLength",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_MinLength",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Not",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Pattern",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Properties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Ref",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Required",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchema.get_Type",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterContext.get_BaseTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterContext.get_PropertyInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterContext.get_TypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterOptions..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterOptions.get_Default",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterOptions.get_TransformSchemaNode",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Schema.JsonSchemaExporterOptions.get_TreatNullObliviousAsNonNullable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ConfigurationList\u00601.OnCollectionModified",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ConfigurationList\u00601.OnCollectionModifying",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ConfigurationList\u00601.ValidateAddedValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ConfigurationList\u00601.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ArrayConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.BooleanConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ByteArrayConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.CastingConverter\u00601.Write",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.CastingConverter\u00601.WriteAsPropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.CastingConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.CharConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ConcurrentQueueOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ConcurrentStackOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.DateOnlyConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.DateTimeConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.DateTimeOffsetConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.DictionaryDefaultConverter\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.DictionaryOfTKeyTValueConverter\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.EnumConverterFactory.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.FSharpOptionConverter\u00602.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.FSharpValueOptionConverter\u00602.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.GuidConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IAsyncEnumerableOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ICollectionOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IDictionaryConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IDictionaryOfTKeyTValueConverter\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IEnumerableDefaultConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IListConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.IListOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ISetOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ImmutableDictionaryOfTKeyTValueConverterWithReflection\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ImmutableDictionaryOfTKeyTValueConverter\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ImmutableEnumerableOfTConverterWithReflection\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ImmutableEnumerableOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonArrayConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonDocumentConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonDocumentConverter.Read",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonDocumentConverter.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonElementConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonElementConverter.Read",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonMetadataServicesConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonNodeConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonObjectConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonPrimitiveConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.JsonValueConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.LargeObjectWithParameterizedConstructorConverterWithReflection\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.LargeObjectWithParameterizedConstructorConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ListOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.MemoryByteConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.MemoryByteConverter.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.MemoryConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.MemoryConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.NullableConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectConverterFactory.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectDefaultConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectWithParameterizedConstructorConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectWithParameterizedConstructorConverter\u00601.CreateObject",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectWithParameterizedConstructorConverter\u00601.InitializeConstructorArgumentCaches",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ObjectWithParameterizedConstructorConverter\u00601.ReadAndCacheConstructorArgument",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.QueueOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ReadOnlyMemoryByteConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ReadOnlyMemoryByteConverter.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ReadOnlyMemoryConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.ReadOnlyMemoryConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.SmallObjectWithParameterizedConstructorConverter\u00605..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.StackOfTConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.StackOrQueueConverterWithReflection\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.StackOrQueueConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.StringConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.TimeOnlyConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.TimeSpanConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.UriConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Converters.VersionConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IJsonOnDeserialized.OnDeserialized",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IJsonOnDeserializing.OnDeserializing",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IJsonOnSerialized.OnSerialized",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IJsonOnSerializing.OnSerializing",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IReadBufferState\u00602.Advance",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IReadBufferState\u00602.GetReader",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IReadBufferState\u00602.Read",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IReadBufferState\u00602.ReadAsync",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IReadBufferState\u00602.get_IsFinalBlock",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IgnoreReferenceHandler.CreateResolver",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.IgnoreReferenceResolver..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonCollectionConverter\u00602..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonCollectionConverter\u00602.Add",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonCollectionConverter\u00602.ConvertCollection",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonCollectionConverter\u00602.OnWriteResume",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConstructorAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter.get_Type",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverterAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverterAttribute.CreateConverter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverterAttribute.get_ConverterType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverterFactory.CreateConverter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverterFactory.get_Type",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter\u00601.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter\u00601.Read",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter\u00601.Write",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonConverter\u00601.get_Type",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDerivedTypeAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDerivedTypeAttribute.get_DerivedType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDerivedTypeAttribute.get_TypeDiscriminator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDictionaryConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDictionaryConverter\u00601.OnWriteResume",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDictionaryConverter\u00603..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDictionaryConverter\u00603.Add",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonDictionaryConverter\u00603.ConvertCollection",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonExtensionDataAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonIgnoreAttribute.get_Condition",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonIncludeAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonNumberEnumConverter\u00601.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonNumberHandlingAttribute.get_Handling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonObjectConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonObjectCreationHandlingAttribute.get_Handling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPolymorphicAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPolymorphicAttribute.get_IgnoreUnrecognizedTypeDiscriminators",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPolymorphicAttribute.get_TypeDiscriminatorPropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPolymorphicAttribute.get_UnknownDerivedTypeHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPropertyNameAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPropertyNameAttribute.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPropertyOrderAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonPropertyOrderAttribute.get_Order",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonRequiredAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonResumableConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonResumableConverter\u00601.get_HandleNull",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSerializableAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSerializableAttribute.get_GenerationMode",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSerializableAttribute.get_TypeInfoPropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSerializerContext.GetTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSerializerContext.get_GeneratedSerializerOptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_AllowDuplicateProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_AllowOutOfOrderMetadataProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_AllowTrailingCommas",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_Converters",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_DefaultBufferSize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_DefaultIgnoreCondition",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_DictionaryKeyPolicy",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_GenerationMode",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_IgnoreReadOnlyFields",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_IgnoreReadOnlyProperties",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_IncludeFields",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_IndentCharacter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_IndentSize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_MaxDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_NewLine",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_PreferredObjectCreationHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_PropertyNameCaseInsensitive",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_PropertyNamingPolicy",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_ReadCommentHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_ReferenceHandler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_RespectNullableAnnotations",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_RespectRequiredConstructorParameters",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_UnknownTypeHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_UnmappedMemberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_UseStringEnumConverter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute.get_WriteIndented",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumConverter..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumConverter.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumConverter\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumConverter\u00601.CanConvert",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumMemberNameAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonStringEnumMemberNameAttribute.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute.get_UnmappedMemberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.EmptyJsonTypeInfoResolver..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.EmptyJsonTypeInfoResolver.GetTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.EmptyJsonTypeInfoResolver.IsCompatibleWithOptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.FSharpCoreReflectionProxy.get_Instance",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.IBuiltInJsonTypeInfoResolver.IsCompatibleWithOptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver.GetTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601.get_ElementInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601.get_KeyInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601.get_ObjectCreator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonCollectionInfoValues\u00601.get_SerializeHandler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonDerivedType..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonDerivedType.get_DerivedType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonDerivedType.get_TypeDiscriminator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonMetadataServices.GetUnsupportedTypeConverter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_ConstructorAttributeProviderFactory",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_ConstructorParameterMetadataInitializer",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_ObjectCreator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_ObjectWithParameterizedConstructorCreator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_PropertyMetadataInitializer",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonObjectInfoValues\u00601.get_SerializeHandler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_DeclaringType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_DefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_HasDefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_IsMemberInitializer",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_IsNullable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_ParameterType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo.get_Position",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_DefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_HasDefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_IsMemberInitializer",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_IsNullable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_ParameterType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfoValues.get_Position",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo\u00601.get_EffectiveDefaultValue",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonParameterInfo\u00601.get_MatchingProperty",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPolymorphismOptions..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPolymorphismOptions.get_IgnoreUnrecognizedTypeDiscriminators",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPolymorphismOptions.get_TypeDiscriminatorPropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPolymorphismOptions.get_UnknownDerivedTypeHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_AssociatedParameter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_CustomConverter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_DeclaringType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_Get",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_IsExtensionData",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_IsGetNullable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_IsRequired",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_IsSetNullable",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_Name",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_ObjectCreationHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_Options",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_Order",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_PropertyType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_Set",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfo.get_ShouldSerialize",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_AttributeProviderFactory",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_Converter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_DeclaringType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_Getter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_HasJsonInclude",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_IgnoreCondition",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_IsExtensionData",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_IsProperty",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_IsPublic",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_IsVirtual",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_JsonPropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_PropertyName",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_PropertyTypeInfo",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonPropertyInfoValues\u00601.get_Setter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_Converter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_CreateObject",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_ElementType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_KeyType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_Kind",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_NumberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_OnDeserialized",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_OnDeserializing",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_OnSerialized",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_OnSerializing",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_Options",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_OriginatingResolver",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_PolymorphismOptions",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_PreferredPropertyObjectCreationHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_Type",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo.get_UnmappedMemberHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfoResolverChain..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfoResolverChain.get_IsReadOnly",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfoResolverWithAddedModifiers..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo\u00601.get_CreateObject",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.JsonTypeInfo\u00601.get_SerializeHandler",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.Clear",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateAddMethodDelegate",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateFieldGetter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateFieldSetter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateImmutableDictionaryCreateRangeDelegate",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateImmutableEnumerableCreateRangeDelegate",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateParameterizedConstructor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreateParameterlessConstructor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreatePropertyGetter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.MemberAccessor.CreatePropertySetter",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_BaseType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_CustomTypeDiscriminatorPropertyNameJsonEncoded",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_CustomTypeDiscriminatorPropertyNameUtf8",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_IgnoreUnrecognizedTypeDiscriminators",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_UnknownDerivedTypeHandling",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PolymorphicTypeResolver.get_UsesTypeDiscriminators",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PropertyRef..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.PropertyRefCacheBuilder..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.ReflectionEmitCachingMemberAccessor..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.ReflectionEmitMemberAccessor..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.Metadata.ReflectionMemberAccessor..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.PipeReadBufferState.get_IsFinalBlock",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.PreserveReferenceResolver..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceEqualsWrapper..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceEqualsWrapper.Equals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceHandler.get_IgnoreCycles",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceHandler.get_Preserve",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceHandler\u00601.CreateResolver",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceResolver..ctor",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceResolver.AddReference",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceResolver.GetReference",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.ReferenceResolver.ResolveReference",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Serialization.StreamReadBufferState.get_IsFinalBlock",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_BytesConsumed",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_HasValueSequence",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_IsFinalBlock",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_TokenStartIndex",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_TokenType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_ValueIsEscaped",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_ValueSequence",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonReader.get_ValueSpan",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonWriter.get_BytesCommitted",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonWriter.get_BytesPending",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonWriter.get_CurrentDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.Utf8JsonWriter.get_Options",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.WriteStack.get_CurrentContainsMetadata",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.WriteStack.get_CurrentDepth",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Json.WriteStack.get_IsContinuation",
+      "origin": "automatic"
+    },
+    {
       "fullName": "System.Text.Latin1Encoding..ctor",
       "origin": "automatic"
     },
@@ -20603,6 +22763,14 @@
     },
     {
       "fullName": "System.Text.UTF8Encoding.Equals",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Unicode.UnicodeRange.get_FirstCodePoint",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "System.Text.Unicode.UnicodeRange.get_Length",
       "origin": "automatic"
     },
     {
@@ -22238,6 +24406,26 @@
       "origin": "automatic"
     },
     {
+      "fullName": "TableInfo.get_ManagedType",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "TableInfo.get_Table",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "TableInfo.get_ThisPtr",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "TagsLinkedList.GetEnumerator",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "TagsLinkedList.get_First",
+      "origin": "automatic"
+    },
+    {
       "fullName": "TanDynamicImplTable\u00601..ctor",
       "origin": "automatic"
     },
@@ -22335,6 +24523,10 @@
     },
     {
       "fullName": "Token.get_Signal",
+      "origin": "automatic"
+    },
+    {
+      "fullName": "TrackedOptionsInstances.get_All",
       "origin": "automatic"
     },
     {
