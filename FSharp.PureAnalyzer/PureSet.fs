@@ -73,98 +73,451 @@ module PureSet =
         let listMembers =
             [
                 // queries / shape
-                "Length"; "IsEmpty"; "Empty"; "Head"; "TryHead"; "Tail"; "Last"; "TryLast"
-                "Item"; "TryItem"; "ExactlyOne"; "TryExactlyOne"; "Indexed"
+                "Length"
+                "IsEmpty"
+                "Empty"
+                "Head"
+                "TryHead"
+                "Tail"
+                "Last"
+                "TryLast"
+                "Item"
+                "TryItem"
+                "ExactlyOne"
+                "TryExactlyOne"
+                "Indexed"
                 // constructors / conversion
-                "Singleton"; "Replicate"; "Init"; "Unfold"; "OfArray"; "OfSeq"; "OfList"
-                "ToArray"; "ToSeq"; "ToList"
+                "Singleton"
+                "Replicate"
+                "Init"
+                "Unfold"
+                "OfArray"
+                "OfSeq"
+                "OfList"
+                "ToArray"
+                "ToSeq"
+                "ToList"
                 // transforms (HOFs)
-                "Map"; "MapIndexed"; "Map2"; "Map3"; "MapFold"; "MapFoldBack"
-                "Filter"; "Where"; "Choose"; "Collect"; "Concat"; "Append"
-                "Exists"; "ForAll"; "Forall"; "Contains"; "Find"; "TryFind"
-                "FindIndex"; "TryFindIndex"; "FindBack"; "TryFindBack"
-                "FindIndexBack"; "TryFindIndexBack"; "Pick"; "TryPick"
-                "Fold"; "FoldBack"; "Fold2"; "FoldBack2"; "Reduce"; "ReduceBack"
-                "Scan"; "ScanBack"; "Sort"; "SortBy"; "SortWith"; "SortDescending"; "SortByDescending"
-                "Rev"; "Distinct"; "DistinctBy"; "GroupBy"; "CountBy"; "Partition"; "SplitAt"
-                "Zip"; "Zip3"; "Unzip"; "Unzip3"; "AllPairs"; "Pairwise"; "Windowed"; "ChunkBySize"
-                "Take"; "TakeWhile"; "Skip"; "SkipWhile"; "Truncate"; "Except"; "Intersect"
-                "Sum"; "SumBy"; "Average"; "AverageBy"; "Min"; "Max"; "MinBy"; "MaxBy"
-                "CompareWith"; "Permute"; "InsertAt"; "RemoveAt"; "UpdateAt"; "InsertManyAt"; "RemoveManyAt"
+                "Map"
+                "MapIndexed"
+                "Map2"
+                "Map3"
+                "MapFold"
+                "MapFoldBack"
+                "Filter"
+                "Where"
+                "Choose"
+                "Collect"
+                "Concat"
+                "Append"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Contains"
+                "Find"
+                "TryFind"
+                "FindIndex"
+                "TryFindIndex"
+                "FindBack"
+                "TryFindBack"
+                "FindIndexBack"
+                "TryFindIndexBack"
+                "Pick"
+                "TryPick"
+                "Fold"
+                "FoldBack"
+                "Fold2"
+                "FoldBack2"
+                "Reduce"
+                "ReduceBack"
+                "Scan"
+                "ScanBack"
+                "Sort"
+                "SortBy"
+                "SortWith"
+                "SortDescending"
+                "SortByDescending"
+                "Rev"
+                "Distinct"
+                "DistinctBy"
+                "GroupBy"
+                "CountBy"
+                "Partition"
+                "SplitAt"
+                "Zip"
+                "Zip3"
+                "Unzip"
+                "Unzip3"
+                "AllPairs"
+                "Pairwise"
+                "Windowed"
+                "ChunkBySize"
+                "Take"
+                "TakeWhile"
+                "Skip"
+                "SkipWhile"
+                "Truncate"
+                "Except"
+                "Intersect"
+                "Sum"
+                "SumBy"
+                "Average"
+                "AverageBy"
+                "Min"
+                "Max"
+                "MinBy"
+                "MaxBy"
+                "CompareWith"
+                "Permute"
+                "InsertAt"
+                "RemoveAt"
+                "UpdateAt"
+                "InsertManyAt"
+                "RemoveManyAt"
             ]
 
         let arrayMembers =
             [
-                "Length"; "IsEmpty"; "Empty"; "ZeroCreate"; "Create"; "Init"; "Replicate"
-                "Head"; "TryHead"; "Last"; "TryLast"; "Item"; "TryItem"; "ExactlyOne"; "TryExactlyOne"
-                "Indexed"; "OfList"; "OfSeq"; "OfArray"; "ToList"; "ToSeq"; "ToArray"
-                "Map"; "MapIndexed"; "Map2"; "Map3"; "MapFold"; "MapFoldBack"
-                "Filter"; "Where"; "Choose"; "Collect"; "Concat"; "Append"
-                "Exists"; "ForAll"; "Forall"; "Contains"; "Find"; "TryFind"
-                "FindIndex"; "TryFindIndex"; "FindBack"; "TryFindBack"
-                "FindIndexBack"; "TryFindIndexBack"; "Pick"; "TryPick"
-                "Fold"; "FoldBack"; "Fold2"; "FoldBack2"; "Reduce"; "ReduceBack"
-                "Scan"; "ScanBack"; "Sort"; "SortBy"; "SortWith"; "SortDescending"; "SortByDescending"
-                "Rev"; "Distinct"; "DistinctBy"; "GroupBy"; "CountBy"; "Partition"; "SplitAt"
-                "Zip"; "Zip3"; "Unzip"; "Unzip3"; "AllPairs"; "Pairwise"; "Windowed"; "ChunkBySize"
-                "Take"; "TakeWhile"; "Skip"; "SkipWhile"; "Truncate"; "Except"
-                "Sum"; "SumBy"; "Average"; "AverageBy"; "Min"; "Max"; "MinBy"; "MaxBy"
-                "CompareWith"; "Permute"; "Copy"; "Sub"; "GetSubArray"
-                // note: omit Set, Fill, Blit, Clear — mutating
+                "Length"
+                "IsEmpty"
+                "Empty"
+                "ZeroCreate"
+                "Create"
+                "Init"
+                "Replicate"
+                "Head"
+                "TryHead"
+                "Last"
+                "TryLast"
+                "Item"
+                "TryItem"
+                "ExactlyOne"
+                "TryExactlyOne"
+                "Indexed"
+                "OfList"
+                "OfSeq"
+                "OfArray"
+                "ToList"
+                "ToSeq"
+                "ToArray"
+                "Map"
+                "MapIndexed"
+                "Map2"
+                "Map3"
+                "MapFold"
+                "MapFoldBack"
+                "Filter"
+                "Where"
+                "Choose"
+                "Collect"
+                "Concat"
+                "Append"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Contains"
+                "Find"
+                "TryFind"
+                "FindIndex"
+                "TryFindIndex"
+                "FindBack"
+                "TryFindBack"
+                "FindIndexBack"
+                "TryFindIndexBack"
+                "Pick"
+                "TryPick"
+                "Fold"
+                "FoldBack"
+                "Fold2"
+                "FoldBack2"
+                "Reduce"
+                "ReduceBack"
+                "Scan"
+                "ScanBack"
+                "Sort"
+                "SortBy"
+                "SortWith"
+                "SortDescending"
+                "SortByDescending"
+                "Rev"
+                "Distinct"
+                "DistinctBy"
+                "GroupBy"
+                "CountBy"
+                "Partition"
+                "SplitAt"
+                "Zip"
+                "Zip3"
+                "Unzip"
+                "Unzip3"
+                "AllPairs"
+                "Pairwise"
+                "Windowed"
+                "ChunkBySize"
+                "Take"
+                "TakeWhile"
+                "Skip"
+                "SkipWhile"
+                "Truncate"
+                "Except"
+                "Sum"
+                "SumBy"
+                "Average"
+                "AverageBy"
+                "Min"
+                "Max"
+                "MinBy"
+                "MaxBy"
+                "CompareWith"
+                "Permute"
+                "Copy"
+                "Sub"
+                "GetSubArray"
+            // note: omit Set, Fill, Blit, Clear — mutating
             ]
 
         let seqMembers =
             [
-                "Length"; "IsEmpty"; "Empty"; "Singleton"; "Init"; "InitInfinite"; "Unfold"; "Replicate"
-                "Head"; "TryHead"; "Last"; "TryLast"; "Item"; "TryItem"; "ExactlyOne"; "TryExactlyOne"
-                "Indexed"; "OfList"; "OfArray"; "OfSeq"; "ToList"; "ToArray"; "ToSeq"
-                "Map"; "MapIndexed"; "Map2"; "Map3"; "MapFold"; "MapFoldBack"
-                "Filter"; "Where"; "Choose"; "Collect"; "Concat"; "Append"
-                "Exists"; "ForAll"; "Forall"; "Contains"; "Find"; "TryFind"
-                "FindIndex"; "TryFindIndex"; "FindBack"; "TryFindBack"
-                "FindIndexBack"; "TryFindIndexBack"; "Pick"; "TryPick"
-                "Fold"; "FoldBack"; "Fold2"; "FoldBack2"; "Reduce"; "ReduceBack"
-                "Scan"; "ScanBack"; "Sort"; "SortBy"; "SortWith"; "SortDescending"; "SortByDescending"
-                "Rev"; "Distinct"; "DistinctBy"; "GroupBy"; "CountBy"; "Partition"
-                "Zip"; "Zip3"; "Unzip"; "Unzip3"; "AllPairs"; "Pairwise"; "Windowed"; "ChunkBySize"
-                "Take"; "TakeWhile"; "Skip"; "SkipWhile"; "Truncate"; "Except"; "Intersect"
-                "Sum"; "SumBy"; "Average"; "AverageBy"; "Min"; "Max"; "MinBy"; "MaxBy"
-                "CompareWith"; "Cache"; "Delay"; "Readonly"
+                "Length"
+                "IsEmpty"
+                "Empty"
+                "Singleton"
+                "Init"
+                "InitInfinite"
+                "Unfold"
+                "Replicate"
+                "Head"
+                "TryHead"
+                "Last"
+                "TryLast"
+                "Item"
+                "TryItem"
+                "ExactlyOne"
+                "TryExactlyOne"
+                "Indexed"
+                "OfList"
+                "OfArray"
+                "OfSeq"
+                "ToList"
+                "ToArray"
+                "ToSeq"
+                "Map"
+                "MapIndexed"
+                "Map2"
+                "Map3"
+                "MapFold"
+                "MapFoldBack"
+                "Filter"
+                "Where"
+                "Choose"
+                "Collect"
+                "Concat"
+                "Append"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Contains"
+                "Find"
+                "TryFind"
+                "FindIndex"
+                "TryFindIndex"
+                "FindBack"
+                "TryFindBack"
+                "FindIndexBack"
+                "TryFindIndexBack"
+                "Pick"
+                "TryPick"
+                "Fold"
+                "FoldBack"
+                "Fold2"
+                "FoldBack2"
+                "Reduce"
+                "ReduceBack"
+                "Scan"
+                "ScanBack"
+                "Sort"
+                "SortBy"
+                "SortWith"
+                "SortDescending"
+                "SortByDescending"
+                "Rev"
+                "Distinct"
+                "DistinctBy"
+                "GroupBy"
+                "CountBy"
+                "Partition"
+                "Zip"
+                "Zip3"
+                "Unzip"
+                "Unzip3"
+                "AllPairs"
+                "Pairwise"
+                "Windowed"
+                "ChunkBySize"
+                "Take"
+                "TakeWhile"
+                "Skip"
+                "SkipWhile"
+                "Truncate"
+                "Except"
+                "Intersect"
+                "Sum"
+                "SumBy"
+                "Average"
+                "AverageBy"
+                "Min"
+                "Max"
+                "MinBy"
+                "MaxBy"
+                "CompareWith"
+                "Cache"
+                "Delay"
+                "Readonly"
             ]
 
         let mapMembers =
             [
-                "Empty"; "IsEmpty"; "Count"; "ContainsKey"; "ContainsValue"
-                "Find"; "TryFind"; "FindKey"; "TryFindKey"; "Item"
-                "Add"; "Change"; "Remove"; "Map"; "Filter"; "Partition"
-                "Exists"; "ForAll"; "Forall"; "Fold"; "FoldBack"
-                "ToList"; "ToArray"; "ToSeq"; "OfList"; "OfArray"; "OfSeq"
-                "Keys"; "Values"; "MinKeyValue"; "MaxKeyValue"
-                "TryMinKeyValue"; "TryMaxKeyValue"
+                "Empty"
+                "IsEmpty"
+                "Count"
+                "ContainsKey"
+                "ContainsValue"
+                "Find"
+                "TryFind"
+                "FindKey"
+                "TryFindKey"
+                "Item"
+                "Add"
+                "Change"
+                "Remove"
+                "Map"
+                "Filter"
+                "Partition"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Fold"
+                "FoldBack"
+                "ToList"
+                "ToArray"
+                "ToSeq"
+                "OfList"
+                "OfArray"
+                "OfSeq"
+                "Keys"
+                "Values"
+                "MinKeyValue"
+                "MaxKeyValue"
+                "TryMinKeyValue"
+                "TryMaxKeyValue"
             ]
 
         let setMembers =
             [
-                "Empty"; "IsEmpty"; "Count"; "Contains"; "Add"; "Remove"
-                "Singleton"; "Union"; "Intersect"; "Difference"; "IsSubset"; "IsSuperset"
-                "IsProperSubset"; "IsProperSuperset"
-                "Map"; "Filter"; "Partition"; "Exists"; "ForAll"; "Forall"
-                "Fold"; "FoldBack"; "MinElement"; "MaxElement"
-                "ToList"; "ToArray"; "ToSeq"; "OfList"; "OfArray"; "OfSeq"
+                "Empty"
+                "IsEmpty"
+                "Count"
+                "Contains"
+                "Add"
+                "Remove"
+                "Singleton"
+                "Union"
+                "Intersect"
+                "Difference"
+                "IsSubset"
+                "IsSuperset"
+                "IsProperSubset"
+                "IsProperSuperset"
+                "Map"
+                "Filter"
+                "Partition"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Fold"
+                "FoldBack"
+                "MinElement"
+                "MaxElement"
+                "ToList"
+                "ToArray"
+                "ToSeq"
+                "OfList"
+                "OfArray"
+                "OfSeq"
             ]
 
         let optionMembers =
             [
-                "Map"; "Bind"; "Exists"; "ForAll"; "Forall"; "Filter"; "Flatten"
-                "IsSome"; "IsNone"; "DefaultValue"; "DefaultWith"; "OrElse"; "OrElseWith"
-                "ToArray"; "ToList"; "ToSeq"; "OfNullable"; "ToNullable"; "Count"
-                "Fold"; "FoldBack"; "Contains"; "Iter" // Iter only pure if f pure; walker attributes f to caller
+                "Map"
+                "Bind"
+                "Exists"
+                "ForAll"
+                "Forall"
+                "Filter"
+                "Flatten"
+                "IsSome"
+                "IsNone"
+                "DefaultValue"
+                "DefaultWith"
+                "OrElse"
+                "OrElseWith"
+                "ToArray"
+                "ToList"
+                "ToSeq"
+                "OfNullable"
+                "ToNullable"
+                "Count"
+                "Fold"
+                "FoldBack"
+                "Contains"
+                "Iter" // Iter only pure if f pure; walker attributes f to caller
             ]
 
         let resultMembers =
             [
-                "Map"; "MapError"; "Bind"; "IsOk"; "IsError"
-                "DefaultValue"; "DefaultWith"; "Exists"; "ForAll"; "Forall"
+                "Map"
+                "MapError"
+                "Bind"
+                "IsOk"
+                "IsError"
+                "DefaultValue"
+                "DefaultWith"
+                "Exists"
+                "ForAll"
+                "Forall"
+            ]
+
+
+        let pureOperators =
+            [
+                // Forward / backward pipe
+                "Microsoft.FSharp.Core.Operators.op_PipeRight"
+                "Microsoft.FSharp.Core.Operators.op_PipeLeft"
+                // Function composition
+                "Microsoft.FSharp.Core.Operators.op_ComposeRight"
+                "Microsoft.FSharp.Core.Operators.op_ComposeLeft"
+                // List cons / append
+                "Microsoft.FSharp.Core.Operators.op_ColonColon"
+                "Microsoft.FSharp.Core.Operators.op_Append"
+                // Ranges
+                "Microsoft.FSharp.Core.Operators.op_Range"
+                "Microsoft.FSharp.Core.Operators.op_RangeStep"
+                // Boolean
+                "Microsoft.FSharp.Core.Operators.op_BooleanAnd"
+                "Microsoft.FSharp.Core.Operators.op_BooleanOr"
+                // Bitwise (pure)
+                "Microsoft.FSharp.Core.Operators.op_BitwiseAnd"
+                "Microsoft.FSharp.Core.Operators.op_BitwiseOr"
+                "Microsoft.FSharp.Core.Operators.op_ExclusiveOr"
+                "Microsoft.FSharp.Core.Operators.op_LogicalNot"
+                "Microsoft.FSharp.Core.Operators.op_LeftShift"
+                "Microsoft.FSharp.Core.Operators.op_RightShift"
+                // Unary / misc pure
+                "Microsoft.FSharp.Core.Operators.op_UnaryPlus"
+                "Microsoft.FSharp.Core.Operators.op_UnaryNegation"
+                "Microsoft.FSharp.Core.Operators.op_Concatenate" // string +
+            // Note: op_ColonEquals (:=) is assignment — intentionally omitted
+            // Note: op_Dereference (!) on refs is omitted (reads mutable cells)
             ]
 
         let invokePlumbing =
@@ -193,6 +546,7 @@ module PureSet =
             ]
 
         [|
+            yield! pureOperators
             yield! invokePlumbing
             for modName, names in prefixes do
                 yield! members modName names
@@ -201,10 +555,12 @@ module PureSet =
     let private isFunctionInvokeLeaf (normalized: string) =
         let n = normalized
         // Deny reflection / delegate Invoke (same policy as collector)
-        if n.StartsWith("System.Reflection", StringComparison.Ordinal)
-           || n.StartsWith("System.Delegate", StringComparison.Ordinal)
-           || n.Contains("DynamicInvoke", StringComparison.Ordinal)
-           || n.Contains("InvokeMember", StringComparison.Ordinal) then
+        if
+            n.StartsWith("System.Reflection", StringComparison.Ordinal)
+            || n.StartsWith("System.Delegate", StringComparison.Ordinal)
+            || n.Contains("DynamicInvoke", StringComparison.Ordinal)
+            || n.Contains("InvokeMember", StringComparison.Ordinal)
+        then
             false
         else
             let isFsharpFunc =
@@ -252,7 +608,11 @@ module PureSet =
                 normalized.Add(n) |> ignore
                 lastSeg.Add(lastSegmentKey fn) |> ignore
 
-        { Exact = exact; Normalized = normalized; LastSegment = lastSeg }
+        {
+            Exact = exact
+            Normalized = normalized
+            LastSegment = lastSeg
+        }
 
     let private parsedIndex =
         lazy
@@ -264,28 +624,66 @@ module PureSet =
             let fromJson =
                 match JsonSerializer.Deserialize<PureFileDto>(json, options) with
                 | null -> failwith "Failed to deserialize foundational.pure.json."
-                | dto ->
-                    dto.pureMethods
-                    |> Array.map (fun m -> m.fullName)
-                    |> Seq.ofArray
+                | dto -> dto.pureMethods |> Array.map (fun m -> m.fullName) |> Seq.ofArray
 
             buildIndex (Seq.append fromJson supplementalLeaves)
 
+    let private isKnownPureOperator (normalized: string) =
+        let key = lastSegmentKey normalized
+        // lastSegmentKey is "type.member" lowercased
+        let memberName =
+            let i = key.LastIndexOf '.'
+            if i < 0 then key else key.Substring(i + 1)
+
+        match memberName with
+        | "op_piperight"
+        | "op_pipeleft"
+        | "op_composeright"
+        | "op_composeleft"
+        | "op_coloncolon"
+        | "op_append"
+        | "op_range"
+        | "op_rangestep"
+        | "op_booleanand"
+        | "op_booleanor"
+        | "op_bitwiseand"
+        | "op_bitwiseor"
+        | "op_exclusiveor"
+        | "op_logicalnot"
+        | "op_leftshift"
+        | "op_rightshift"
+        | "op_unaryplus"
+        | "op_unarynegation"
+        | "op_concatenate"
+        // arithmetic / compare often already in JSON; keep as safety net
+        | "op_addition"
+        | "op_subtraction"
+        | "op_multiply"
+        | "op_division"
+        | "op_modulus"
+        | "op_equality"
+        | "op_inequality"
+        | "op_lessthan"
+        | "op_greaterthan"
+        | "op_lessthanorequal"
+        | "op_greaterthanorequal" -> true
+        | _ -> false
+
     let contains (fullName: string) : bool =
-        if isFunctionInvokeLeaf (normalizeName fullName) then
+        let n = normalizeName fullName
+
+        if isFunctionInvokeLeaf n then
+            true
+        elif isKnownPureOperator n then
             true
         else
             let idx = parsedIndex.Value
 
             if idx.Exact.Contains(fullName) then
                 true
+            elif idx.Normalized.Contains(n) || idx.Exact.Contains(n) then
+                true
             else
-                let n = normalizeName fullName
+                idx.LastSegment.Contains(lastSegmentKey fullName)
 
-                if idx.Normalized.Contains(n) || idx.Exact.Contains(n) then
-                    true
-                else
-                    idx.LastSegment.Contains(lastSegmentKey fullName)
-
-    let knownPure: IReadOnlySet<string> =
-        parsedIndex.Value.Exact
+    let knownPure: IReadOnlySet<string> = parsedIndex.Value.Exact
