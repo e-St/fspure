@@ -1,5 +1,11 @@
+> Typically, interactions with the outside world occur at the boundary of your application.  
+> — Isaac Abraham
+
 # fspure
-A code analyser and vscode plugin, which helps you spot impure functions.
+
+This project explores, how an analyzer and IDE extension can help you push impurity to the boundary of your application.
+
+This is done by defining a pure subset and marking everything else as impure.
 
 ![alt text](image.png)
 
