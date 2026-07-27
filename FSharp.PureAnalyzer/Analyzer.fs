@@ -13,6 +13,7 @@ module Analyzer =
 
     let private knownPure = PureSet.knownPure
 
+    // Set to true while developing; set to false for normal use.
     let private emitDebugSummary = false
 
     let private isCallableSymbol (symbol: FSharpSymbol) =
@@ -34,15 +35,37 @@ module Analyzer =
         (source: string)
         : Async<Message list> =
         async {
-            let callGraph = buildCallGraph implementationFiles allSymbolUses
-            let nonPure = findNonPure knownPure callGraph
+            let callGraph, nonLocalMutation = buildCallGraph implementationFiles allSymbolUses
+            let nonPure = findNonPure knownPure callGraph nonLocalMutation
             let messages = ResizeArray<Message>()
 
             if emitDebugSummary then
+                let graphSize = callGraph.Count
+                let nonPureSize = nonPure.Count
+
+                let edgeSamples =
+                    callGraph
+                    |> Map.toSeq
+                    |> Seq.truncate 10
+                    |> Seq.map (fun (caller, callees) ->
+                        sprintf "%s -> [%s]" caller (String.Join("; ", callees |> List.truncate 6)))
+                    |> fun s -> String.Join(" || ", s)
+
                 let sb = StringBuilder()
                 sb.Append("DEBUG PureAnalyzer | source=").Append(source) |> ignore
-                sb.Append(" | graphNodes=").Append(callGraph.Count) |> ignore
-                sb.Append(" | nonPure=").Append(nonPure.Count) |> ignore
+                sb.Append(" | implFiles=").Append(implementationFiles |> Seq.length) |> ignore
+                sb.Append(" | graphNodes=").Append(graphSize) |> ignore
+                sb.Append(" | nonPure=").Append(nonPureSize) |> ignore
+                sb.Append(" | mutations=").Append(nonLocalMutation.Count) |> ignore
+
+                sb
+                    .Append(" | nonPureNames=[")
+                    .Append(String.Join("; ", nonPure |> Set.toArray |> Array.truncate 16))
+                    .Append("]")
+                |> ignore
+
+                sb.Append(" | edges=[").Append(edgeSamples).Append("]") |> ignore
+
                 let summaryRange = Range.mkRange fileName (Position.mkPos 1 1) (Position.mkPos 1 2)
 
                 messages.Add(
@@ -71,7 +94,7 @@ module Analyzer =
                             messages.Add(Diagnostics.impureCall calleeName symbolUse.Range)
                     | _ -> ()
 
-            // PURE002 / PURE003 – one diagnostic per definition name (impure wins)
+            // PURE002 / PURE003 – definitions (at most one diagnostic per name)
             let seenDefs = HashSet<string>(StringComparer.Ordinal)
 
             for symbolUse in fileSymbolUses do
@@ -84,6 +107,8 @@ module Analyzer =
                     | :? FSharpMemberOrFunctionOrValue as value ->
                         let name = Name.fullNameOfMember value
 
+                        // Only report definitions that appear in the call graph
+                        // (skips compiler-generated clo* / arg* helpers).
                         if Map.containsKey name callGraph && seenDefs.Add(name) then
                             if Set.contains name nonPure then
                                 messages.Add(Diagnostics.impureFunction name symbolUse.Range)
@@ -119,6 +144,7 @@ module Analyzer =
                 | None -> Seq.empty
 
             let source = if typedTree.IsSome then "file+tree" else "file-no-tree"
+
             return! analyze fileName fileSymbolUses implementationFiles (Seq.ofArray fileSymbolUses) source
         }
 
@@ -127,6 +153,7 @@ module Analyzer =
         async {
             match ctx.CheckProjectResults with
             | Some projectResults -> return! tryAnalyzeWithProjectResults ctx.FileName projectResults
+
             | None ->
                 match ctx.CheckFileResults with
                 | Some fileResults -> return! tryAnalyzeWithFileResults ctx.FileName fileResults ctx.TypedTree
