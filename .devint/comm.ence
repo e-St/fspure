@@ -1,0 +1,49 @@
+Continue work on F# pure-function analysis across two repos.
+
+## Repos
+1) Analyzer / pure-set / VS Code extension:
+   https://github.com/e-St/fspure
+2) Customer app (devcontainer + test Program.fs), paths like:
+   /workspaces/skinow/... and /workspaces/fspure/...
+
+## Hard constraint
+FSharp.Analyzers.SDK **0.35.0 only**. Do not use APIs added in 0.36+ (especially WalkMemberOrFunctionOrValue).
+
+## Product goal
+FSharp.PureAnalyzer should flag impurity with:
+- PURE001 — impure call site
+- PURE002 — function not transitively pure
+- PURE003 — function transitively pure (mainly so the VS Code extension can badge pure defs)
+Severity: Hint (underlines hidden in customer editor via transparent editorHint.* colors). Primary UX: VS Code extension badges.
+
+## Architecture that works
+- Call graph from TypedTree walk (Call / NewObject). Do NOT treat bare Value as a call (assigning `getTimestamp` without invoking stays pure).
+- Do NOT push nested Let/Lambda as a new “current function”; attribute nested calls to the enclosing def.
+- Exception: track nested `let mutable` and `let r = ref ...` as local cells so local `<-` / `:=` do not force impurity; non-local mutation does.
+- Editor: CheckProjectResults if Some, else CheckFileResults + TypedTree (FSAC often has CheckProjectResults = None).
+- CLI: project results.
+- knownPure from foundational.pure.json (allowlist). Unknown externals = impure.
+- VS Code extension `fsharp-pure-decorations` (publisher e-st): end-of-line bold italic badges `pure` (green) / `impure` (orange), no box on the name, if both PURE002 and PURE003 on one line show only impure.
+- Extension CI: package VSIX, upload to GitHub Releases tags `vscode-extension-v{version}` and floating `vscode-extension-latest`.
+- Customer devcontainer: install VSIX via postAttachCommand (code CLI often missing during postCreate). NuGet GitHub Packages creds stay in post-create.sh.
+
+## Recent regression & direction
+- False positives from bipartite “every def → every use” fallback — do not bring that back.
+- Nested let used to push a new caller frame so `let ts = getTimestamp ()` attributed the call to `ts` not the outer function — outer must get the impure edge; do not push nested Let/Lambda as current function.
+- Bare `let ts = getTimestamp` (no invoke) is pure; `getTimestamp ()` is impure.
+- List.map was missing from pure set because collector treats FSharpFunc.Invoke as unknown impure callee; OptionModule.Map was manually allowlisted. Durable fix: CollectionLeaves + Invoke pure-leaf rule + regenerate JSON; analyzer PureSet.contains as safety net including operators.
+
+## Current open issue
+myEmpty (add 1 2 |> isEmpty) still reported impure while add is pure — suspect op_PipeRight (or similar) missing/mismatched in pure set. Confirm with edge dump; ensure pipe/compose operators pure; reinstall rebuilt analyzer DLL (FSAC path/version).
+
+## Constraints
+- FSharp.Analyzers.SDK **0.35.0 only** (no WalkMemberOrFunctionOrValue from 0.36+).
+- No bipartite “every def → every use” fallback (causes false impurity on pure fns).
+- Prefer evidence from FSAC logs and PURE000 edge dumps over guessing.
+
+## Next tasks
+1. Confirm why myEmpty is impure while add is pure (edge dump).
+2. Ensure |> and related operators are pure in analyzer lookup (PureSet.contains operator-name rules + rebuilt package loaded by FSAC).
+3. Finish merging collector durable fix; regenerate foundational.pure.json; confirm List.map and myEmpty pure end-to-end.
+4. Keep extension UX: end-of-line bold italic pure/impure, no box on names, impure wins if both badges would apply; optional later VS Code decoration provider for boxed badges / type-hint adjacent labels.
+EOF
