@@ -20,24 +20,44 @@ module Analysis =
         || value.IsPropertyGetterMethod
         || value.IsPropertySetterMethod
 
-    /// Stable key for a mutable binding so ValueSet can match the declaring let.
-    let private mutableKey (v: FSharpMemberOrFunctionOrValue) =
+    /// Stable key for a mutable / ref binding so assignments can match the declaring let.
+    let private bindingKey (v: FSharpMemberOrFunctionOrValue) =
         let r = v.DeclarationLocation
         sprintf "%s@%s:%d:%d" v.LogicalName r.FileName r.StartLine r.StartColumn
 
+    let private fullName (m: FSharpMemberOrFunctionOrValue) = Name.fullNameOfMember m
+
+    /// `ref x` / Operators.ref — allocates a local ref cell when bound with let.
+    let private isRefAlloc (m: FSharpMemberOrFunctionOrValue) =
+        let ln = m.LogicalName
+        let n = fullName m
+
+        ln = "ref"
+        || ln = "Ref"
+        || n.EndsWith(".ref", StringComparison.Ordinal)
+        || n.EndsWith(".Ref", StringComparison.Ordinal)
+        || n.IndexOf("Operators.ref", StringComparison.OrdinalIgnoreCase) >= 0
+
+    /// `r := e`  (Operators.op_ColonEquals)
+    let private isColonEquals (m: FSharpMemberOrFunctionOrValue) =
+        let ln = m.LogicalName
+        let n = fullName m
+
+        ln = "op_ColonEquals" || n.EndsWith(".op_ColonEquals", StringComparison.Ordinal)
+
     /// Builds a call graph by walking the TypedTree.
     ///
-    /// Purity rules:
-    /// - Only actual *calls* / object construction create callee edges
-    ///   (a bare function *reference* is not a call).
-    /// - Nested let/lambda do not push a new caller frame.
-    /// - `<-` to a mutable declared inside the current function is allowed (still pure).
-    /// - `<-` to anything else (module mutable, outer scope, etc.) marks the function impure.
-    let buildCallGraph (files: FSharpImplementationFileContents seq) (_allSymbolUses: FSharpSymbolUse seq) : CallGraph * Set<string> =
+    /// Mutation rules (same for `<-` and `:=`):
+    /// - Assignment to a mutable / ref allocated in the current function → still pure
+    /// - Assignment to anything else → function is non-locally mutating (impure)
+    /// - `op_ColonEquals` is not treated as a normal callee edge (would always look impure)
+    let buildCallGraph
+        (files: FSharpImplementationFileContents seq)
+        (_allSymbolUses: FSharpSymbolUse seq)
+        : CallGraph * Set<string> =
 
         let edges = Dictionary<string, HashSet<string>>(StringComparer.Ordinal)
         let definitions = HashSet<string>(StringComparer.Ordinal)
-        /// Function names that perform non-local mutation via `<-`
         let nonLocalMutation = HashSet<string>(StringComparer.Ordinal)
         let current = Stack<string>()
 
@@ -56,24 +76,35 @@ module Analysis =
         let recordCall (callee: FSharpMemberOrFunctionOrValue) =
             if isCallable callee && current.Count > 0 then
                 let caller = current.Peek()
-                let calleeName = Name.fullNameOfMember callee
-                addEdge caller calleeName
+                addEdge caller (fullName callee)
 
         let markNonLocalMutation () =
             if current.Count > 0 then
                 nonLocalMutation.Add(current.Peek()) |> ignore
 
-        /// Walk an expression under the current function, tracking mutables local to this frame.
+        /// localMutables: `let mutable` keys and local `let r = ref ...` keys
         let rec visitExpr (localMutables: HashSet<string>) (e: FSharpExpr) =
             match e with
             | Call(objExprOpt, memberOrFunc, _, _, argExprs) ->
-                recordCall memberOrFunc
-                objExprOpt |> Option.iter (visitExpr localMutables)
-                argExprs |> List.iter (visitExpr localMutables)
+                if isColonEquals memberOrFunc then
+                    // r := value  — same rule as ValueSet / `<-`
+                    match argExprs with
+                    | Value v :: rest when localMutables.Contains(bindingKey v) ->
+                        rest |> List.iter (visitExpr localMutables)
+                    | Value _ :: rest ->
+                        markNonLocalMutation ()
+                        rest |> List.iter (visitExpr localMutables)
+                    | _ ->
+                        markNonLocalMutation ()
+                        argExprs |> List.iter (visitExpr localMutables)
 
-            | Value _ ->
-                // Bare reference — not a call, not a mutation.
-                ()
+                    objExprOpt |> Option.iter (visitExpr localMutables)
+                else
+                    recordCall memberOrFunc
+                    objExprOpt |> Option.iter (visitExpr localMutables)
+                    argExprs |> List.iter (visitExpr localMutables)
+
+            | Value _ -> ()
 
             | NewObject(objType, _, argExprs) ->
                 recordCall objType
@@ -81,43 +112,60 @@ module Analysis =
 
             | Let((bindingVar, bindingExpr, _), bodyExpr) ->
                 if bindingVar.IsMutable then
-                    localMutables.Add(mutableKey bindingVar) |> ignore
+                    localMutables.Add(bindingKey bindingVar) |> ignore
+
+                // let r = ref x  → treat r as a local cell (like let mutable)
+                match bindingExpr with
+                | Call(_, m, _, _, _) when isRefAlloc m -> localMutables.Add(bindingKey bindingVar) |> ignore
+                | Application(Call(_, m, _, _, _), _, _) when isRefAlloc m ->
+                    localMutables.Add(bindingKey bindingVar) |> ignore
+                | _ -> ()
 
                 visitExpr localMutables bindingExpr
                 visitExpr localMutables bodyExpr
 
             | LetRec(recursiveBindings, bodyExpr) ->
-                for (mfv, _, _) in recursiveBindings do
+                for (mfv, expr, _) in recursiveBindings do
                     if mfv.IsMutable then
-                        localMutables.Add(mutableKey mfv) |> ignore
+                        localMutables.Add(bindingKey mfv) |> ignore
+
+                    match expr with
+                    | Call(_, m, _, _, _) when isRefAlloc m -> localMutables.Add(bindingKey mfv) |> ignore
+                    | _ -> ()
 
                 for (_, expr, _) in recursiveBindings do
                     visitExpr localMutables expr
 
                 visitExpr localMutables bodyExpr
 
-            | Lambda(_, bodyExpr) ->
-                // Nested lambda: still attribute effects to the enclosing member.
-                // Locals declared inside the lambda are still "local" to this function.
-                visitExpr localMutables bodyExpr
+            | Lambda(_, bodyExpr) -> visitExpr localMutables bodyExpr
 
             | ValueSet(valToSet, valueExpr) ->
-                // `x <- e`
-                if not (localMutables.Contains(mutableKey valToSet)) then
+                // x <- e
+                if not (localMutables.Contains(bindingKey valToSet)) then
                     markNonLocalMutation ()
 
                 visitExpr localMutables valueExpr
 
             | AddressSet(lvalueExpr, rvalueExpr) ->
-                // byref store — treat as non-local unless we can prove otherwise
                 markNonLocalMutation ()
                 visitExpr localMutables lvalueExpr
                 visitExpr localMutables rvalueExpr
 
-            | FSharpFieldSet(objOpt, _, _, valueExpr) ->
-                // Field write: conservative — non-local mutation
-                // (local struct field updates are uncommon in pure style)
-                markNonLocalMutation ()
+            | FSharpFieldSet(objOpt, _, field, valueExpr) ->
+                // ref.contents <- e  (sometimes how := is represented)
+                let localRefWrite =
+                    match objOpt with
+                    | Some(Value v) when
+                        localMutables.Contains(bindingKey v)
+                        && field.Name.IndexOf("contents", StringComparison.OrdinalIgnoreCase) >= 0
+                        ->
+                        true
+                    | _ -> false
+
+                if not localRefWrite then
+                    markNonLocalMutation ()
+
                 objOpt |> Option.iter (visitExpr localMutables)
                 visitExpr localMutables valueExpr
 
@@ -187,11 +235,10 @@ module Analysis =
 
         let rec visitDeclaration (d: FSharpImplementationFileDeclaration) =
             match d with
-            | FSharpImplementationFileDeclaration.Entity(_, decls) ->
-                decls |> List.iter visitDeclaration
+            | FSharpImplementationFileDeclaration.Entity(_, decls) -> decls |> List.iter visitDeclaration
 
             | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(v, _vs, body) ->
-                let name = Name.fullNameOfMember v
+                let name = fullName v
                 definitions.Add(name) |> ignore
 
                 if isCallable v then
@@ -213,20 +260,11 @@ module Analysis =
                 edges.[name] <- HashSet<string>(StringComparer.Ordinal)
 
         let callGraph =
-            edges
-            |> Seq.map (fun (KeyValue(k, v)) -> k, v |> Seq.toList)
-            |> Map.ofSeq
+            edges |> Seq.map (fun (KeyValue(k, v)) -> k, v |> Seq.toList) |> Map.ofSeq
 
-        let mutationSet = nonLocalMutation |> Set.ofSeq
-        callGraph, mutationSet
+        callGraph, (nonLocalMutation |> Set.ofSeq)
 
-    /// True when `name` is pure given the call graph and non-local mutation set.
-    /// Uses PureSet.contains so FCS vs IL name differences are tolerated.
-    let isPure
-        (callGraph: CallGraph)
-        (nonLocalMutation: Set<string>)
-        (name: string)
-        =
+    let isPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) (name: string) =
         let rec check visited name =
             if Set.contains name visited then
                 true
@@ -239,15 +277,11 @@ module Analysis =
                 | Some callees ->
                     let visited = Set.add name visited
                     callees |> List.forall (check visited)
-                | None ->
-                    false
+                | None -> false
 
         check Set.empty name
 
-    let findNonPure
-        (callGraph: CallGraph)
-        (nonLocalMutation: Set<string>)
-        : Set<string> =
+    let findNonPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) : Set<string> =
         callGraph
         |> Map.toSeq
         |> Seq.map fst
