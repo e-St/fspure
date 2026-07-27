@@ -9,9 +9,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <!-- CollectionLeaves before ImpurityRules (isKnownPureLeaf references it) -->
+    <Compile Include="CollectionLeaves.fs" />
     <Compile Include="ImpurityRules.fs" />
     <Compile Include="IlAnalyzer.fs" />
+    <!-- PurityEngine seeds CollectionLeaves into pureSet -->
     <Compile Include="PurityEngine.fs" />
+    <Compile Include="PuritySanity.fs" />
     <Compile Include="JsonCodec.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
