@@ -36,18 +36,24 @@ module PurityEngine =
     ///   1. it is not locally impure, and
     ///   2. every known callee is pure (unknown external callees are treated as impure
     ///      unless they are known pure leaves).
+    ///
+    /// CollectionLeaves and knownPureLeaves are seeded into the set so HOFs like
+    /// ListModule.Map remain pure even when IL marks them "locally impure" solely
+    /// because they call FSharpFunc.Invoke.
     let computePureSet (methods: AnalyzedMethod list) : Set<string> * Map<string, AnalyzedMethod> =
         let callGraph, locallyImpure, byName = buildGraphs methods
         let allNames = byName |> Map.toList |> List.map fst |> Set.ofList
 
-        // Seed: everything not locally impure starts as a purity candidate.
-        // Known pure leaves are always candidates even if missing from assemblies.
+        let leafSeed =
+            ImpurityRules.knownPureLeaves
+            |> Set.union CollectionLeaves.all
+
+        // Seed: non-locally-impure analyzed methods + all explicit pure leaves.
         let mutable pureSet =
             allNames
             |> Set.filter (fun n -> not (Set.contains n locallyImpure))
-            |> Set.union ImpurityRules.knownPureLeaves
+            |> Set.union leafSeed
 
-        // Unknown callees (outside analyzed assemblies) are impure unless known leaves.
         let isCalleeAcceptable (name: string) =
             ImpurityRules.isKnownPureLeaf name || Set.contains name pureSet
 
@@ -61,10 +67,10 @@ module PurityEngine =
             let snapshot = pureSet
 
             for name in snapshot do
+                // Explicit leaves are never removed by the fixed-point.
                 if not (ImpurityRules.isKnownPureLeaf name) then
                     match Map.tryFind name callGraph with
                     | None ->
-                        // Not in analyzed set – keep only if known leaf (already handled).
                         if not (Set.contains name allNames) && not (ImpurityRules.isKnownPureLeaf name) then
                             pureSet <- Set.remove name pureSet
                             changed <- true
@@ -77,10 +83,13 @@ module PurityEngine =
                             pureSet <- Set.remove name pureSet
                             changed <- true
 
-        // Restrict output to methods we actually analyzed (plus keep leaves that appear).
+        // Keep analyzed pure methods + any leaf (so Map etc. appear in JSON even if
+        // the IL body was considered locally impure).
         let result =
             pureSet
-            |> Set.filter (fun n -> Set.contains n allNames || ImpurityRules.isKnownPureLeaf n)
+            |> Set.filter (fun n ->
+                Set.contains n allNames
+                || ImpurityRules.isKnownPureLeaf n)
 
         result, byName
 
@@ -94,7 +103,6 @@ module PurityEngine =
             || name.Contains("|", StringComparison.Ordinal)
         )
 
-    /// Convert a pure-name set into PureMethod records (origin = automatic).
     let toPureMethods (pureSet: Set<string>) (byName: Map<string, AnalyzedMethod>) (publicOnly: bool) : PureMethod list =
         pureSet
         |> Set.toList
@@ -108,7 +116,6 @@ module PurityEngine =
                 | None -> Some { FullName = name; Origin = Automatic })
         |> List.sortBy _.FullName
 
-    /// Design-doc recursive checker (used for validation / tests).
     let isPure (knownPure: Set<string>) (callGraph: Map<string, string list>) (name: string) : bool =
         let rec check (visited: Set<string>) (name: string) =
             if Set.contains name visited then
@@ -124,7 +131,6 @@ module PurityEngine =
 
         check Set.empty name
 
-    /// High-level List A pipeline.
     let buildListA
         (methods: AnalyzedMethod list)
         (packageId: string)
