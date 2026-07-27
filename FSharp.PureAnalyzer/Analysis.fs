@@ -33,7 +33,10 @@ module Analysis =
     /// - Nested let/lambda do not push a new caller frame.
     /// - `<-` to a mutable declared inside the current function is allowed (still pure).
     /// - `<-` to anything else (module mutable, outer scope, etc.) marks the function impure.
-    let buildCallGraph (files: FSharpImplementationFileContents seq) (_allSymbolUses: FSharpSymbolUse seq) : CallGraph * Set<string> =
+    let buildCallGraph
+        (files: FSharpImplementationFileContents seq)
+        (_allSymbolUses: FSharpSymbolUse seq)
+        : CallGraph * Set<string> =
 
         let edges = Dictionary<string, HashSet<string>>(StringComparer.Ordinal)
         let definitions = HashSet<string>(StringComparer.Ordinal)
@@ -187,8 +190,7 @@ module Analysis =
 
         let rec visitDeclaration (d: FSharpImplementationFileDeclaration) =
             match d with
-            | FSharpImplementationFileDeclaration.Entity(_, decls) ->
-                decls |> List.iter visitDeclaration
+            | FSharpImplementationFileDeclaration.Entity(_, decls) -> decls |> List.iter visitDeclaration
 
             | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(v, _vs, body) ->
                 let name = Name.fullNameOfMember v
@@ -213,43 +215,33 @@ module Analysis =
                 edges.[name] <- HashSet<string>(StringComparer.Ordinal)
 
         let callGraph =
-            edges
-            |> Seq.map (fun (KeyValue(k, v)) -> k, v |> Seq.toList)
-            |> Map.ofSeq
+            edges |> Seq.map (fun (KeyValue(k, v)) -> k, v |> Seq.toList) |> Map.ofSeq
 
         let mutationSet = nonLocalMutation |> Set.ofSeq
         callGraph, mutationSet
 
-    let isPure
-        (knownPure: IReadOnlySet<string>)
-        (callGraph: CallGraph)
-        (nonLocalMutation: Set<string>)
-        (name: string)
-        =
+    /// True when `name` is pure given the call graph and non-local mutation set.
+    /// Uses PureSet.contains so FCS vs IL name differences are tolerated.
+    let isPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) (name: string) =
         let rec check visited name =
             if Set.contains name visited then
                 true
             elif Set.contains name nonLocalMutation then
                 false
-            elif knownPure.Contains(name) then
+            elif PureSet.contains name then
                 true
             else
                 match Map.tryFind name callGraph with
                 | Some callees ->
                     let visited = Set.add name visited
                     callees |> List.forall (check visited)
-                | None ->
-                    false
+                | None -> false
 
         check Set.empty name
 
-    let findNonPure
-        (knownPure: IReadOnlySet<string>)
-        (callGraph: CallGraph)
-        (nonLocalMutation: Set<string>)
-        : Set<string> =
+    let findNonPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) : Set<string> =
         callGraph
         |> Map.toSeq
         |> Seq.map fst
-        |> Seq.filter (fun name -> not (isPure knownPure callGraph nonLocalMutation name))
+        |> Seq.filter (fun name -> not (isPure callGraph nonLocalMutation name))
         |> Set.ofSeq

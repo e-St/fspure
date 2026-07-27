@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.IO
 open System.Reflection
+open System.Text
 open System.Text.Json
 
 /// DTO for the embedded foundational.pure.json resource.
@@ -26,8 +27,41 @@ type PureFileDto =
         pureMethods: PureMethodDto array
     }
 
-/// Cached access to the embedded foundational pure set.
+/// Cached access to the embedded foundational pure set, with lookup that tolerates
+/// FCS vs IL naming differences (generic arity markers, Map vs map, etc.).
 module PureSet =
+
+    /// Strip signature suffixes and generic arity markers (`1, `2, …).
+    let normalizeName (fullName: string) : string =
+        let noSig =
+            match fullName.IndexOf '(' with
+            | -1 -> fullName
+            | i -> fullName.Substring(0, i)
+
+        let builder = StringBuilder(noSig.Length)
+        let mutable i = 0
+
+        while i < noSig.Length do
+            let c = noSig[i]
+
+            if c = '`' then
+                i <- i + 1
+
+                while i < noSig.Length && Char.IsDigit noSig[i] do
+                    i <- i + 1
+            else
+                builder.Append c |> ignore
+                i <- i + 1
+
+        builder.ToString()
+
+    /// Last segment after final '.', case-insensitive key for aliasing Map/map.
+    let private lastSegmentKey (fullName: string) =
+        let n = normalizeName fullName
+        let i = n.LastIndexOf '.'
+        let typePart = if i < 0 then "" else n.Substring(0, i)
+        let memberPart = if i < 0 then n else n.Substring(i + 1)
+        typePart.ToLowerInvariant() + "." + memberPart.ToLowerInvariant()
 
     let private loadResource () =
         let assembly = Assembly.GetExecutingAssembly()
@@ -45,7 +79,15 @@ module PureSet =
                 use reader = new StreamReader(stream)
                 reader.ReadToEnd()
 
-    let private parsedSet =
+    type private PureIndex =
+        {
+            Exact: HashSet<string>
+            Normalized: HashSet<string>
+            /// type.lower + "." + member.lower → at least one pure method exists
+            LastSegment: HashSet<string>
+        }
+
+    let private parsedIndex =
         lazy
             let json = loadResource ()
 
@@ -55,12 +97,38 @@ module PureSet =
             match JsonSerializer.Deserialize<PureFileDto>(json, options) with
             | null -> failwith "Failed to deserialize foundational.pure.json."
             | dto ->
-                let set = HashSet<string>(StringComparer.Ordinal)
+                let exact = HashSet<string>(StringComparer.Ordinal)
+                let normalized = HashSet<string>(StringComparer.Ordinal)
+                let lastSeg = HashSet<string>(StringComparer.Ordinal)
 
                 for method in dto.pureMethods do
-                    set.Add(method.fullName) |> ignore
+                    let fn = method.fullName
+                    exact.Add(fn) |> ignore
+                    let n = normalizeName fn
+                    normalized.Add(n) |> ignore
+                    lastSeg.Add(lastSegmentKey fn) |> ignore
 
-                set
+                {
+                    Exact = exact
+                    Normalized = normalized
+                    LastSegment = lastSeg
+                }
 
-    /// The globally cached known-pure set.
-    let knownPure: IReadOnlySet<string> = parsedSet.Value
+    /// True when the given full name is known pure (exact, normalized, or
+    /// case-insensitive last-segment match against the embedded set).
+    let contains (fullName: string) : bool =
+        let idx = parsedIndex.Value
+
+        if idx.Exact.Contains(fullName) then
+            true
+        else
+            let n = normalizeName fullName
+
+            if idx.Normalized.Contains(n) || idx.Exact.Contains(n) then
+                true
+            else
+                idx.LastSegment.Contains(lastSegmentKey fullName)
+
+    /// Compatibility: expose as IReadOnlySet for call sites that only need Count / enumeration.
+    /// Membership should use `contains` for fuzzy matching.
+    let knownPure: IReadOnlySet<string> = parsedIndex.Value.Exact

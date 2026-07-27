@@ -11,7 +11,6 @@ open FSharp.PureAnalyzer.Analysis
 
 module Analyzer =
 
-    let private knownPure = PureSet.knownPure
 
     // Set to true while developing; set to false for normal use.
     let private emitDebugSummary = false
@@ -36,7 +35,7 @@ module Analyzer =
         : Async<Message list> =
         async {
             let callGraph, nonLocalMutation = buildCallGraph implementationFiles allSymbolUses
-            let nonPure = findNonPure knownPure callGraph nonLocalMutation
+            let nonPure = findNonPure callGraph nonLocalMutation
             let messages = ResizeArray<Message>()
 
             if emitDebugSummary then
