@@ -29,8 +29,14 @@ cp -f "bin/$CONFIGURATION/net10.0/FSharp.PureAnalyzer.dll" "$ANALYZER_DROP/"
 popd >/dev/null
 echo "    Analyzer → $ANALYZER_DROP/FSharp.PureAnalyzer.dll"
 
-echo "==> Phase 2 prepare: build customer fixture"
-dotnet build "$FIXTURE_DIR/customer-fixture.fsproj" -c "$CONFIGURATION"
+echo "==> Phase 2 prepare: build customer fixture (solution)"
+SOLUTION="$FIXTURE_DIR/customer-fixture.slnx"
+if [[ ! -f "$SOLUTION" ]]; then
+  echo "ERROR: missing $SOLUTION (Ionide needs a solution like the consumer codespace)" >&2
+  exit 1
+fi
+dotnet build "$SOLUTION" -c "$CONFIGURATION"
+echo "    Solution → $SOLUTION"
 
 echo "==> Phase 2 prepare: package vscode extension VSIX"
 pushd "$EXT_DIR" >/dev/null

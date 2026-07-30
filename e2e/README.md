@@ -36,15 +36,17 @@ Artifacts: `e2e/.artifacts/phase1/`
 | Prepare | Build analyzer into `customer-fixture/analyzers/`, pack decorations `.vsix` |
 | VS Code | Start **code-server** (VS Code Web) with Ionide + the VSIX |
 | Settings | Same Ionide / inlay / pure-decoration settings as the consumer codespace (`customer-fixture/.vscode/settings.json`) |
-| Open | `Program.fs` via Quick Open |
+| Solution | Load `customer-fixture.slnx` into Ionide (same as manually picking the project’s `.slnx`) |
+| Open | `Program.fs` after the solution is loaded |
 | Capture | Playwright screenshots → `e2e/.artifacts/phase2/*.png` |
 
-Screenshots are uploaded as the `phase2-visual-screenshots` workflow artifact for **human visual review** (parameter inlay hints + pure/impure labels next to the right definitions). The job also fails if both `pure` and `impure` decoration labels never appear in the editor within the wait window.
+Screenshots are uploaded as the `phase2-visual-screenshots` workflow artifact for **human visual review** (Ionide type/parameter inlays + pure/impure labels next to the right definitions). The job also fails if both `pure` and `impure` decoration labels never appear in the editor within the wait window.
 
 Consumer-codespace parity (settings mirrored from skinow-style `devcontainer.json`):
 
+- `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx` (Ionide must load a solution before analyzers/inlays run)
 - `FSharp.enableAnalyzers` + `FSharp.analyzersPath` → local `analyzers/` drop
-- `FSharp.inlayHints.*` + `editor.inlayHints.enabled` → parameter-name inlays
+- `FSharp.inlayHints.*` + `editor.inlayHints.enabled` → type + parameter inlays (readiness signal)
 - `fsharpPureDecorations.*` + transparent `editorHint.*` → end-of-line badges only
 
 ### Local Phase 2 (optional)

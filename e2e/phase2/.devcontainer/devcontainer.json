@@ -33,11 +33,12 @@
           "editor.quickSuggestions": false,
           "editor.suggestOnTriggerCharacters": false
         },
+        "dotnet.defaultSolution": "e2e/customer-fixture/customer-fixture.slnx",
         "FSharp.workspaceModePeekDeepLevel": 1,
         "FSharp.showExplorerOnStartup": true,
         "FSharp.enableMSBuildProjectGraph": true,
         "editor.inlayHints.enabled": "on",
-        "FSharp.inlayHints.typeAnnotations": false,
+        "FSharp.inlayHints.typeAnnotations": true,
         "FSharp.inlayHints.parameterNames": true,
         "FSharp.inlayHints.enabled": true,
         "FSharp.linter": true,

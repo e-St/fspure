@@ -3,6 +3,9 @@
 # Installs Ionide + the locally built pure-decorations VSIX.
 # Applies the same Ionide / decoration settings used by the skinow-style consumer
 # codespace (see e2e/customer-fixture/.vscode/settings.json).
+#
+# Ionide only runs analyzers / inlay hints after a solution is loaded — same as
+# the manual flow: pick customer-fixture.slnx, then open Program.fs.
 
 set -euo pipefail
 
@@ -24,8 +27,13 @@ fi
 
 VSIX="$ARTIFACTS/fsharp-pure-decorations.vsix"
 ANALYZER_DIR="$FIXTURE_DIR/analyzers"
+SOLUTION_PATH="$FIXTURE_DIR/customer-fixture.slnx"
 PROJECT_PATH="$FIXTURE_DIR/customer-fixture.fsproj"
 
+if [[ ! -f "$SOLUTION_PATH" ]]; then
+  echo "ERROR: missing $SOLUTION_PATH" >&2
+  exit 1
+fi
 if [[ ! -f "$ANALYZER_DIR/dotnet/fs/FSharp.PureAnalyzer.dll" ]]; then
   echo "ERROR: PureAnalyzer DLL missing under $ANALYZER_DIR (run prepare-workspace.sh first)" >&2
   exit 1
@@ -56,9 +64,9 @@ code-server \
   --install-extension "$VSIX" \
   --force
 
-# User-level settings mirror the skinow-style consumer codespace so screenshots
-# show inlay hints + pure/impure decorations even if workspace settings lag.
-# Workspace settings in customer-fixture/.vscode/settings.json stay the source of truth.
+# Fresh user settings each run (avoid stale Ionide workspace choice).
+# Absolute FSharp.workspacePath + dotnet.defaultSolution match the manual
+# "select the project's slnx" step so FSAC loads without a picker.
 mkdir -p "$USER_DATA/User"
 cat > "$USER_DATA/User/settings.json" <<EOF
 {
@@ -89,11 +97,12 @@ cat > "$USER_DATA/User/settings.json" <<EOF
   "editor.fontSize": 14,
   "editor.lineHeight": 22,
 
-  "FSharp.workspacePath": "$PROJECT_PATH",
+  "dotnet.defaultSolution": "$SOLUTION_PATH",
+  "FSharp.workspacePath": "$SOLUTION_PATH",
   "FSharp.workspaceModePeekDeepLevel": 1,
   "FSharp.showExplorerOnStartup": true,
   "FSharp.enableMSBuildProjectGraph": true,
-  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.typeAnnotations": true,
   "FSharp.inlayHints.parameterNames": true,
   "FSharp.inlayHints.enabled": true,
   "FSharp.linter": true,
@@ -123,11 +132,8 @@ cat > "$USER_DATA/User/settings.json" <<EOF
 }
 EOF
 
-# Also refresh workspace settings so the opened folder matches the consumer codespace.
-mkdir -p "$FIXTURE_DIR/.vscode"
-if [[ -f "$FIXTURE_DIR/.vscode/settings.json" ]]; then
-  echo "    workspace settings: $FIXTURE_DIR/.vscode/settings.json"
-fi
+echo "    workspace settings: $FIXTURE_DIR/.vscode/settings.json"
+echo "    solution: $SOLUTION_PATH"
 
 # Stop previous instance if any
 if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
@@ -136,10 +142,14 @@ if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
   sleep 1
 fi
 
+# Clear prior workspaceStorage so Ionide re-reads FSharp.workspacePath
+rm -rf "$USER_DATA/User/workspaceStorage" "$USER_DATA/CachedConfigurations" 2>/dev/null || true
+
 echo "==> Start code-server on http://${HOST}:${PORT}"
 echo "    workspace: $FIXTURE_DIR"
 echo "    analyzer:  $ANALYZER_DIR/dotnet/fs/FSharp.PureAnalyzer.dll"
 echo "    project:   $PROJECT_PATH"
+echo "    solution:  $SOLUTION_PATH"
 nohup code-server \
   --auth none \
   --bind-addr "${HOST}:${PORT}" \
