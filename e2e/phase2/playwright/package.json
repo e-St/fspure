@@ -1,0 +1,13 @@
+{
+  "name": "fspure-phase2-visual",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Playwright screenshot capture for pure/impure decorations",
+  "scripts": {
+    "capture": "node screenshot.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.50.1"
+  }
+}

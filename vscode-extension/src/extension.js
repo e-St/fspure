@@ -2,37 +2,16 @@
 "use strict";
 
 const vscode = require("vscode");
+const {
+  diagnosticCode,
+  isPureAnalyzerDiagnostic,
+  badgesByLine,
+} = require("./logic");
 
 /** @type {vscode.TextEditorDecorationType | undefined} */
 let impureBadge;
 /** @type {vscode.TextEditorDecorationType | undefined} */
 let pureBadge;
-
-const IMPURE_CODES = new Set(["PURE001", "PURE002"]);
-const PURE_CODES = new Set(["PURE003"]);
-
-/**
- * @param {vscode.Diagnostic} d
- */
-function diagnosticCode(d) {
-  return typeof d.code === "object" && d.code !== null
-    ? String(/** @type {{ value?: unknown }} */ (d.code).value ?? "")
-    : String(d.code ?? "");
-}
-
-/**
- * @param {vscode.Diagnostic} d
- */
-function isPureAnalyzerDiagnostic(d) {
-  const code = diagnosticCode(d);
-  const source = String(d.source ?? "");
-  return (
-    IMPURE_CODES.has(code) ||
-    PURE_CODES.has(code) ||
-    source.includes("Pure analyzer") ||
-    source.includes("FSharp.PureAnalyzer")
-  );
-}
 
 /**
  * Anchor for `after` text: last non-empty character of the line.
@@ -104,42 +83,38 @@ function updateEditor(editor) {
     .getDiagnostics(editor.document.uri)
     .filter(isPureAnalyzerDiagnostic);
 
-  // Per line: impure wins over pure (never show "impure pure").
-  /** @type {Map<number, { impure?: vscode.Diagnostic, pure?: vscode.Diagnostic }>} */
-  const byLine = new Map();
-
+  // Preserve hover messages from the winning diagnostic per line.
+  /** @type {Map<number, vscode.Diagnostic>} */
+  const diagByLine = new Map();
   for (const d of diagnostics) {
-    const code = diagnosticCode(d);
+    const code = diagnosticCode(d.code);
     const line = d.range.start.line;
-    let entry = byLine.get(line);
-    if (!entry) {
-      entry = {};
-      byLine.set(line, entry);
+    const existing = diagByLine.get(line);
+    if (!existing) {
+      diagByLine.set(line, d);
+      continue;
     }
+    // impure (PURE002) wins over pure (PURE003)
     if (code === "PURE002") {
-      entry.impure = d;
-    } else if (code === "PURE003") {
-      entry.pure = d;
+      diagByLine.set(line, d);
     }
   }
+
+  const badges = badgesByLine(diagnostics);
 
   /** @type {vscode.DecorationOptions[]} */
   const impureOpts = [];
   /** @type {vscode.DecorationOptions[]} */
   const pureOpts = [];
 
-  for (const [line, entry] of byLine) {
+  for (const [line, entry] of badges) {
     const range = endOfLineAnchor(editor, line);
-    if (entry.impure) {
-      impureOpts.push({
-        range,
-        hoverMessage: entry.impure.message,
-      });
-    } else if (entry.pure) {
-      pureOpts.push({
-        range,
-        hoverMessage: entry.pure.message,
-      });
+    const hoverMessage = diagByLine.get(line)?.message;
+    const opt = hoverMessage ? { range, hoverMessage } : { range };
+    if (entry.badge === "impure") {
+      impureOpts.push(opt);
+    } else {
+      pureOpts.push(opt);
     }
   }
 

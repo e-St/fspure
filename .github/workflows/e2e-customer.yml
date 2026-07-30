@@ -1,0 +1,118 @@
+name: Customer E2E (pure/impure labels)
+
+# Two-phase consumer check (replaces manual codespace review on skinow/inaction):
+#
+#   Phase 1 — Analyzer baseline on e2e/customer-fixture/Program.fs
+#   Phase 2 — Devcontainer + VS Code (code-server) opens Program.fs and
+#             screenshots pure/impure decoration labels for visual review
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "FSharp.PureAnalyzer/**"
+      - "vscode-extension/**"
+      - "e2e/**"
+      - "dotnet-tools.json"
+      - ".github/workflows/e2e-customer.yml"
+  pull_request:
+    paths:
+      - "FSharp.PureAnalyzer/**"
+      - "vscode-extension/**"
+      - "e2e/**"
+      - "dotnet-tools.json"
+      - ".github/workflows/e2e-customer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Phase 1: FSharp.PureAnalyzer classification baseline
+  # ---------------------------------------------------------------------------
+  phase1-analyzer:
+    name: "Phase 1 — Analyzer baseline"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR (devcontainer image)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Phase 1 inside project devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: |
+            set -euo pipefail
+            export TMPDIR="$HOME/.nuget-tmp"
+            mkdir -p "$TMPDIR"
+
+            if command -v fsharp-analyzers >/dev/null 2>&1; then
+              true
+            elif [[ -f dotnet-tools.json ]] && grep -q fsharp-analyzers dotnet-tools.json; then
+              dotnet tool restore
+              fsharp-analyzers() { dotnet tool run fsharp-analyzers -- "$@"; }
+              export -f fsharp-analyzers
+            else
+              mkdir -p "$HOME/.local/bin"
+              dotnet tool install fsharp-analyzers --version 0.35.0 --tool-path "$HOME/.local/bin"
+              export PATH="$HOME/.local/bin:$PATH"
+            fi
+
+            bash e2e/phase1/run.sh
+
+      - name: Upload Phase 1 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-analyzer
+          path: |
+            e2e/.artifacts/phase1/**
+            e2e/.artifacts/analyzer-drop/**
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Phase 2: VS Code visual decorations (screenshot Program.fs)
+  # ---------------------------------------------------------------------------
+  phase2-visual:
+    name: "Phase 2 — VS Code screenshots"
+    needs: phase1-analyzer
+    runs-on: ubuntu-latest
+    # Screenshots are always uploaded; job fails if labels never appear.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Phase 2 inside visual e2e devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          configFile: e2e/phase2/.devcontainer/devcontainer.json
+          push: never
+          runCmd: |
+            set -euo pipefail
+            export TMPDIR="$HOME/.nuget-tmp"
+            mkdir -p "$TMPDIR"
+            export CODE_SERVER_HOST=127.0.0.1
+            export CODE_SERVER_PORT=8080
+            export WAIT_MS=180000
+            bash e2e/phase2/run.sh
+
+      - name: Upload Phase 2 screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-visual-screenshots
+          path: |
+            e2e/.artifacts/phase2/**/*.png
+            e2e/.artifacts/phase2/**/*.json
+            e2e/.artifacts/phase2/**/*.log
+            e2e/.artifacts/phase2/**/*.vsix
+          if-no-files-found: ignore

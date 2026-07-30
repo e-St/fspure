@@ -2,3 +2,7 @@
 **/obj/
 **/bin/
 .fake
+e2e/.artifacts/
+e2e/customer-fixture/analyzers/
+e2e/phase2/playwright/node_modules/
+*.vsix

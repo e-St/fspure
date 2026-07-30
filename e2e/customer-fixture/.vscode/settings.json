@@ -1,0 +1,35 @@
+{
+  "FSharp.enableAnalyzers": true,
+  "FSharp.analyzersPath": [
+    "analyzers",
+    "${workspaceFolder}/analyzers"
+  ],
+  "FSharp.workspaceModePeekDeepLevel": 2,
+  "FSharp.enableMSBuildProjectGraph": true,
+  "FSharp.inlayHints.enabled": false,
+  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.parameterNames": false,
+  "FSharp.codeLenses.references.enabled": false,
+  "FSharp.linter": false,
+  "editor.inlayHints.enabled": "off",
+  "editor.minimap.enabled": false,
+  "editor.fontSize": 14,
+  "editor.lineHeight": 22,
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "workbench.welcomePage.walkthroughs.openOnInstall": false,
+  "extensions.ignoreRecommendations": true,
+  "git.openRepositoryInParentFolders": "never",
+  "fsharpPureDecorations.enabled": true,
+  "fsharpPureDecorations.impureColor": "#E2A66A",
+  "fsharpPureDecorations.pureColor": "#6A9955",
+  "workbench.colorCustomizations": {
+    "editorHint.foreground": "#00000000",
+    "editorHint.border": "#00000000",
+    "editorOverviewRuler.hintForeground": "#00000000"
+  },
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  }
+}

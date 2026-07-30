@@ -1,0 +1,23 @@
+{
+  "$schema_comment": "Expected definition badges for the customer fixture. PURE002 → impure badge, PURE003 → pure badge (see vscode-extension).",
+  "definitions": {
+    "logSideEffect": "impure",
+    "mutateGlobal": "impure",
+    "getRandomImpure": "impure",
+    "pureAdd": "impure",
+    "pureMultiply": "impure",
+    "pureSquare": "impure",
+    "pureProcessBatch": "impure",
+    "add": "pure",
+    "isEmpty": "pure",
+    "myEmpty": "pure",
+    "double": "pure",
+    "purePipeline": "pure",
+    "main": "impure"
+  },
+  "notes": [
+    "Badges in the editor are driven only by PURE002 (impure) and PURE003 (pure) definition diagnostics.",
+    "PURE001 call-site hints are ignored by fsharp-pure-decorations for badge placement.",
+    "This fixture intentionally mixes misnamed pure* helpers (impure) with truly pure helpers (add/isEmpty/myEmpty) like skinow/inaction."
+  ]
+}
