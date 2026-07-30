@@ -4,7 +4,7 @@
  *   1) Load customer-fixture.slnx into Ionide (workspace / solution)
  *   2) Open Program.fs
  *   3) Wait for Ionide type/parameter inlay hints (project ready)
- *   4) Wait for pure/impure end-of-line decorations
+ *   4) Wait for pure/impure badges (inlay hints after type annotations)
  *   5) Screenshot
  *
  * Env:
@@ -42,7 +42,6 @@ async function dismissNoise(page) {
     await page.keyboard.press("Escape").catch(() => {});
     await page.waitForTimeout(250);
   }
-  // Notifications / modal buttons
   const closers = page.locator(
     [
       ".notification-toast .codicon-notifications-clear",
@@ -61,14 +60,12 @@ async function dismissNoise(page) {
 }
 
 /**
- * Run a command-palette entry by typing its label and pressing Enter.
  * @param {import('playwright').Page} page
  * @param {string} query
  */
 async function runCommand(page, query) {
   await page.keyboard.press("Control+Shift+P");
   await page.waitForTimeout(600);
-  // Clear any previous filter
   await page.keyboard.press("Control+A").catch(() => {});
   await page.keyboard.type(query, { delay: 25 });
   await page.waitForTimeout(900);
@@ -77,7 +74,6 @@ async function runCommand(page, query) {
 }
 
 /**
- * Select a quick-pick row by typing a filter string.
  * @param {import('playwright').Page} page
  * @param {string} filter
  */
@@ -91,15 +87,11 @@ async function pickQuickOpen(page, filter) {
 }
 
 /**
- * Manual-flow step 1: force Ionide onto customer-fixture.slnx.
- * FSharp.workspacePath is set in settings; this command re-asserts it when
- * Ionide still shows a solution picker (common on first launch).
  * @param {import('playwright').Page} page
  */
 async function loadSolution(page) {
   log("loading Ionide workspace/solution:", SOLUTION_NAME);
 
-  // Prefer Ionide's explicit workspace picker (same action as manual testing).
   const commands = [
     "F#: Change Workspace or Solution",
     "F# Change Workspace or Solution",
@@ -109,7 +101,6 @@ async function loadSolution(page) {
   for (const cmd of commands) {
     await dismissNoise(page);
     await runCommand(page, cmd);
-    // If a quick-pick opened, filter to our slnx
     const picker = page.locator(
       ".quick-input-widget:visible, .monaco-list:visible .monaco-list-row"
     );
@@ -126,31 +117,14 @@ async function loadSolution(page) {
     await page.keyboard.press("Escape").catch(() => {});
   }
 
-  // Fallback: open the slnx file itself (C# / Ionide often treat this as load).
   log("command palette workspace change unavailable; quick-opening", SOLUTION_NAME);
   await page.keyboard.press("Control+P");
   await page.waitForTimeout(600);
   await pickQuickOpen(page, SOLUTION_NAME);
   await page.waitForTimeout(3000);
-
-  // Also try "Open Solution" style commands used by C# extension
-  await runCommand(page, "Open Solution");
-  const openSolPicker = await page
-    .locator(".quick-input-widget:visible")
-    .first()
-    .isVisible()
-    .catch(() => false);
-  if (openSolPicker) {
-    await pickQuickOpen(page, SOLUTION_NAME.replace(/\.slnx$/, ""));
-    log("selected solution via Open Solution");
-    await page.waitForTimeout(3000);
-  } else {
-    await page.keyboard.press("Escape").catch(() => {});
-  }
 }
 
 /**
- * Manual-flow step 2: open Program.fs in the editor.
  * @param {import('playwright').Page} page
  */
 async function openProgramFs(page) {
@@ -164,7 +138,6 @@ async function openProgramFs(page) {
   await editor.click({ timeout: 15_000 }).catch(() => {});
   log("editor visible for", FILE_PATH);
 
-  // Ensure F# language mode is active (Ionide + decorations activate on fsharp)
   await runCommand(page, "Change Language Mode");
   const langPicker = await page
     .locator(".quick-input-widget:visible")
@@ -179,35 +152,64 @@ async function openProgramFs(page) {
   }
 
   await editor.click({ timeout: 5000 }).catch(() => {});
-  // Give FSAC time to attach after solution + file open
   await page.waitForTimeout(8000);
 }
 
 /**
- * Snapshot UI signals used for readiness logging.
+ * Detect pure/impure badges and Ionide readiness.
+ * Badges are InlayHints (same layer as type annotations), so they should appear
+ * in editor text / inlay DOM. Also check CSS pseudo-elements for decoration fallback.
  * @param {import('playwright').Page} page
  */
 async function probeUi(page) {
-  return page.evaluate(() => {
-    const viewLines =
-      document.querySelector(".monaco-editor .view-lines") ||
-      document.querySelector(".monaco-editor");
-    const editorText = viewLines?.innerText || viewLines?.textContent || "";
-    const editorHtml = viewLines?.innerHTML || "";
+  const dom = await page.evaluate(() => {
+    const editors = [...document.querySelectorAll(".monaco-editor")];
+    const viewRoots = editors.flatMap((ed) => [
+      ed.querySelector(".view-lines"),
+      ed,
+    ]).filter(Boolean);
+
+    let editorText = "";
+    let editorHtml = "";
+    for (const root of viewRoots) {
+      editorText += `\n${root.innerText || root.textContent || ""}`;
+      editorHtml += `\n${root.innerHTML || ""}`;
+    }
+
     const bodyText = document.body?.innerText || "";
-    const statusBar =
-      document.querySelector("#workbench\\.parts\\.statusbar")?.textContent ||
-      document.querySelector(".statusbar")?.textContent ||
-      "";
 
     const word = (w, text) =>
       new RegExp(`(^|[^a-zA-Z])${w}([^a-zA-Z]|$)`, "m").test(text || "");
 
-    const sawImpure =
-      word("impure", editorText) || word("impure", editorHtml);
-    const sawPure = word("pure", editorText) || word("pure", editorHtml);
+    // Pseudo-element content (decoration fallback path)
+    let pseudoHitImpure = false;
+    let pseudoHitPure = false;
+    for (const root of editors) {
+      const nodes = root.querySelectorAll("*");
+      for (const n of nodes) {
+        for (const pseudo of [":before", ":after"]) {
+          const c = getComputedStyle(n, pseudo).content || "";
+          // content is quoted, e.g. "impure" or "'impure'"
+          if (/impure/i.test(c)) pseudoHitImpure = true;
+          if (/(^|[^a-z])pure([^a-z]|$)/i.test(c.replace(/^["']|["']$/g, ""))) {
+            if (!/impure/i.test(c)) pseudoHitPure = true;
+          }
+        }
+      }
+    }
 
-    // Inlay hints (type / parameter) — signal that Ionide project is loaded
+    const sawImpure =
+      word("impure", editorText) ||
+      word("impure", editorHtml) ||
+      word("impure", bodyText) ||
+      pseudoHitImpure;
+
+    const sawPure =
+      word("pure", editorText) ||
+      word("pure", editorHtml) ||
+      pseudoHitPure;
+
+    // Inlay widgets (Ionide types + our pure/impure badges)
     const inlayNodes = document.querySelectorAll(
       [
         ".monaco-editor .codicon-symbol-parameter",
@@ -219,49 +221,73 @@ async function probeUi(page) {
         ".monaco-editor span[class*='inline-injected']",
       ].join(",")
     );
-    let inlayCount = inlayNodes.length;
-    // Type-ish annotations often show as ": int" / ": string" injected next to bindings
-    const typeAnnoHits = (editorText.match(/:\s*(int|string|bool|unit|list|float|decimal|obj)\b/gi) || [])
-      .length;
-    if (typeAnnoHits > 0) inlayCount += typeAnnoHits;
 
-    const sawInlayish = inlayCount > 0;
+    const typeAnnoHits = (
+      editorText.match(/:\s*(int|string|bool|unit|list|float|decimal|obj|DateTime)\b/gi) ||
+      []
+    ).length;
 
-    // Real analyzer diagnostics (not the DLL filename in the explorer)
-    const sawAnalyzerHint =
-      /PURE00[123]/.test(bodyText) ||
-      /Pure analyzer/i.test(bodyText) ||
-      /PURE00[123]/.test(editorText);
-
-    const solutionLoaded =
-      /customer-fixture/i.test(statusBar) ||
-      /Ionide/i.test(statusBar) ||
-      /FSAC|F#/i.test(statusBar);
+    const statusBar =
+      document.querySelector("#workbench\\.parts\\.statusbar")?.textContent ||
+      document.querySelector(".statusbar")?.textContent ||
+      "";
 
     return {
       sawImpure,
       sawPure,
-      sawInlayish,
-      sawAnalyzerHint,
-      solutionLoaded,
-      inlayCount,
+      sawInlayish: inlayNodes.length > 0 || typeAnnoHits > 0,
+      sawAnalyzerHint: /PURE00[123]|Pure analyzer/i.test(bodyText),
+      solutionLoaded: /customer-fixture|Ionide|FSAC|F#/i.test(statusBar),
+      inlayCount: inlayNodes.length,
       typeAnnoHits,
-      statusBar: statusBar.slice(0, 200),
-      editorSnippet: editorText.slice(0, 400),
+      statusBar: statusBar.replace(/\s+/g, " ").slice(0, 160),
+      editorSnippet: editorText.replace(/\s+/g, " ").slice(0, 500),
     };
   });
+
+  // Playwright text engine (sometimes sees accessible text evaluate misses)
+  const impureLoc = page.locator(".monaco-editor").getByText("impure", {
+    exact: true,
+  });
+  const pureLoc = page.locator(".monaco-editor").getByText("pure", {
+    exact: true,
+  });
+  const impureCount = await impureLoc.count().catch(() => 0);
+  const pureCount = await pureLoc.count().catch(() => 0);
+
+  // Also non-exact contains (inlay may be in a larger string with spaces)
+  const impureSoft = await page
+    .locator(".monaco-editor")
+    .getByText(/\bimpure\b/)
+    .count()
+    .catch(() => 0);
+  const pureSoft = await page
+    .locator(".monaco-editor")
+    .getByText(/(?<![a-zA-Z])pure(?![a-zA-Z])/)
+    .count()
+    .catch(() => 0);
+
+  return {
+    ...dom,
+    sawImpure: dom.sawImpure || impureCount > 0 || impureSoft > 0,
+    sawPure: dom.sawPure || pureCount > 0 || pureSoft > 0,
+    locatorCounts: { impureCount, pureCount, impureSoft, pureSoft },
+  };
 }
 
 /**
- * Re-run workspace change if Ionide still looks idle after a while.
  * @param {import('playwright').Page} page
  * @param {number} nudge
  */
 async function nudgeIonide(page, nudge) {
-  if (nudge === 3) {
-    log("nudge: re-assert Ionide workspace →", SOLUTION_NAME);
-    await loadSolution(page);
-    await openProgramFs(page);
+  // Only re-assert solution once if still cold; avoid resetting a healthy session
+  if (nudge === 8) {
+    const probe = await probeUi(page);
+    if (!probe.sawInlayish && !probe.sawImpure) {
+      log("nudge: re-assert Ionide workspace →", SOLUTION_NAME);
+      await loadSolution(page);
+      await openProgramFs(page);
+    }
     return;
   }
   if (nudge % 5 === 1) {
@@ -273,13 +299,11 @@ async function nudgeIonide(page, nudge) {
     await page.waitForTimeout(150);
     await page.keyboard.press("Control+Home").catch(() => {});
   } else if (nudge % 5 === 3) {
-    // Toggle Problems panel — sometimes forces diagnostic refresh
     await page.keyboard.press("Control+Shift+M").catch(() => {});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
   } else if (nudge % 5 === 4) {
     const editor = page.locator(".monaco-editor").first();
     await editor.click({ timeout: 3000 }).catch(() => {});
-    // Tiny edit + undo to poke FSAC
     await page.keyboard.type(" ", { delay: 20 }).catch(() => {});
     await page.keyboard.press("Control+Z").catch(() => {});
   }
@@ -311,7 +335,9 @@ async function waitForBadges(page) {
         solutionLoaded: probe.solutionLoaded,
         inlayCount: probe.inlayCount,
         typeAnnoHits: probe.typeAnnoHits,
+        locatorCounts: probe.locatorCounts,
         statusBar: probe.statusBar,
+        editorSnippet: probe.editorSnippet,
         remainingMs: deadline - Date.now(),
       });
       lastLog = Date.now();
@@ -321,6 +347,11 @@ async function waitForBadges(page) {
       log("found both pure and impure labels", { sawInlayish });
       await page.waitForTimeout(2000);
       return { sawImpure, sawPure, sawInlayish, timedOut: false };
+    }
+
+    // Once impure is visible, jump to pure helpers so PURE003 badges mount
+    if (sawImpure && !sawPure && nudge > 2 && nudge % 3 === 0) {
+      await findInEditor(page, "let add a b");
     }
 
     nudge += 1;
@@ -333,6 +364,89 @@ async function waitForBadges(page) {
 }
 
 /**
+ * Find text in the editor via the find widget (Ctrl+F).
+ * @param {import('playwright').Page} page
+ * @param {string} query
+ */
+async function findInEditor(page, query) {
+  await page.keyboard.press("Escape").catch(() => {});
+  await page.waitForTimeout(200);
+  await page.keyboard.press("Control+F").catch(() => {});
+  await page.waitForTimeout(500);
+  await page.keyboard.press("Control+A").catch(() => {});
+  await page.keyboard.type(query, { delay: 25 });
+  await page.waitForTimeout(700);
+  await page.keyboard.press("Enter").catch(() => {});
+  await page.waitForTimeout(600);
+  await page.keyboard.press("Escape").catch(() => {});
+  await page.waitForTimeout(400);
+}
+
+/**
+ * Reveal the referentially-transparent helpers so screenshots include:
+ *   let add / let isEmpty / let myEmpty
+ * @param {import('playwright').Page} page
+ */
+async function revealPureHelpersSection(page) {
+  log("revealing pure helpers section (add / isEmpty / myEmpty)");
+
+  // Anchor on the first pure binding — keeps isEmpty + myEmpty in the same viewport
+  await findInEditor(page, "let add a b");
+
+  // Nudge up slightly so the section header / full `add` body is visible
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press("ArrowUp").catch(() => {});
+  }
+  await page.waitForTimeout(400);
+
+  const visible = await page.evaluate(() => {
+    const text =
+      document.querySelector(".monaco-editor .view-lines")?.innerText ||
+      document.querySelector(".monaco-editor")?.innerText ||
+      "";
+    return {
+      hasAdd: /let\s+add\s+a\s+b/.test(text),
+      hasIsEmpty: /let\s+isEmpty\b/.test(text),
+      hasMyEmpty: /let\s+myEmpty\b/.test(text),
+      snippet: text.replace(/\s+/g, " ").slice(0, 400),
+    };
+  });
+
+  // If myEmpty is still below the fold, page down once from add
+  if (visible.hasAdd && !visible.hasMyEmpty) {
+    await page.keyboard.press("PageDown").catch(() => {});
+    await page.waitForTimeout(300);
+    // Re-center on add so all three stay together in a tall viewport
+    await findInEditor(page, "let add a b");
+    for (let i = 0; i < 2; i++) {
+      await page.keyboard.press("ArrowUp").catch(() => {});
+    }
+    await page.waitForTimeout(400);
+  }
+
+  const again = await page.evaluate(() => {
+    const text =
+      document.querySelector(".monaco-editor .view-lines")?.innerText ||
+      document.querySelector(".monaco-editor")?.innerText ||
+      "";
+    return {
+      hasAdd: /let\s+add\s+a\s+b/.test(text),
+      hasIsEmpty: /let\s+isEmpty\b/.test(text),
+      hasMyEmpty: /let\s+myEmpty\b/.test(text),
+      snippet: text.replace(/\s+/g, " ").slice(0, 500),
+    };
+  });
+
+  log("pure helpers visibility", again);
+  if (!again.hasAdd || !again.hasIsEmpty || !again.hasMyEmpty) {
+    log(
+      "warning: pure helpers not fully visible in editor viewport; screenshot may be incomplete"
+    );
+  }
+  return again;
+}
+
+/**
  * @param {import('playwright').Page} page
  * @param {{ sawImpure: boolean, sawPure: boolean, sawInlayish?: boolean, timedOut: boolean }} badgeState
  */
@@ -340,6 +454,7 @@ async function capture(page, badgeState) {
   const editor = page.locator(".monaco-editor").first();
   await editor.waitFor({ state: "visible" });
 
+  // --- Impure / top-of-file section ---
   await page.keyboard.press("Control+Home").catch(() => {});
   await page.waitForTimeout(800);
 
@@ -363,12 +478,10 @@ async function capture(page, badgeState) {
   });
   log("wrote", shots.editor);
 
-  await page.keyboard.press("Control+End").catch(() => {});
-  await page.waitForTimeout(400);
-  for (let i = 0; i < 10; i++) {
-    await page.keyboard.press("PageUp").catch(() => {});
-  }
-  await page.waitForTimeout(600);
+  // --- Pure helpers: add / isEmpty / myEmpty (must appear in pure-section PNG) ---
+  const pureVisibility = await revealPureHelpersSection(page);
+  await page.waitForTimeout(800);
+
   await editor.screenshot({ path: shots.pureSection }).catch(async () => {
     await page.screenshot({ path: shots.pureSection });
   });
@@ -381,6 +494,7 @@ async function capture(page, badgeState) {
     file: FILE_PATH,
     solution: SOLUTION_NAME,
     badges: badgeState,
+    pureHelpersVisible: pureVisibility,
     probe: finalProbe,
     screenshots: Object.keys(shots).map((k) => path.basename(shots[k])),
     reviewGuide: {
@@ -392,8 +506,15 @@ async function capture(page, badgeState) {
         "pureProcessBatch",
         "main",
       ],
+      pureSectionMustInclude: [
+        "let add a b",
+        "let isEmpty",
+        "let myEmpty",
+      ],
       pureShouldInclude: ["add", "isEmpty", "myEmpty", "double", "purePipeline"],
-      flow: "slnx loaded → Program.fs open → Ionide inlays → pure/impure badges",
+      flow: "slnx → Program.fs → Ionide type inlays → pure/impure inlays after types",
+      badgeOrder:
+        "Purity badges are InlayHints at EOL and should appear after Ionide type annotations.",
     },
   };
   fs.writeFileSync(
@@ -424,7 +545,6 @@ async function main() {
     await page.waitForTimeout(3000);
     await dismissNoise(page);
 
-    // Match manual testing: select solution first, then open Program.fs
     await loadSolution(page);
     await openProgramFs(page);
 
@@ -446,7 +566,7 @@ async function main() {
       log("Phase 2 visual capture OK", meta.screenshots);
       if (!badgeState.sawInlayish) {
         log(
-          "note: pure/impure labels found, but inlay-hint widgets were not clearly detected (may still be visible in PNGs)"
+          "note: pure/impure labels found, but Ionide inlay widgets were not clearly detected"
         );
       }
     }

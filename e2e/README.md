@@ -47,7 +47,8 @@ Consumer-codespace parity (settings mirrored from skinow-style `devcontainer.jso
 - `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx` (Ionide must load a solution before analyzers/inlays run)
 - `FSharp.enableAnalyzers` + `FSharp.analyzersPath` → local `analyzers/` drop
 - `FSharp.inlayHints.*` + `editor.inlayHints.enabled` → type + parameter inlays (readiness signal)
-- `fsharpPureDecorations.*` + transparent `editorHint.*` → end-of-line badges only
+- `fsharpPureDecorations.*` → pure/impure as **inlay hints after type annotations** (not decoration-before-inlay)
+- transparent `editorHint.*` → hide grey diagnostic hint text so badges stay readable
 
 ### Local Phase 2 (optional)
 
@@ -103,4 +104,16 @@ After a CI run, download **phase2-visual-screenshots** and check:
 | **impure** | `logSideEffect`, `pureAdd`, `pureProcessBatch`, `main` |
 | **pure** | `add`, `isEmpty`, `myEmpty`, `double`, `purePipeline` |
 
-Labels should appear at the **end of the definition line** (decoration `after` content), not only in the Problems panel.
+The **`program-fs-pure-section.png`** artifact is scrolled to the transparent helpers block:
+
+```fsharp
+let add a b =
+    List.map (fun x -> x * a + b) [1; 2; 3]
+
+let isEmpty = List.isEmpty
+
+let myEmpty l =
+    add 1 2 |> isEmpty
+```
+
+Labels should appear at the **end of the definition line** (inlay hints after Ionide type annotations), not only in the Problems panel.

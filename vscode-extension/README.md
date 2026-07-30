@@ -5,20 +5,28 @@ VS Code extension that visualizes [`FSharp.PureAnalyzer`](https://github.com/e-S
 ## Appearance (default)
 
 ```fsharp
-let getTimestamp () =  // unit -> DateTime          impure
+let getTimestamp () =  // … Ionide type hint …  impure
     DateTime.UtcNow
 ```
 
-- Light blue **box** around the impure function name  
-- Boxed **`impure`** badge at the **end of the signature line** (next to Ionide type hints)
+- **`pure` / `impure` badges** at the **end of the definition line**
+- Rendered as **inlay hints** so they sit **after** Ionide type/parameter annotations (not in front of them)
+- Driven by definition diagnostics: `PURE002` → impure, `PURE003` → pure
+
+If `editor.inlayHints.enabled` is off, the extension falls back to classic end-of-line text decorations.
 
 ## Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `fsharpPureDecorations.enabled` | `true` | Toggle decorations |
-| `fsharpPureDecorations.style` | `badge-end-of-line` | `badge-end-of-line` \| `badge-after-name` \| `box-name-only` |
-| `fsharpPureDecorations.color` | `#4FC1FF` | Accent color |
+| `fsharpPureDecorations.enabled` | `true` | Toggle pure/impure badges |
+| `fsharpPureDecorations.impureColor` | `#E2A66A` | Accent for decoration fallback (impure) |
+| `fsharpPureDecorations.pureColor` | `#6A9955` | Accent for decoration fallback (pure) |
+
+Also requires:
+
+- `editor.inlayHints.enabled`: `on` (preferred path)
+- `FSharp.enableAnalyzers`: `true` and a valid `FSharp.analyzersPath`
 
 ## Install from GitHub Release
 
@@ -32,6 +40,6 @@ In a Dev Container this is handled automatically (see consumer repo `.devcontain
 
 ## Requirements
 
-- VS Code / Codespaces / Dev Containers 1.85+
-- `FSharp.PureAnalyzer` producing `PURE001` / `PURE002` diagnostics
-- F# language mode (`fsharp`)
+- VS Code / Codespaces / Dev Containers / code-server 1.85+
+- `FSharp.PureAnalyzer` producing `PURE002` / `PURE003` definition diagnostics
+- F# language mode (`fsharp`) and Ionide (or compatible FSAC host) with analyzers enabled

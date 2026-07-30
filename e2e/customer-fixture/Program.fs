@@ -57,9 +57,10 @@ let pureProcessBatch (values: int list) =
 
 // ---------------------------------------------------------------------------
 // Referentially transparent helpers — expect PURE003
+// (Phase 2 pure-section screenshots must include add / isEmpty / myEmpty.)
 // ---------------------------------------------------------------------------
 let add a b =
-    List.map (fun x -> x * a + b) [ 1; 2; 3 ]
+    List.map (fun x -> x * a + b) [1; 2; 3]
 
 let isEmpty = List.isEmpty
 
