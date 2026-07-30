@@ -37,11 +37,8 @@ jobs:
           echo "tag=vscode-extension-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "vsix=${NAME}-${VERSION}.vsix" >> "$GITHUB_OUTPUT"
 
-      - name: Install vsce
-        run: npm install -g @vscode/vsce
-
       - name: Package VSIX
-        run: vsce package --allow-missing-repository
+        run: npx --yes @vscode/vsce package --allow-missing-repository
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

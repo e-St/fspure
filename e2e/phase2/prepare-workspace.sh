@@ -33,13 +33,12 @@ echo "==> Phase 2 prepare: build customer fixture"
 dotnet build "$FIXTURE_DIR/customer-fixture.fsproj" -c "$CONFIGURATION"
 
 echo "==> Phase 2 prepare: package vscode extension VSIX"
-if ! command -v vsce >/dev/null 2>&1; then
-  npm install -g @vscode/vsce >/dev/null
-fi
 pushd "$EXT_DIR" >/dev/null
 # vsce writes name-version.vsix in cwd
 rm -f ./*.vsix
-vsce package --allow-missing-repository --out "$ARTIFACTS/fsharp-pure-decorations.vsix"
+# Use npx (not npm install -g) so packaging works without write access
+# to system node_modules (EACCES on /usr/lib/node_modules in the phase2 image).
+npx --yes @vscode/vsce package --allow-missing-repository --out "$ARTIFACTS/fsharp-pure-decorations.vsix"
 popd >/dev/null
 echo "    VSIX → $ARTIFACTS/fsharp-pure-decorations.vsix"
 
