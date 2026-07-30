@@ -7,4 +7,4 @@ test/**
 **/*.ts
 **/node_modules/**
 **/.git/**
-README.md
+**/*.vsix

@@ -1,6 +1,5 @@
 // Customer-style fixture for purity end-to-end checks.
-// Mirrors the manual codespace validation done against skinow/inaction/Program.fs:
-// open this file with FSharp.PureAnalyzer + the decorations extension and confirm
+// Open this file with FSharp.PureAnalyzer + the decorations extension and confirm
 // end-of-line PURE002 / PURE003 badges on the definitions below.
 //
 // Note: avoid bare badge tokens in comments so Phase 2 probes do not false-positive.

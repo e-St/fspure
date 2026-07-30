@@ -12,20 +12,27 @@
   "bugs": {
     "url": "https://github.com/e-St/fspure/issues"
   },
+  "homepage": "https://github.com/e-St/fspure#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Other",
-    "Programming Languages"
+    "Programming Languages",
+    "Linters"
   ],
   "keywords": [
     "fsharp",
     "f#",
     "pure",
     "analyzer",
-    "impure"
+    "impure",
+    "ionide"
   ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onLanguage:fsharp"
   ],

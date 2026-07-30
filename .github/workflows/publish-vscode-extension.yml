@@ -1,5 +1,9 @@
 name: Publish VS Code Extension
 
+# Always builds a VSIX and publishes to GitHub Releases (advanced consumers).
+# When secrets are configured, also publishes to the official VS Marketplace
+# and optionally Open VSX (code-server / VSCodium).
+
 on:
   push:
     branches: [main, master]
@@ -32,13 +36,22 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           NAME=$(node -p "require('./package.json').name")
+          PUBLISHER=$(node -p "require('./package.json').publisher")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "publisher=$PUBLISHER" >> "$GITHUB_OUTPUT"
           echo "tag=vscode-extension-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "vsix=${NAME}-${VERSION}.vsix" >> "$GITHUB_OUTPUT"
+          echo "marketplaceId=${PUBLISHER}.${NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure LICENSE is packaged
+        run: |
+          if [[ ! -f LICENSE && -f ../LICENSE ]]; then
+            cp ../LICENSE LICENSE
+          fi
 
       - name: Package VSIX
-        run: npx --yes @vscode/vsce package --allow-missing-repository
+        run: npx --yes @vscode/vsce package --no-dependencies
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -55,19 +68,25 @@ jobs:
           TAG="${{ steps.ver.outputs.tag }}"
           VSIX="${{ steps.ver.outputs.vsix }}"
           TITLE="VS Code extension ${{ steps.ver.outputs.version }}"
+          MKT="${{ steps.ver.outputs.marketplaceId }}"
 
-          # Create release if it does not exist yet
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" \
               --title "$TITLE" \
-              --notes "Automated build of **fsharp-pure-decorations** v${{ steps.ver.outputs.version }}." \
+              --notes "Automated build of **fsharp-pure-decorations** v${{ steps.ver.outputs.version }}.
+
+          ## Install (advanced / GitHub)
+          \`\`\`bash
+          code --install-extension ${VSIX}
+          \`\`\`
+
+          ## Install (easy / Marketplace)
+          When published: \`code --install-extension ${MKT}\`" \
               --latest=false
           fi
 
-          # Upload / replace the VSIX asset
           gh release upload "$TAG" "$VSIX" --clobber
 
-          # Also publish under a floating tag that consumers can pin to
           FLOAT_TAG="vscode-extension-latest"
           if ! gh release view "$FLOAT_TAG" >/dev/null 2>&1; then
             gh release create "$FLOAT_TAG" \
@@ -78,3 +97,29 @@ jobs:
           gh release upload "$FLOAT_TAG" "$VSIX" --clobber
 
           echo "Published $VSIX to releases $TAG and $FLOAT_TAG"
+
+      - name: Publish to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VSCE_PAT:-}" ]]; then
+            echo "VSCE_PAT not configured — skipping Marketplace publish (GitHub Release still available)."
+            exit 0
+          fi
+          npx --yes @vscode/vsce publish \
+            --packagePath "${{ steps.ver.outputs.vsix }}" \
+            --pat "$VSCE_PAT"
+          echo "Published to Marketplace: ${{ steps.ver.outputs.marketplaceId }}"
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${OVSX_PAT:-}" ]]; then
+            echo "OVSX_PAT not configured — skipping Open VSX publish."
+            exit 0
+          fi
+          npx --yes ovsx publish "${{ steps.ver.outputs.vsix }}" --pat "$OVSX_PAT"
+          echo "Published to Open VSX: ${{ steps.ver.outputs.marketplaceId }}"

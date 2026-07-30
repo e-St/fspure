@@ -515,7 +515,7 @@ async function capture(page, badgeState) {
       flow: "slnx → Program.fs → LineLens (// HM type) → pure/impure badge after signature",
       badgeOrder:
         "Expected: let add a b = // int -> int -> list<int> pure  (no a : int on args; pure after LineLens).",
-      skinowSettings: {
+      consumerIonideSettings: {
         "FSharp.inlayHints.typeAnnotations": false,
         "FSharp.inlayHints.parameterNames": true,
         "FSharp.lineLens.enabled": "replaceCodeLens",

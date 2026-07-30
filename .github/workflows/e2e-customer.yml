@@ -1,6 +1,6 @@
 name: Customer E2E (pure/impure labels)
 
-# Two-phase consumer check (replaces manual codespace review on skinow/inaction):
+# Two-phase consumer check (analyzer baseline + visual pure/impure decorations):
 #
 #   Phase 1 — Analyzer baseline on e2e/customer-fixture/Program.fs
 #   Phase 2 — Devcontainer + VS Code (code-server) opens Program.fs and

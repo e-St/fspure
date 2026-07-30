@@ -1,6 +1,6 @@
 # Customer end-to-end tests
 
-Automates the manual **consumer codespace check** (e.g. [skinow](https://github.com/e-St/skinow) `inaction/Program.fs`):
+Automates a full **consumer-style** check of fspure:
 
 1. PureAnalyzer classifies pure vs impure definitions.
 2. The **fsharp-pure-decorations** VS Code extension shows `pure` / `impure` labels next to the code.
@@ -35,21 +35,20 @@ Artifacts: `e2e/.artifacts/phase1/`
 |------|--------|
 | Prepare | Build analyzer into `customer-fixture/analyzers/`, pack decorations `.vsix` |
 | VS Code | Start **code-server** (VS Code Web) with Ionide + the VSIX |
-| Settings | Same Ionide / inlay / pure-decoration settings as the consumer codespace (`customer-fixture/.vscode/settings.json`) |
-| Solution | Load `customer-fixture.slnx` into Ionide (same as manually picking the project’s `.slnx`) |
+| Settings | Consumer-style Ionide + decoration settings (`customer-fixture/.vscode/settings.json`) |
+| Solution | Load `customer-fixture.slnx` into Ionide |
 | Open | `Program.fs` after the solution is loaded |
 | Capture | Playwright screenshots → `e2e/.artifacts/phase2/*.png` |
 
-Screenshots are uploaded as the `phase2-visual-screenshots` workflow artifact for **human visual review** (Ionide type/parameter inlays + pure/impure labels next to the right definitions). The job also fails if both `pure` and `impure` decoration labels never appear in the editor within the wait window.
+Screenshots are uploaded as the `phase2-visual-screenshots` workflow artifact for **human visual review**. The job also fails if both `pure` and `impure` decoration labels never appear in the editor within the wait window.
 
-Consumer-codespace parity (settings mirrored from skinow-style `devcontainer.json`):
+Consumer UI parity (Ionide settings used in Phase 2):
 
-- `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx` (Ionide must load a solution before analyzers/LineLens run)
+- `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx`
 - `FSharp.enableAnalyzers` + `FSharp.analyzersPath` → local `analyzers/` drop
-- **skinow-parity Ionide UI:**
-  - `FSharp.inlayHints.typeAnnotations: false` → no `a : int` on arguments
-  - `FSharp.inlayHints.parameterNames: true`
-  - `FSharp.lineLens.enabled: replaceCodeLens` + `prefix: "// "` → `// int -> int -> …` HM signatures
+- `FSharp.inlayHints.typeAnnotations: false` → no `a : int` on arguments
+- `FSharp.inlayHints.parameterNames: true`
+- `FSharp.lineLens.enabled: replaceCodeLens` + `prefix: "// "` → `// int -> int -> …` signatures
 - `fsharpPureDecorations.*` → pure/impure **after** LineLens (`// signature pure`)
 - transparent `editorHint.*` → hide grey diagnostic hint text so badges stay readable
 
@@ -68,7 +67,7 @@ Or run `e2e/phase2/run.sh` on any host that has .NET 10, Node 20, code-server, a
 
 ```
 e2e/
-  customer-fixture/           # Mini consumer project (skinow/inaction-style)
+  customer-fixture/           # Mini consumer project
     Program.fs
     expectations.json         # Phase 1 baseline
     .vscode/settings.json     # Ionide + decorations settings for Phase 2
@@ -119,4 +118,10 @@ let myEmpty l =
     add 1 2 |> isEmpty
 ```
 
-Labels should appear at the **end of the definition line** (inlay hints after Ionide type annotations), not only in the Problems panel.
+Expected end-of-line layout:
+
+```text
+let add a b = // int -> int -> list<int> pure
+```
+
+(LineLens signature first, pure/impure badge after — not argument type inlays.)

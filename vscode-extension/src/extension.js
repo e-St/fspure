@@ -19,7 +19,7 @@ const {
  * - A second decoration type registered after Ionide stacks to the *right* of LineLens:
  *     `let add a b = // int -> int -> list<int> pure`
  *
- * Pair with skinow-style Ionide settings:
+ * Pair with recommended consumer Ionide settings:
  *   FSharp.inlayHints.typeAnnotations = false  (no `a : int` on args)
  *   FSharp.lineLens.enabled = replaceCodeLens     (HM signature via // …)
  */

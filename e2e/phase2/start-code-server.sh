@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Start code-server (VS Code Web) against the customer fixture workspace.
 # Installs Ionide + the locally built pure-decorations VSIX.
-# Applies the same Ionide / decoration settings used by the skinow-style consumer
-# codespace (see e2e/customer-fixture/.vscode/settings.json).
+# Applies consumer-style Ionide / decoration settings
+# (see e2e/customer-fixture/.vscode/settings.json).
 #
 # Ionide only runs analyzers / inlay hints after a solution is loaded — same as
 # the manual flow: pick customer-fixture.slnx, then open Program.fs.

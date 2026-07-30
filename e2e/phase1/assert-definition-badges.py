@@ -84,7 +84,7 @@ def write_baseline(path: Path, actual: dict[str, str]) -> None:
             "Badges in the editor are driven only by PURE002 (impure) and PURE003 (pure).",
             "PURE001 call-site hints are ignored by fsharp-pure-decorations for badge placement.",
             "This fixture mixes misnamed pure* helpers (impure) with truly pure helpers "
-            "(add/isEmpty/myEmpty) like skinow/inaction.",
+            "(add/isEmpty/myEmpty).",
         ],
     }
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
