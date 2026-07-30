@@ -1,14 +1,16 @@
-// Customer-style fixture for pure/impure end-to-end checks.
+// Customer-style fixture for purity end-to-end checks.
 // Mirrors the manual codespace validation done against skinow/inaction/Program.fs:
-// open this file with FSharp.PureAnalyzer + fsharp-pure-decorations and confirm
-// end-of-line "pure" / "impure" badges on the definitions below.
+// open this file with FSharp.PureAnalyzer + the decorations extension and confirm
+// end-of-line PURE002 / PURE003 badges on the definitions below.
+//
+// Note: avoid bare badge tokens in comments so Phase 2 probes do not false-positive.
 
 open System
 open System.IO
 open System.Collections.Generic
 
 // ---------------------------------------------------------------------------
-// Impure helpers (side effects / mutation / randomness)
+// Side-effecting helpers (I/O / mutation / randomness) — expect PURE002
 // ---------------------------------------------------------------------------
 let mutable globalAccumulator = 0
 let globalLog = List<string>()
@@ -18,7 +20,7 @@ let logSideEffect (msg: string) =
     globalLog.Add(msg)
     printfn "[SIDE-EFFECT] %s" msg
     try
-        File.AppendAllText("impure_side_effects.log", msg + Environment.NewLine)
+        File.AppendAllText("side_effects.log", msg + Environment.NewLine)
     with _ ->
         ()
 
@@ -31,7 +33,7 @@ let getRandomImpure () =
     r
 
 // ---------------------------------------------------------------------------
-// Misnamed "pure*" functions that are actually impure (should be PURE002)
+// Misnamed helpers that look clean but call side effects — expect PURE002
 // ---------------------------------------------------------------------------
 let pureAdd (a: int) (b: int) =
     logSideEffect (sprintf "pureAdd %d %d" a b)
@@ -54,7 +56,7 @@ let pureProcessBatch (values: int list) =
     pureMultiply sum (getRandomImpure () % 3 + 1)
 
 // ---------------------------------------------------------------------------
-// Truly pure functions (should be PURE003 — green "pure" badge)
+// Referentially transparent helpers — expect PURE003
 // ---------------------------------------------------------------------------
 let add a b =
     List.map (fun x -> x * a + b) [ 1; 2; 3 ]
@@ -74,9 +76,9 @@ let purePipeline (x: int) =
 // ---------------------------------------------------------------------------
 let main () =
     logSideEffect "========== E2E FIXTURE START =========="
-    let impureResult = pureProcessBatch [ 3; 1; 4 ]
-    let pureResult = purePipeline 7
-    printfn "impureResult=%d pureResult=%d empty=%b" impureResult pureResult (myEmpty [])
+    let sideEffectingResult = pureProcessBatch [ 3; 1; 4 ]
+    let transparentResult = purePipeline 7
+    printfn "sideEffectingResult=%d transparentResult=%d empty=%b" sideEffectingResult transparentResult (myEmpty [])
     logSideEffect "========== E2E FIXTURE END =========="
 
 main ()

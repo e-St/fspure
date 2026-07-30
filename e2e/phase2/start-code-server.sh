@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Start code-server (VS Code Web) against the customer fixture workspace.
 # Installs Ionide + the locally built pure-decorations VSIX.
+# Applies the same Ionide / decoration settings used by the skinow-style consumer
+# codespace (see e2e/customer-fixture/.vscode/settings.json).
 
 set -euo pipefail
 
@@ -21,14 +23,32 @@ if [[ ! -f "$ARTIFACTS/fsharp-pure-decorations.vsix" ]]; then
 fi
 
 VSIX="$ARTIFACTS/fsharp-pure-decorations.vsix"
+ANALYZER_DIR="$FIXTURE_DIR/analyzers"
+PROJECT_PATH="$FIXTURE_DIR/customer-fixture.fsproj"
+
+if [[ ! -f "$ANALYZER_DIR/dotnet/fs/FSharp.PureAnalyzer.dll" ]]; then
+  echo "ERROR: PureAnalyzer DLL missing under $ANALYZER_DIR (run prepare-workspace.sh first)" >&2
+  exit 1
+fi
 
 echo "==> Install extensions into code-server"
-# Ionide (F# language service + analyzer host)
+# Ionide (F# language service + analyzer host). On Open VSX this also pulls
+# muhammad-sammy.csharp (free C# extension) as a dependency.
 code-server \
   --user-data-dir "$USER_DATA" \
   --extensions-dir "$EXT_DIR" \
   --install-extension ionide.ionide-fsharp \
   --force
+
+# Optional companion extensions from the consumer codespace (best-effort).
+for ext in ionide.ionide-paket ionide.ionide-fantomas; do
+  code-server \
+    --user-data-dir "$USER_DATA" \
+    --extensions-dir "$EXT_DIR" \
+    --install-extension "$ext" \
+    --force \
+    || echo "    (skip optional $ext)"
+done
 
 code-server \
   --user-data-dir "$USER_DATA" \
@@ -36,9 +56,11 @@ code-server \
   --install-extension "$VSIX" \
   --force
 
-# Disable workspace trust / telemetry noise via argv-like product settings
+# User-level settings mirror the skinow-style consumer codespace so screenshots
+# show inlay hints + pure/impure decorations even if workspace settings lag.
+# Workspace settings in customer-fixture/.vscode/settings.json stay the source of truth.
 mkdir -p "$USER_DATA/User"
-cat > "$USER_DATA/User/settings.json" <<'EOF'
+cat > "$USER_DATA/User/settings.json" <<EOF
 {
   "security.workspace.trust.enabled": false,
   "security.workspace.trust.startupPrompt": "never",
@@ -48,9 +70,64 @@ cat > "$USER_DATA/User/settings.json" <<'EOF'
   "extensions.autoUpdate": false,
   "extensions.autoCheckUpdates": false,
   "workbench.startupEditor": "none",
-  "workbench.colorTheme": "Default Dark Modern"
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.tips.enabled": false,
+  "workbench.welcomePage.walkthroughs.openOnInstall": false,
+  "extensions.ignoreRecommendations": true,
+  "git.openRepositoryInParentFolders": "never",
+
+  "editor.inlineSuggest.enabled": false,
+  "editor.parameterHints.enabled": false,
+  "editor.acceptSuggestionOnEnter": "off",
+  "[fsharp]": {
+    "editor.quickSuggestions": false,
+    "editor.suggestOnTriggerCharacters": false
+  },
+  "editor.inlayHints.enabled": "on",
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false,
+  "editor.fontSize": 14,
+  "editor.lineHeight": 22,
+
+  "FSharp.workspacePath": "$PROJECT_PATH",
+  "FSharp.workspaceModePeekDeepLevel": 1,
+  "FSharp.showExplorerOnStartup": true,
+  "FSharp.enableMSBuildProjectGraph": true,
+  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.parameterNames": true,
+  "FSharp.inlayHints.enabled": true,
+  "FSharp.linter": true,
+  "FSharp.enableAnalyzers": true,
+  "FSharp.analyzersPath": [
+    "analyzers",
+    "packages/Analyzers",
+    "$ANALYZER_DIR"
+  ],
+  "FSharp.unusedDeclarationsAnalyzer": true,
+  "FSharp.codeLenses.references.enabled": false,
+
+  "files.exclude": {
+    "**/obj": true,
+    "**/bin": true,
+    "**/.paket": true
+  },
+
+  "fsharpPureDecorations.enabled": true,
+  "fsharpPureDecorations.impureColor": "#E2A66A",
+  "fsharpPureDecorations.pureColor": "#6A9955",
+  "workbench.colorCustomizations": {
+    "editorHint.foreground": "#00000000",
+    "editorHint.border": "#00000000",
+    "editorOverviewRuler.hintForeground": "#00000000"
+  }
 }
 EOF
+
+# Also refresh workspace settings so the opened folder matches the consumer codespace.
+mkdir -p "$FIXTURE_DIR/.vscode"
+if [[ -f "$FIXTURE_DIR/.vscode/settings.json" ]]; then
+  echo "    workspace settings: $FIXTURE_DIR/.vscode/settings.json"
+fi
 
 # Stop previous instance if any
 if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
@@ -61,6 +138,8 @@ fi
 
 echo "==> Start code-server on http://${HOST}:${PORT}"
 echo "    workspace: $FIXTURE_DIR"
+echo "    analyzer:  $ANALYZER_DIR/dotnet/fs/FSharp.PureAnalyzer.dll"
+echo "    project:   $PROJECT_PATH"
 nohup code-server \
   --auth none \
   --bind-addr "${HOST}:${PORT}" \
