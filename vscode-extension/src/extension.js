@@ -9,54 +9,93 @@ const {
 } = require("./logic");
 
 /**
- * Preferred rendering: InlayHints at end-of-line.
- * They share Ionide's inlay layer, so badges appear *after* type/parameter hints.
+ * Pure/impure badges as end-of-line decorations (`after` content).
  *
- * Fallback: TextEditorDecorationType `after` when editor inlay hints are off
- * (decorations always paint before inlays at the same column, so they are only
- * used when there are no type inlays to order against).
+ * Why decorations (not InlayHints)?
+ * - Ionide's Hindley–Milner signature is **LineLens** (`// int -> int -> list<int>`),
+ *   also an `after` decoration on the definition line.
+ * - InlayHints paint *before* LineLens at EOL, which produced:
+ *     `let add a b = pure // int -> int -> list<int>`
+ * - A second decoration type registered after Ionide stacks to the *right* of LineLens:
+ *     `let add a b = // int -> int -> list<int> pure`
+ *
+ * Pair with skinow-style Ionide settings:
+ *   FSharp.inlayHints.typeAnnotations = false  (no `a : int` on args)
+ *   FSharp.lineLens.enabled = replaceCodeLens     (HM signature via // …)
  */
 
-/** @type {vscode.EventEmitter<void>} */
-const onDidChangeInlayHintsEmitter = new vscode.EventEmitter();
-
 /** @type {vscode.TextEditorDecorationType | undefined} */
-let impureBadgeDecoration;
+let impureBadge;
 /** @type {vscode.TextEditorDecorationType | undefined} */
-let pureBadgeDecoration;
+let pureBadge;
 
 /**
- * @returns {boolean}
+ * Zero-width range at absolute end of line (after source text / LineLens anchor).
+ * @param {vscode.TextEditor} editor
+ * @param {number} lineNumber
  */
-function inlayHintsEnabledInEditor() {
-  const v = vscode.workspace
-    .getConfiguration("editor")
-    .get("inlayHints.enabled");
-  // "on" | "off" | "onUnlessPressed" | "offUnlessPressed" | boolean (legacy)
-  if (v === false || v === "off") {
-    return false;
-  }
-  return true;
+function endOfLineAnchor(editor, lineNumber) {
+  const end = editor.document.lineAt(lineNumber).range.end;
+  return new vscode.Range(end, end);
 }
 
 /**
- * @param {vscode.TextDocument} document
- * @returns {Map<number, { badge: "impure" | "pure", code: string, message?: string }>}
+ * @param {string} contentText
+ * @param {string} color
  */
-function badgeEntriesForDocument(document) {
-  /** @type {Map<number, { badge: "impure" | "pure", code: string, message?: string }>} */
-  const result = new Map();
-  if (document.languageId !== "fsharp") {
-    return result;
+function badgeDecorationOptions(contentText, color) {
+  return {
+    after: {
+      // Leading spaces separate the badge from Ionide LineLens (`// …`).
+      contentText: `\u00A0${contentText}`,
+      color,
+      margin: "0 0 0 0.75em",
+      fontWeight: "bold",
+      fontStyle: "italic",
+    },
+    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+  };
+}
+
+function disposeDecorations() {
+  impureBadge?.dispose();
+  pureBadge?.dispose();
+  impureBadge = undefined;
+  pureBadge = undefined;
+}
+
+function createDecorations() {
+  disposeDecorations();
+
+  const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
+  const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A"));
+  const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955"));
+
+  impureBadge = vscode.window.createTextEditorDecorationType(
+    badgeDecorationOptions("impure", impureColor)
+  );
+  pureBadge = vscode.window.createTextEditorDecorationType(
+    badgeDecorationOptions("pure", pureColor)
+  );
+}
+
+/**
+ * @param {vscode.TextEditor} editor
+ */
+function updateEditor(editor) {
+  if (!editor || editor.document.languageId !== "fsharp") {
+    return;
   }
 
   const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
   if (!cfg.get("enabled", true)) {
-    return result;
+    if (impureBadge) editor.setDecorations(impureBadge, []);
+    if (pureBadge) editor.setDecorations(pureBadge, []);
+    return;
   }
 
   const diagnostics = vscode.languages
-    .getDiagnostics(document.uri)
+    .getDiagnostics(editor.document.uri)
     .filter(isPureAnalyzerDiagnostic);
 
   /** @type {Map<number, vscode.Diagnostic>} */
@@ -74,91 +113,17 @@ function badgeEntriesForDocument(document) {
     }
   }
 
-  for (const [line, entry] of badgesByLine(diagnostics)) {
-    const diag = diagByLine.get(line);
-    result.set(line, {
-      badge: entry.badge,
-      code: entry.code,
-      message: diag?.message,
-    });
-  }
-  return result;
-}
+  const badges = badgesByLine(diagnostics);
 
-/**
- * @param {string} contentText
- * @param {string} color
- */
-function decorationTypeOptions(contentText, color) {
-  return {
-    after: {
-      contentText: `\u00A0\u00A0${contentText}`,
-      color,
-      margin: "0 0 0 1.5em",
-      fontWeight: "bold",
-      fontStyle: "italic",
-    },
-    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
-  };
-}
-
-function disposeDecorationTypes() {
-  impureBadgeDecoration?.dispose();
-  pureBadgeDecoration?.dispose();
-  impureBadgeDecoration = undefined;
-  pureBadgeDecoration = undefined;
-}
-
-function createDecorationTypes() {
-  disposeDecorationTypes();
-  const cfg = vscode.workspace.getConfiguration("fsharpPureDecorations");
-  const impureColor = /** @type {string} */ (cfg.get("impureColor", "#E2A66A"));
-  const pureColor = /** @type {string} */ (cfg.get("pureColor", "#6A9955"));
-  impureBadgeDecoration = vscode.window.createTextEditorDecorationType(
-    decorationTypeOptions("impure", impureColor)
-  );
-  pureBadgeDecoration = vscode.window.createTextEditorDecorationType(
-    decorationTypeOptions("pure", pureColor)
-  );
-}
-
-/**
- * Clear decoration-based badges (used when inlay path is active).
- * @param {vscode.TextEditor} editor
- */
-function clearDecorationBadges(editor) {
-  if (impureBadgeDecoration) {
-    editor.setDecorations(impureBadgeDecoration, []);
-  }
-  if (pureBadgeDecoration) {
-    editor.setDecorations(pureBadgeDecoration, []);
-  }
-}
-
-/**
- * Fallback path when editor.inlayHints is off.
- * @param {vscode.TextEditor} editor
- */
-function updateDecorationBadges(editor) {
-  if (!editor || editor.document.languageId !== "fsharp") {
-    return;
-  }
-  if (!impureBadgeDecoration || !pureBadgeDecoration) {
-    createDecorationTypes();
-  }
-
-  const entries = badgeEntriesForDocument(editor.document);
   /** @type {vscode.DecorationOptions[]} */
   const impureOpts = [];
   /** @type {vscode.DecorationOptions[]} */
   const pureOpts = [];
 
-  for (const [line, entry] of entries) {
-    const end = editor.document.lineAt(line).range.end;
-    const range = new vscode.Range(end, end);
-    const opt = entry.message
-      ? { range, hoverMessage: entry.message }
-      : { range };
+  for (const [line, entry] of badges) {
+    const range = endOfLineAnchor(editor, line);
+    const hoverMessage = diagByLine.get(line)?.message;
+    const opt = hoverMessage ? { range, hoverMessage } : { range };
     if (entry.badge === "impure") {
       impureOpts.push(opt);
     } else {
@@ -166,88 +131,13 @@ function updateDecorationBadges(editor) {
     }
   }
 
-  if (impureBadgeDecoration) {
-    editor.setDecorations(impureBadgeDecoration, impureOpts);
-  }
-  if (pureBadgeDecoration) {
-    editor.setDecorations(pureBadgeDecoration, pureOpts);
-  }
+  if (impureBadge) editor.setDecorations(impureBadge, impureOpts);
+  if (pureBadge) editor.setDecorations(pureBadge, pureOpts);
 }
 
-/**
- * @param {vscode.TextDocument} document
- * @param {vscode.Range} visibleRange
- * @returns {vscode.InlayHint[]}
- */
-function buildInlayHints(document, visibleRange) {
-  // When inlays are disabled, the decoration path owns the UI.
-  if (!inlayHintsEnabledInEditor()) {
-    return [];
-  }
-
-  const entries = badgeEntriesForDocument(document);
-  if (entries.size === 0) {
-    return [];
-  }
-
-  /** @type {vscode.InlayHint[]} */
-  const hints = [];
-  const startLine = visibleRange.start.line;
-  const endLine = Math.min(visibleRange.end.line, document.lineCount - 1);
-
-  for (const [line, entry] of entries) {
-    if (line < startLine || line > endLine) {
-      continue;
-    }
-    if (line < 0 || line >= document.lineCount) {
-      continue;
-    }
-
-    const textLine = document.lineAt(line);
-    // End of line: after Ionide type/parameter inlays on this binding line.
-    const position = textLine.range.end;
-    // Leading spaces separate the purity badge from the preceding type hint.
-    const label = `  ${entry.badge}`;
-    const hint = new vscode.InlayHint(position, label, vscode.InlayHintKind.Type);
-    hint.paddingLeft = true;
-    hint.tooltip = entry.message || `${entry.badge} (${entry.code})`;
-    hints.push(hint);
-  }
-
-  hints.sort((a, b) =>
-    a.position.line !== b.position.line
-      ? a.position.line - b.position.line
-      : a.position.character - b.position.character
-  );
-
-  return hints;
-}
-
-const inlayHintsProvider = {
-  onDidChangeInlayHints: onDidChangeInlayHintsEmitter.event,
-  /**
-   * @param {vscode.TextDocument} document
-   * @param {vscode.Range} range
-   * @param {vscode.CancellationToken} _token
-   */
-  provideInlayHints(document, range, _token) {
-    return buildInlayHints(document, range);
-  },
-};
-
-function refreshAll() {
-  onDidChangeInlayHintsEmitter.fire();
-
-  const useInlays = inlayHintsEnabledInEditor();
+function updateAllEditors() {
   for (const editor of vscode.window.visibleTextEditors) {
-    if (editor.document.languageId !== "fsharp") {
-      continue;
-    }
-    if (useInlays) {
-      clearDecorationBadges(editor);
-    } else {
-      updateDecorationBadges(editor);
-    }
+    updateEditor(editor);
   }
 }
 
@@ -255,34 +145,42 @@ function refreshAll() {
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  createDecorationTypes();
+  // Create decoration types after a short delay so Ionide's LineLens
+  // decoration types are registered first. Later decoration types stack to the
+  // *right* of earlier ones at the same EOL column:
+  //   let add a b = // int -> int -> list<int> pure
+  const boot = () => {
+    createDecorations();
+    updateAllEditors();
+  };
+  boot();
+  const t1 = setTimeout(boot, 2000);
+  const t2 = setTimeout(boot, 5000);
 
   context.subscriptions.push(
-    vscode.languages.registerInlayHintsProvider(
-      { language: "fsharp" },
-      inlayHintsProvider
-    ),
-    vscode.languages.onDidChangeDiagnostics(() => refreshAll()),
-    vscode.window.onDidChangeActiveTextEditor(() => refreshAll()),
-    vscode.window.onDidChangeVisibleTextEditors(() => refreshAll()),
+    vscode.languages.onDidChangeDiagnostics(() => updateAllEditors()),
+    vscode.window.onDidChangeActiveTextEditor((e) => {
+      if (e) updateEditor(e);
+    }),
+    vscode.window.onDidChangeVisibleTextEditors(() => updateAllEditors()),
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (
-        e.affectsConfiguration("fsharpPureDecorations") ||
-        e.affectsConfiguration("editor.inlayHints")
-      ) {
-        createDecorationTypes();
-        refreshAll();
+      if (e.affectsConfiguration("fsharpPureDecorations")) {
+        createDecorations();
+        updateAllEditors();
       }
     }),
-    onDidChangeInlayHintsEmitter,
-    { dispose: () => disposeDecorationTypes() }
+    {
+      dispose: () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        disposeDecorations();
+      },
+    }
   );
-
-  refreshAll();
 }
 
 function deactivate() {
-  disposeDecorationTypes();
+  disposeDecorations();
 }
 
 module.exports = { activate, deactivate };

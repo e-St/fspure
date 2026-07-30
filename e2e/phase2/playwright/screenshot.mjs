@@ -512,9 +512,15 @@ async function capture(page, badgeState) {
         "let myEmpty",
       ],
       pureShouldInclude: ["add", "isEmpty", "myEmpty", "double", "purePipeline"],
-      flow: "slnx → Program.fs → Ionide type inlays → pure/impure inlays after types",
+      flow: "slnx → Program.fs → LineLens (// HM type) → pure/impure badge after signature",
       badgeOrder:
-        "Purity badges are InlayHints at EOL and should appear after Ionide type annotations.",
+        "Expected: let add a b = // int -> int -> list<int> pure  (no a : int on args; pure after LineLens).",
+      skinowSettings: {
+        "FSharp.inlayHints.typeAnnotations": false,
+        "FSharp.inlayHints.parameterNames": true,
+        "FSharp.lineLens.enabled": "replaceCodeLens",
+        "FSharp.lineLens.prefix": "// ",
+      },
     },
   };
   fs.writeFileSync(

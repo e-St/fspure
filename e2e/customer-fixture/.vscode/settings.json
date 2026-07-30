@@ -11,10 +11,17 @@
   "FSharp.workspaceModePeekDeepLevel": 1,
   "FSharp.showExplorerOnStartup": true,
   "FSharp.enableMSBuildProjectGraph": true,
+
   "editor.inlayHints.enabled": "on",
-  "FSharp.inlayHints.typeAnnotations": true,
-  "FSharp.inlayHints.parameterNames": true,
   "FSharp.inlayHints.enabled": true,
+  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.parameterNames": true,
+
+  "FSharp.lineLens.enabled": "replaceCodeLens",
+  "FSharp.lineLens.prefix": "// ",
+  "FSharp.pipelineHints.enabled": true,
+  "FSharp.pipelineHints.prefix": "// ",
+
   "FSharp.linter": true,
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [
@@ -24,12 +31,14 @@
   ],
   "FSharp.unusedDeclarationsAnalyzer": true,
   "FSharp.codeLenses.references.enabled": false,
+
   "editor.formatOnSave": true,
   "files.exclude": {
     "**/obj": true,
     "**/bin": true,
     "**/.paket": true
   },
+
   "fsharpPureDecorations.enabled": true,
   "fsharpPureDecorations.impureColor": "#E2A66A",
   "fsharpPureDecorations.pureColor": "#6A9955",
@@ -38,6 +47,7 @@
     "editorHint.border": "#00000000",
     "editorOverviewRuler.hintForeground": "#00000000"
   },
+
   "editor.minimap.enabled": false,
   "editor.fontSize": 14,
   "editor.lineHeight": 22,

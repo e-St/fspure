@@ -44,10 +44,13 @@ Screenshots are uploaded as the `phase2-visual-screenshots` workflow artifact fo
 
 Consumer-codespace parity (settings mirrored from skinow-style `devcontainer.json`):
 
-- `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx` (Ionide must load a solution before analyzers/inlays run)
+- `dotnet.defaultSolution` + `FSharp.workspacePath` → `customer-fixture.slnx` (Ionide must load a solution before analyzers/LineLens run)
 - `FSharp.enableAnalyzers` + `FSharp.analyzersPath` → local `analyzers/` drop
-- `FSharp.inlayHints.*` + `editor.inlayHints.enabled` → type + parameter inlays (readiness signal)
-- `fsharpPureDecorations.*` → pure/impure as **inlay hints after type annotations** (not decoration-before-inlay)
+- **skinow-parity Ionide UI:**
+  - `FSharp.inlayHints.typeAnnotations: false` → no `a : int` on arguments
+  - `FSharp.inlayHints.parameterNames: true`
+  - `FSharp.lineLens.enabled: replaceCodeLens` + `prefix: "// "` → `// int -> int -> …` HM signatures
+- `fsharpPureDecorations.*` → pure/impure **after** LineLens (`// signature pure`)
 - transparent `editorHint.*` → hide grey diagnostic hint text so badges stay readable
 
 ### Local Phase 2 (optional)

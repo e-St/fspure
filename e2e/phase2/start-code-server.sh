@@ -102,9 +102,16 @@ cat > "$USER_DATA/User/settings.json" <<EOF
   "FSharp.workspaceModePeekDeepLevel": 1,
   "FSharp.showExplorerOnStartup": true,
   "FSharp.enableMSBuildProjectGraph": true,
-  "FSharp.inlayHints.typeAnnotations": true,
-  "FSharp.inlayHints.parameterNames": true,
+
   "FSharp.inlayHints.enabled": true,
+  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.parameterNames": true,
+
+  "FSharp.lineLens.enabled": "replaceCodeLens",
+  "FSharp.lineLens.prefix": "// ",
+  "FSharp.pipelineHints.enabled": true,
+  "FSharp.pipelineHints.prefix": "// ",
+
   "FSharp.linter": true,
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [

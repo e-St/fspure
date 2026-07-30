@@ -4,29 +4,40 @@ VS Code extension that visualizes [`FSharp.PureAnalyzer`](https://github.com/e-S
 
 ## Appearance (default)
 
+Matches the typical Ionide + skinow-style layout:
+
 ```fsharp
-let getTimestamp () =  // … Ionide type hint …  impure
-    DateTime.UtcNow
+let add a b = // int -> int -> list<int> pure
+    List.map (fun x -> x * a + b) [1; 2; 3]
 ```
 
-- **`pure` / `impure` badges** at the **end of the definition line**
-- Rendered as **inlay hints** so they sit **after** Ionide type/parameter annotations (not in front of them)
+- **No** argument type inlays (`a : int`) when `FSharp.inlayHints.typeAnnotations` is `false`
+- Ionide **LineLens** provides the Hindley–Milner signature (`// int -> int -> list<int>`)
+- This extension appends **`pure` / `impure` after LineLens** (end-of-line decoration)
 - Driven by definition diagnostics: `PURE002` → impure, `PURE003` → pure
 
-If `editor.inlayHints.enabled` is off, the extension falls back to classic end-of-line text decorations.
+Recommended companion settings (skinow-style):
+
+```json
+{
+  "FSharp.inlayHints.typeAnnotations": false,
+  "FSharp.inlayHints.parameterNames": true,
+  "FSharp.inlayHints.enabled": true,
+  "FSharp.lineLens.enabled": "replaceCodeLens",
+  "FSharp.lineLens.prefix": "// ",
+  "FSharp.enableAnalyzers": true,
+  "editor.inlayHints.enabled": "on",
+  "fsharpPureDecorations.enabled": true
+}
+```
 
 ## Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `fsharpPureDecorations.enabled` | `true` | Toggle pure/impure badges |
-| `fsharpPureDecorations.impureColor` | `#E2A66A` | Accent for decoration fallback (impure) |
-| `fsharpPureDecorations.pureColor` | `#6A9955` | Accent for decoration fallback (pure) |
-
-Also requires:
-
-- `editor.inlayHints.enabled`: `on` (preferred path)
-- `FSharp.enableAnalyzers`: `true` and a valid `FSharp.analyzersPath`
+| `fsharpPureDecorations.impureColor` | `#E2A66A` | Accent color for impure badge |
+| `fsharpPureDecorations.pureColor` | `#6A9955` | Accent color for pure badge |
 
 ## Install from GitHub Release
 
