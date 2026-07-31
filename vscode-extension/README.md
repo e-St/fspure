@@ -30,13 +30,11 @@ Recommended companion settings:
 
 ## Install
 
-### Easy — Visual Studio Marketplace
+### Easy — Open VSX
 
-Search for **F# Pure Analyzer Decorations** in the Extensions view, or:
+Published to [Open VSX](https://open-vsx.org/) (default registry for this project; not the Visual Studio Marketplace).
 
-```bash
-code --install-extension e-st.fsharp-pure-decorations
-```
+In **VSCodium**, **code-server**, or any client that uses Open VSX: Extensions → search **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`).
 
 ### Advanced — GitHub Release VSIX
 
@@ -46,7 +44,7 @@ Download the latest `.vsix` from [Releases](https://github.com/e-St/fspure/relea
 code --install-extension fsharp-pure-decorations-*.vsix
 ```
 
-Dev Containers can install the same VSIX in `postCreateCommand` / `postAttachCommand`.
+This is the straightforward path for stock VS Code (Microsoft Marketplace). Dev Containers can install the same VSIX in `postCreateCommand` / `postAttachCommand`.
 
 ## Settings
 
@@ -59,7 +57,7 @@ Dev Containers can install the same VSIX in `postCreateCommand` / `postAttachCom
 ## Requirements
 
 - VS Code / Codespaces / Dev Containers / code-server 1.85+
-- [Ionide](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) (or compatible FSAC host)
+- [Ionide](https://open-vsx.org/extension/Ionide/Ionide-fsharp) (or compatible FSAC host)
 - `FSharp.PureAnalyzer` producing `PURE002` / `PURE003` (NuGet or project-local drop)
 
 Full consumer guide: [fspure README](https://github.com/e-St/fspure#readme)

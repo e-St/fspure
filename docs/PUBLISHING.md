@@ -4,19 +4,20 @@ This document is for **maintainers**. End-user install steps live in the root [R
 
 Both distribution channels stay active:
 
-| Artifact | Easy (official) | Advanced (GitHub) |
+| Artifact | Easy (registry) | Advanced (GitHub) |
 |----------|-----------------|-------------------|
-| VS Code extension | Visual Studio Marketplace (+ optional Open VSX) | GitHub Release `.vsix` |
+| VS Code extension | [Open VSX](https://open-vsx.org/) | GitHub Release `.vsix` |
 | F# analyzer | nuget.org | GitHub Packages + Release assets |
+
+> **Note:** This project does **not** publish to the Visual Studio Marketplace (that path needs Azure DevOps / an Azure subscription). Open VSX is the default registry.
 
 ## One-time setup
 
-### VS Code Marketplace
+### Open VSX (default extension registry)
 
-1. Create a [Visual Studio Marketplace publisher](https://marketplace.visualstudio.com/manage) matching `package.json` → `"publisher": "e-st"` (or change the publisher id and re-publish).
-2. Create an Azure DevOps **Personal Access Token** with **Marketplace → Manage** scope.
-3. Add repository secret **`VSCE_PAT`** = that token.
-4. (Optional) For VSCodium / code-server registries, create an [Open VSX](https://open-vsx.org/) token and secret **`OVSX_PAT`**.
+1. Create an [Open VSX](https://open-vsx.org/) account and namespace matching `package.json` → `"publisher": "e-st"` (or change the publisher id and re-publish).
+2. Create an Open VSX **access token** with publish permission for that namespace.
+3. Add repository secret **`OVSX_PAT`** = that token.
 
 ### NuGet.org (Trusted Publishing / OIDC)
 
@@ -42,15 +43,15 @@ GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Action
 
 | Workflow | Triggers | Publishes |
 |----------|----------|-----------|
-| `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release always; Marketplace if `VSCE_PAT`; Open VSX if `OVSX_PAT` |
+| `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release always; Open VSX (`OVSX_PAT` required) |
 | `.github/workflows/release-pure-analyzer.yml` | GitHub Release published or manual version input | GitHub Packages + Release assets |
 | `.github/workflows/nuget_publish.yml` | GitHub Release published or manual version input | nuget.org via OIDC (`NUGET_USER` required); also GitHub Packages + Release assets |
 
-Missing Marketplace / Open VSX secrets **skip** those steps without failing the job. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
+`publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
 
 ## Versioning
 
-- **Extension:** bump `vscode-extension/package.json` → `version` before merge (Marketplace rejects reusing a version).
+- **Extension:** bump `vscode-extension/package.json` → `version` before merge (Open VSX rejects reusing a version).
 - **Analyzer:** pass version via release tag or `workflow_dispatch` input; do not re-use published nuget.org versions.
 
 ## Local dry-runs

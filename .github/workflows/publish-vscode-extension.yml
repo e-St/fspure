@@ -1,8 +1,8 @@
 name: Publish VS Code Extension
 
 # Always builds a VSIX and publishes to GitHub Releases (advanced consumers).
-# When secrets are configured, also publishes to the official VS Marketplace
-# and optionally Open VSX (code-server / VSCodium).
+# Default registry publish target is Open VSX (no Azure DevOps / VS Marketplace).
+# Requires repository secret OVSX_PAT for Open VSX; missing secret fails the publish step clearly.
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
           echo "publisher=$PUBLISHER" >> "$GITHUB_OUTPUT"
           echo "tag=vscode-extension-v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "vsix=${NAME}-${VERSION}.vsix" >> "$GITHUB_OUTPUT"
-          echo "marketplaceId=${PUBLISHER}.${NAME}" >> "$GITHUB_OUTPUT"
+          echo "extensionId=${PUBLISHER}.${NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Ensure LICENSE is packaged
         run: |
@@ -68,20 +68,24 @@ jobs:
           TAG="${{ steps.ver.outputs.tag }}"
           VSIX="${{ steps.ver.outputs.vsix }}"
           TITLE="VS Code extension ${{ steps.ver.outputs.version }}"
-          MKT="${{ steps.ver.outputs.marketplaceId }}"
+          EXT="${{ steps.ver.outputs.extensionId }}"
 
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" \
               --title "$TITLE" \
               --notes "Automated build of **fsharp-pure-decorations** v${{ steps.ver.outputs.version }}.
 
+          ## Install (easy / Open VSX)
+          Search **F# Pure Analyzer Decorations** in VS Code / VSCodium / code-server (Open VSX), or:
+          \`\`\`bash
+          # VS Code with Open VSX service override, VSCodium, or code-server:
+          # Extensions UI → search ${EXT}
+          \`\`\`
+
           ## Install (advanced / GitHub)
           \`\`\`bash
           code --install-extension ${VSIX}
-          \`\`\`
-
-          ## Install (easy / Marketplace)
-          When published: \`code --install-extension ${MKT}\`" \
+          \`\`\`" \
               --latest=false
           fi
 
@@ -98,28 +102,16 @@ jobs:
 
           echo "Published $VSIX to releases $TAG and $FLOAT_TAG"
 
-      - name: Publish to Visual Studio Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          set -euo pipefail
-          if [[ -z "${VSCE_PAT:-}" ]]; then
-            echo "VSCE_PAT not configured — skipping Marketplace publish (GitHub Release still available)."
-            exit 0
-          fi
-          npx --yes @vscode/vsce publish \
-            --packagePath "${{ steps.ver.outputs.vsix }}" \
-            --pat "$VSCE_PAT"
-          echo "Published to Marketplace: ${{ steps.ver.outputs.marketplaceId }}"
-
       - name: Publish to Open VSX
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
           set -euo pipefail
           if [[ -z "${OVSX_PAT:-}" ]]; then
-            echo "OVSX_PAT not configured — skipping Open VSX publish."
-            exit 0
+            echo "::error::OVSX_PAT secret is not configured."
+            echo "Create an Open VSX access token (https://open-vsx.org/) and set repository secret OVSX_PAT."
+            echo "This is the default extension registry for fspure (VS Marketplace is not used)."
+            exit 1
           fi
           npx --yes ovsx publish "${{ steps.ver.outputs.vsix }}" --pat "$OVSX_PAT"
-          echo "Published to Open VSX: ${{ steps.ver.outputs.marketplaceId }}"
+          echo "Published to Open VSX: ${{ steps.ver.outputs.extensionId }}"

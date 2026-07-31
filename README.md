@@ -20,7 +20,7 @@ It does that by defining a pure subset and marking everything else as impure.
 
 You need **both** pieces for the full IDE experience: the analyzer produces diagnostics; the extension turns them into badges.
 
-### Easy path — Visual Studio Marketplace + nuget.org
+### Easy path — Open VSX + nuget.org
 
 #### 1. Analyzer (NuGet)
 
@@ -36,15 +36,14 @@ nuget FSharp.PureAnalyzer
 
 The package places the analyzer DLL under `analyzers/dotnet/fs/`.
 
-#### 2. VS Code extension (Marketplace)
+#### 2. VS Code extension (Open VSX)
 
-In VS Code: Extensions → search **F# Pure Analyzer Decorations**, or:
+The extension is published to [Open VSX](https://open-vsx.org/) (not the Visual Studio Marketplace).
 
-```bash
-code --install-extension e-st.fsharp-pure-decorations
-```
+- **VSCodium / code-server / Cursor (Open VSX):** Extensions → search **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`)
+- **VS Code (Microsoft Marketplace by default):** install the VSIX from [GitHub Releases](https://github.com/e-St/fspure/releases), or point the client at Open VSX if you use that setup
 
-Also install [Ionide for F#](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) if you do not already use it.
+Also install [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp) (or the Marketplace build) if you do not already use it.
 
 #### 3. Workspace settings
 
@@ -73,7 +72,7 @@ Also install [Ionide for F#](https://marketplace.visualstudio.com/items?itemName
 
 Open your solution / project, open an F# file, wait for Ionide to load. You should see LineLens signatures and pure/impure badges on definitions.
 
-> **Note:** Marketplace and nuget.org publishes require maintainer secrets (`VSCE_PAT`, `NUGET_USER` for Trusted Publishing). Until those are configured, use the advanced GitHub path below — behavior is the same.
+> **Note:** Open VSX and nuget.org publishes require maintainer secrets (`OVSX_PAT`, `NUGET_USER` for Trusted Publishing). Until those are configured, use the advanced GitHub path below — behavior is the same.
 
 ---
 
@@ -195,7 +194,7 @@ System.Text.Json.Serialization
 
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
 - Customer e2e: [e2e/README.md](e2e/README.md)
-- Maintainer publishing (secrets, Marketplace, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
+- Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 
 ```bash
 # Analyzer
