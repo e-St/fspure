@@ -8,3 +8,4 @@ test/**
 **/node_modules/**
 **/.git/**
 **/*.vsix
+update-extension.sh
