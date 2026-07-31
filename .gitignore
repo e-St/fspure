@@ -11,3 +11,6 @@ e2e/phase2/playwright/node_modules/
 # Local `dotnet pack` output (see FSharp.PureAnalyzer/update-analyzer.sh)
 *.nupkg
 **/nupkgs/
+# Python bytecode from .devcontainer/generate*.py
+**/__pycache__/
+*.py[cod]

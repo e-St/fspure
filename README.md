@@ -18,6 +18,8 @@ It does that by defining a pure subset and marking everything else as impure.
 
 ## Consume fspure (end users)
 
+**Start here:** [customer.md](customer.md) — install without a dev container, or what to add to **your** `devcontainer.json`.
+
 You need **both** pieces for the full IDE experience: the analyzer produces diagnostics; the extension turns them into badges.
 
 ### Easy path — Open VSX + nuget.org
