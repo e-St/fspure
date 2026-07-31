@@ -1,0 +1,15 @@
+{
+  "FSharp.workspacePath": "./fspure.slnx",
+  "FSharp.enableAnalyzers": true,
+  "FSharp.analyzersPath": [
+    "analyzers",
+    "packages/Analyzers",
+    "${userHome}/.nuget/packages/fsharp.pureanalyzer"
+  ],
+  "fsharpPureDecorations.enabled": true,
+  "workbench.colorCustomizations": {
+    "editorHint.foreground": "#00000000",
+    "editorHint.border": "#00000000",
+    "editorOverviewRuler.hintForeground": "#00000000"
+  }
+}

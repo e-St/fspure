@@ -8,3 +8,6 @@ e2e/customer-fixture/analyzers/
 analyzers/
 e2e/phase2/playwright/node_modules/
 *.vsix
+# Local `dotnet pack` output (see FSharp.PureAnalyzer/update-analyzer.sh)
+*.nupkg
+**/nupkgs/

@@ -20,7 +20,7 @@ Or Paket:
 nuget FSharp.PureAnalyzer
 ```
 
-The package ships the analyzer under `analyzers/dotnet/fs/`, which Ionide / `fsharp-analyzers` discover when `FSharp.analyzersPath` includes your package restore location (or `~/.nuget/packages/fsharp.pureanalyzer`).
+The package ships the analyzer under `analyzers/dotnet/fs/`, which Ionide / `fsharp-analyzers` discover when `FSharp.analyzersPath` includes your package restore location (or `${userHome}/.nuget/packages/fsharp.pureanalyzer` — use a VS Code variable or absolute path; a shell `~` is not expanded).
 
 ### Local dev: install / refresh this checkout
 
@@ -38,7 +38,7 @@ Packs the current tree and installs it into the NuGet global packages folder (sa
   "FSharp.analyzersPath": [
     "analyzers",
     "packages/Analyzers",
-    "~/.nuget/packages/fsharp.pureanalyzer"
+    "${userHome}/.nuget/packages/fsharp.pureanalyzer"
   ]
 }
 ```

@@ -55,7 +55,7 @@ Also install [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp
   "FSharp.analyzersPath": [
     "analyzers",
     "packages/Analyzers",
-    "~/.nuget/packages/fsharp.pureanalyzer"
+    "${userHome}/.nuget/packages/fsharp.pureanalyzer"
   ],
   "FSharp.inlayHints.typeAnnotations": false,
   "FSharp.inlayHints.parameterNames": true,

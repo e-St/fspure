@@ -38,7 +38,7 @@
         "FSharp.analyzersPath": [
           "analyzers",
           "packages/Analyzers",
-          "~/.nuget/packages/fsharp.pureanalyzer"
+          "${userHome}/.nuget/packages/fsharp.pureanalyzer"
         ],
         "FSharp.unusedDeclarationsAnalyzer": true, // Best for detecting unused code
         "FSharp.codeLenses.references.enabled": false, // Optional: shows "X references" above lines

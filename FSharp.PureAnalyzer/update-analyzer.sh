@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pack the local FSharp.PureAnalyzer and install it into the NuGet global packages
-# folder so Ionide (FSharp.analyzersPath: ~/.nuget/packages/fsharp.pureanalyzer)
+# folder so Ionide (FSharp.analyzersPath: ${userHome}/.nuget/packages/fsharp.pureanalyzer)
 # and `dotnet add package` consumers pick up the in-repo build.
 #
 # Usage:
