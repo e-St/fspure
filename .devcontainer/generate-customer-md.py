@@ -45,22 +45,6 @@ RECOMMENDED_SETTING_KEYS = {
     "workbench.colorCustomizations",
 }
 
-# Nice-to-have / UX (from our IDE flavour; not required for classification).
-OPTIONAL_SETTING_KEYS = {
-    "editor.inlineSuggest.enabled",
-    "editor.parameterHints.enabled",
-    "editor.acceptSuggestionOnEnter",
-    "[fsharp]",
-    "FSharp.enableMSBuildProjectGraph",
-    "FSharp.linter",
-    "FSharp.unusedDeclarationsAnalyzer",
-    "FSharp.codeLenses.references.enabled",
-    "editor.formatOnSave",
-    "files.exclude",
-    "fsharpPureDecorations.impureColor",
-    "fsharpPureDecorations.pureColor",
-}
-
 
 def load_settings() -> dict:
     doc = json.loads(VSCODE_COMMON.read_text(encoding="utf-8"))
@@ -84,30 +68,33 @@ def json_block(obj: object) -> str:
 def render(settings: dict, extensions: list[str]) -> str:
     required = subset(settings, REQUIRED_SETTING_KEYS)
     recommended = subset(settings, RECOMMENDED_SETTING_KEYS)
-    # Everything else from vscode-common that is not required
     optional = {
         k: settings[k]
         for k in sorted(settings)
         if k not in REQUIRED_SETTING_KEYS and k not in RECOMMENDED_SETTING_KEYS
     }
-    # Also surface decoration colors as optional even if not in vscode-common
     if "fsharpPureDecorations.impureColor" not in optional:
         optional["fsharpPureDecorations.impureColor"] = "#E2A66A"
         optional["fsharpPureDecorations.pureColor"] = "#6A9955"
         optional = {k: optional[k] for k in sorted(optional)}
 
-    # Full “copy this” settings for convenience (stable key order)
     full_workspace = {k: required[k] for k in sorted(required)}
     full_workspace.update({k: recommended[k] for k in sorted(recommended)})
 
-    # Extensions for customers: Ionide + pure decorations (C#/Paket/Fantomas optional)
-    customer_required_ext = [
-        "ionide.ionide-fsharp",
-        "e-st.fsharp-pure-decorations",
-    ]
-    customer_optional_ext = [
-        e for e in extensions if e not in ("ionide.ionide-fsharp",)
-    ]
+    # Opinionated devcontainer path: entire vscode-common stack + solution keys.
+    opinionated_settings = {k: settings[k] for k in sorted(settings)}
+    opinionated_settings["dotnet.defaultSolution"] = "YourSolution.sln"
+    opinionated_settings["FSharp.workspacePath"] = "YourSolution.sln"
+
+    opinionated_extensions = list(
+        dict.fromkeys(
+            [
+                "ionide.ionide-fsharp",
+                "e-st.fsharp-pure-decorations",
+                *extensions,
+            ]
+        )
+    )
 
     lines: list[str] = []
     a = lines.append
@@ -117,14 +104,62 @@ def render(settings: dict, extensions: list[str]) -> str:
         "This guide is for **end users** who want pure/impure labels in the editor. "
         "It is not for contributors to the fspure repository.\n"
     )
-    a("You need **both**:\n")
+    a("For the full IDE experience you need **both**:\n")
     a("1. **FSharp.PureAnalyzer** (NuGet) — classifies definitions (`PURE002` / `PURE003`)\n")
     a(
         "2. **fsharp-pure-decorations** (VS Code extension) — shows end-of-line "
         "**pure** / **impure** badges after Ionide LineLens\n"
     )
     a(
-        "Plus **Ionide for F#** (language service that loads the analyzer).\n"
+        "Plus **Ionide for F#** (language service that loads the analyzer). "
+        "How you get them depends on which path you pick:\n"
+    )
+    a("| Path | When to use |\n")
+    a("|------|-------------|\n")
+    a(
+        "| **§0 e-St/fstarter** | You want an opinionated F# Codespace / dev container "
+        "that already includes fspure |\n"
+    )
+    a("| **§1 No dev container** | Local VS Code / desktop IDE; you wire NuGet + extension yourself |\n")
+    a(
+        "| **§2 Your own dev container** | You already have (or want) a project "
+        "`.devcontainer/` and will add fspure to it |\n"
+    )
+
+    # ------------------------------------------------------------------
+    a("## 0. Use e-St/fstarter (recommended if you want zero setup)\n")
+    a(
+        "[**e-St/fstarter**](https://github.com/e-St/fstarter) is an opinionated F# "
+        "Codespace / dev-container starter. It already delivers the F# toolchain "
+        "(Ionide, .NET, Paket, etc.) **and fspure** (analyzer + pure/impure decorations) "
+        "so you do not install packages or extensions by hand for labels to work.\n"
+    )
+    a("### What you do\n")
+    a(
+        "1. Open or create a project from "
+        "[e-St/fstarter](https://github.com/e-St/fstarter) "
+        "(GitHub Codespaces “Open in codespace”, or clone and "
+        "“Reopen in Container”).\n"
+    )
+    a("2. Work on your F# code inside that environment.\n")
+    a(
+        "3. Open a solution / `.fs` file and wait for Ionide — pure/impure badges "
+        "should appear without further fspure configuration.\n"
+    )
+    a("### When this is the right choice\n")
+    a("- You are starting greenfield F# work and are fine with the fstarter defaults.\n")
+    a("- You want Codespaces / a full F# container, not a minimal local install.\n")
+    a(
+        "- You do not want to maintain NuGet paths, extension installs, or Ionide "
+        "settings yourself.\n"
+    )
+    a("### When to use §1 or §2 instead\n")
+    a("- Your app already lives in its own repo with its own tooling and you only want fspure added (§1 or §2).\n")
+    a("- You cannot use GitHub Codespaces / that base image (air-gapped, corporate base image, etc.).\n")
+    a(
+        "Details of what fstarter pins (image tags, setup scripts) live in the "
+        "[fstarter repository](https://github.com/e-St/fstarter) — treat that as the "
+        "source of truth for the starter itself.\n"
     )
 
     # ------------------------------------------------------------------
@@ -157,7 +192,10 @@ def render(settings: dict, extensions: list[str]) -> str:
         "The extension is published to [Open VSX](https://open-vsx.org/) as "
         "`e-st.fsharp-pure-decorations` (**F# Pure Analyzer Decorations**).\n"
     )
-    a("- **Open VSX clients** (VSCodium, many code-server setups, Cursor with Open VSX): search and install from the marketplace.\n")
+    a(
+        "- **Open VSX clients** (VSCodium, many code-server setups, Cursor with Open VSX): "
+        "search and install from the marketplace.\n"
+    )
     a(
         "- **Stock VS Code** (Microsoft Marketplace): install a `.vsix` from "
         "[GitHub Releases](https://github.com/e-St/fspure/releases), or configure Open VSX.\n"
@@ -184,7 +222,7 @@ def render(settings: dict, extensions: list[str]) -> str:
     a("#### Optional\n")
     a(
         "Useful editor UX from our reference setup; not required for classification "
-        "or badges. Decoration colors default to impure orange / pure green.\n"
+        "or badges. Decorations colors default to impure orange / pure green.\n"
     )
     a(json_block(optional))
 
@@ -197,99 +235,87 @@ def render(settings: dict, extensions: list[str]) -> str:
     )
 
     # ------------------------------------------------------------------
-    a("## 2. Usage with a dev container\n")
+    a("## 2. Usage with a dev container (opinionated)\n")
     a(
-        "Use this when your project already (or will) develop inside a "
-        "[Development Container](https://containers.dev/). "
-        "You add fspure pieces to **your** `devcontainer.json` — you do not need "
-        "this repository’s internal IDE/build/e2e containers.\n"
+        "If you develop in a [dev container](https://containers.dev/), follow this "
+        "**one recipe**. It is the full recommended IDE stack for pure/impure labels — "
+        "not a menu of options. Required / recommended / optional settings are already "
+        "listed in §1; this section only tells you what to put in **your** "
+        "`.devcontainer/`.\n"
+    )
+    a(
+        "You do **not** need this repository’s internal IDE, build, or e2e containers.\n"
     )
 
-    a("### 2.1 Extensions\n")
-    a("Under `customizations.vscode.extensions`, install at least:\n")
-    a(json_block(customer_required_ext))
-    a("Optional companion extensions we use in reference setups:\n")
-    a(json_block(customer_optional_ext))
+    a("### 2.1 What you commit\n")
+    a("1. `FSharp.PureAnalyzer` as a normal NuGet or Paket dependency on your F# project.\n")
     a(
-        "If `e-st.fsharp-pure-decorations` is not on the Marketplace your client uses, "
-        "install the VSIX in `postCreateCommand` (see below) instead of listing the id.\n"
+        "2. `.devcontainer/devcontainer.json` — use the template below "
+        "(only change the two solution path strings).\n"
+    )
+    a("3. `.devcontainer/setup-fspure.sh` — use the script below as-is.\n")
+    a(
+        "Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` on every create/attach "
+        "via the setup script; you normally do **not** commit that drop.\n"
     )
 
-    a("### 2.2 Settings\n")
+    a("### 2.2 `.devcontainer/devcontainer.json`\n")
     a(
-        "Put the same **required + recommended** settings under "
-        "`customizations.vscode.settings` (or in a workspace `.vscode/settings.json` "
-        "mounted into the container).\n"
-    )
-    a("Example `customizations` block (replace `YourSolution.sln`):\n")
-
-    customizations = {
-        "vscode": {
-            "extensions": customer_required_ext + customer_optional_ext,
-            "settings": {
-                **full_workspace,
-                "dotnet.defaultSolution": "YourSolution.sln",
-                "FSharp.workspacePath": "YourSolution.sln",
-            },
-        }
-    }
-    a(json_block({"customizations": customizations}))
-
-    a("### 2.3 Analyzer package in the container\n")
-    a(
-        "Restore/add the NuGet package as part of your normal project restore, "
-        "**and** ensure Ionide can load the DLL from a workspace-relative path.\n"
-    )
-    a("Minimal `postCreateCommand` sketch:\n")
-    a("```bash\n")
-    a("# After your project restore (dotnet/paket):\n")
-    a("dotnet add path/to/YourProject.fsproj package FSharp.PureAnalyzer\n")
-    a("\n")
-    a("# Mirror analyzer into workspace so FSharp.analyzersPath: [\"analyzers\"] works:\n")
-    a('PKG="$HOME/.nuget/packages/fsharp.pureanalyzer"\n')
-    a('DLL="$(find "$PKG" -path \'*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\' \\\n')
-    a('  2>/dev/null | sort -V | tail -1)"\n')
-    a('mkdir -p analyzers/dotnet/fs\n')
-    a('cp -f "$DLL" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\n')
-    a("```\n")
-    a(
-        "Alternatively, install from Open VSX / VSIX in the same script:\n"
-    )
-    a("```bash\n")
-    a("code --install-extension e-st.fsharp-pure-decorations --force\n")
-    a("# or: code --install-extension /path/to/fsharp-pure-decorations-*.vsix --force\n")
-    a("```\n")
-    a(
-        "Run install steps again in `postAttachCommand` if the `code` CLI is only "
-        "available after the editor attaches.\n"
-    )
-
-    a("### 2.4 Skeleton `devcontainer.json`\n")
-    a(
-        "Illustrative only — keep your own base image and features; "
-        "merge the fspure-related parts:\n"
+        "Swap in your base image if you already have one. Keep "
+        "`postCreateCommand`, `postAttachCommand`, and `customizations.vscode` as shown. "
+        "Replace `YourSolution.sln` with your solution (or `.slnx`).\n"
     )
     skeleton = {
         "name": "My F# app + fspure",
         "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-noble",
         "remoteUser": "vscode",
-        "postCreateCommand": "bash .devcontainer/setup-fspure-customer.sh",
+        "postCreateCommand": "bash .devcontainer/setup-fspure.sh",
+        "postAttachCommand": "bash .devcontainer/setup-fspure.sh",
         "customizations": {
             "vscode": {
-                "extensions": customer_required_ext,
-                "settings": {
-                    **full_workspace,
-                    "dotnet.defaultSolution": "YourSolution.sln",
-                    "FSharp.workspacePath": "YourSolution.sln",
-                },
+                "extensions": opinionated_extensions,
+                "settings": opinionated_settings,
             }
         },
     }
     a(json_block(skeleton))
+
+    a("### 2.3 `.devcontainer/setup-fspure.sh`\n")
     a(
-        "Point `dotnet.defaultSolution` / `FSharp.workspacePath` at **your** solution file. "
-        "Implement `setup-fspure-customer.sh` with restore + analyzer mirror + optional VSIX install "
-        "as in §2.3.\n"
+        "Runs on create and attach: installs the decorations extension when `code` is "
+        "available, and mirrors the restored NuGet analyzer into workspace "
+        "`analyzers/` so `FSharp.analyzersPath` works (FSAC does not expand home/`~`).\n"
+    )
+    a("```bash\n")
+    a("#!/usr/bin/env bash\n")
+    a("set -euo pipefail\n")
+    a("\n")
+    a("# Install decorations extension (Open VSX / marketplace id).\n")
+    a("if command -v code >/dev/null 2>&1; then\n")
+    a("  code --install-extension e-st.fsharp-pure-decorations --force || true\n")
+    a("fi\n")
+    a("\n")
+    a("# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.\n")
+    a('PKG="${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer"\n')
+    a(
+        'DLL="$(find "$PKG" -path \'*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\' \\\n'
+    )
+    a('  2>/dev/null | sort -V | tail -1 || true)"\n')
+    a('if [[ -z "${DLL}" || ! -f "${DLL}" ]]; then\n')
+    a(
+        '  echo "FSharp.PureAnalyzer DLL not found under $PKG — restore the package first." >&2\n'
+    )
+    a("  exit 1\n")
+    a("fi\n")
+    a("mkdir -p analyzers/dotnet/fs\n")
+    a('cp -f "$DLL" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\n')
+    a('echo "PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"\n')
+    a("```\n")
+    a(
+        "Make it executable (`chmod +x .devcontainer/setup-fspure.sh`). "
+        "Restore your project (so the NuGet package is present) before or at the "
+        "start of this script. After attach: open the solution, open an `.fs` file, "
+        "wait for Ionide. If badges are missing, **Developer: Reload Window**.\n"
     )
 
     a("---\n")
@@ -297,9 +323,7 @@ def render(settings: dict, extensions: list[str]) -> str:
     a("- [README — consume fspure](README.md#consume-fspure-end-users)\n")
     a("- [FSharp.PureAnalyzer](FSharp.PureAnalyzer/README.md)\n")
     a("- [VS Code extension](vscode-extension/README.md)\n")
-    a(
-        "- Maintainer publishing: [docs/PUBLISHING.md](docs/PUBLISHING.md)\n"
-    )
+    a("- Maintainer publishing: [docs/PUBLISHING.md](docs/PUBLISHING.md)\n")
 
     return BANNER + "".join(lines)
 
@@ -323,7 +347,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.check:
         if not OUTPUT.is_file():
-            print(f"ERROR: missing {OUTPUT}; run generate-customer-md.py", file=sys.stderr)
+            print(
+                f"ERROR: missing {OUTPUT}; run generate-customer-md.py",
+                file=sys.stderr,
+            )
             return 1
         actual = OUTPUT.read_text(encoding="utf-8")
         if actual != text:

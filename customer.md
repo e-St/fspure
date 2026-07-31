@@ -4,10 +4,29 @@
 
 # Using fspure in your project
 This guide is for **end users** who want pure/impure labels in the editor. It is not for contributors to the fspure repository.
-You need **both**:
+For the full IDE experience you need **both**:
 1. **FSharp.PureAnalyzer** (NuGet) — classifies definitions (`PURE002` / `PURE003`)
 2. **fsharp-pure-decorations** (VS Code extension) — shows end-of-line **pure** / **impure** badges after Ionide LineLens
-Plus **Ionide for F#** (language service that loads the analyzer).
+Plus **Ionide for F#** (language service that loads the analyzer). How you get them depends on which path you pick:
+| Path | When to use |
+|------|-------------|
+| **§0 e-St/fstarter** | You want an opinionated F# Codespace / dev container that already includes fspure |
+| **§1 No dev container** | Local VS Code / desktop IDE; you wire NuGet + extension yourself |
+| **§2 Your own dev container** | You already have (or want) a project `.devcontainer/` and will add fspure to it |
+## 0. Use e-St/fstarter (recommended if you want zero setup)
+[**e-St/fstarter**](https://github.com/e-St/fstarter) is an opinionated F# Codespace / dev-container starter. It already delivers the F# toolchain (Ionide, .NET, Paket, etc.) **and fspure** (analyzer + pure/impure decorations) so you do not install packages or extensions by hand for labels to work.
+### What you do
+1. Open or create a project from [e-St/fstarter](https://github.com/e-St/fstarter) (GitHub Codespaces “Open in codespace”, or clone and “Reopen in Container”).
+2. Work on your F# code inside that environment.
+3. Open a solution / `.fs` file and wait for Ionide — pure/impure badges should appear without further fspure configuration.
+### When this is the right choice
+- You are starting greenfield F# work and are fine with the fstarter defaults.
+- You want Codespaces / a full F# container, not a minimal local install.
+- You do not want to maintain NuGet paths, extension installs, or Ionide settings yourself.
+### When to use §1 or §2 instead
+- Your app already lives in its own repo with its own tooling and you only want fspure added (§1 or §2).
+- You cannot use GitHub Codespaces / that base image (air-gapped, corporate base image, etc.).
+Details of what fstarter pins (image tags, setup scripts) live in the [fstarter repository](https://github.com/e-St/fstarter) — treat that as the source of truth for the starter itself.
 ## 1. Usage without a dev container
 ### 1.1 Install the analyzer (NuGet)
 ```bash
@@ -84,7 +103,7 @@ These make LineLens signatures and pure/impure badges readable (badges sit after
 }
 ```
 #### Optional
-Useful editor UX from our reference setup; not required for classification or badges. Decoration colors default to impure orange / pure green.
+Useful editor UX from our reference setup; not required for classification or badges. Decorations colors default to impure orange / pure green.
 ```json
 {
   "FSharp.codeLenses.references.enabled": false,
@@ -110,30 +129,23 @@ Useful editor UX from our reference setup; not required for classification or ba
 ```
 ### 1.4 Open your solution
 Open the solution or project, open an `.fs` file, wait for Ionide to load. You should see LineLens signatures (`// …`) and **pure** / **impure** badges on definitions. If labels are missing: **Developer: Reload Window**, and confirm the analyzer DLL is under a path listed in `FSharp.analyzersPath`.
-## 2. Usage with a dev container
-Use this when your project already (or will) develop inside a [Development Container](https://containers.dev/). You add fspure pieces to **your** `devcontainer.json` — you do not need this repository’s internal IDE/build/e2e containers.
-### 2.1 Extensions
-Under `customizations.vscode.extensions`, install at least:
-```json
-[
-  "ionide.ionide-fsharp",
-  "e-st.fsharp-pure-decorations"
-]
-```
-Optional companion extensions we use in reference setups:
-```json
-[
-  "ionide.ionide-paket",
-  "ionide.ionide-fantomas",
-  "ms-dotnettools.csharp"
-]
-```
-If `e-st.fsharp-pure-decorations` is not on the Marketplace your client uses, install the VSIX in `postCreateCommand` (see below) instead of listing the id.
-### 2.2 Settings
-Put the same **required + recommended** settings under `customizations.vscode.settings` (or in a workspace `.vscode/settings.json` mounted into the container).
-Example `customizations` block (replace `YourSolution.sln`):
+## 2. Usage with a dev container (opinionated)
+If you develop in a [dev container](https://containers.dev/), follow this **one recipe**. It is the full recommended IDE stack for pure/impure labels — not a menu of options. Required / recommended / optional settings are already listed in §1; this section only tells you what to put in **your** `.devcontainer/`.
+You do **not** need this repository’s internal IDE, build, or e2e containers.
+### 2.1 What you commit
+1. `FSharp.PureAnalyzer` as a normal NuGet or Paket dependency on your F# project.
+2. `.devcontainer/devcontainer.json` — use the template below (only change the two solution path strings).
+3. `.devcontainer/setup-fspure.sh` — use the script below as-is.
+Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` on every create/attach via the setup script; you normally do **not** commit that drop.
+### 2.2 `.devcontainer/devcontainer.json`
+Swap in your base image if you already have one. Keep `postCreateCommand`, `postAttachCommand`, and `customizations.vscode` as shown. Replace `YourSolution.sln` with your solution (or `.slnx`).
 ```json
 {
+  "name": "My F# app + fspure",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-noble",
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/setup-fspure.sh",
+  "postAttachCommand": "bash .devcontainer/setup-fspure.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -148,14 +160,31 @@ Example `customizations` block (replace `YourSolution.sln`):
           "analyzers",
           "packages/Analyzers"
         ],
+        "FSharp.codeLenses.references.enabled": false,
         "FSharp.enableAnalyzers": true,
-        "fsharpPureDecorations.enabled": true,
+        "FSharp.enableMSBuildProjectGraph": true,
         "FSharp.inlayHints.enabled": true,
         "FSharp.inlayHints.parameterNames": true,
         "FSharp.inlayHints.typeAnnotations": false,
         "FSharp.lineLens.enabled": "replaceCodeLens",
         "FSharp.lineLens.prefix": "// ",
+        "FSharp.linter": true,
+        "FSharp.unusedDeclarationsAnalyzer": true,
+        "[fsharp]": {
+          "editor.quickSuggestions": false,
+          "editor.suggestOnTriggerCharacters": false
+        },
+        "editor.acceptSuggestionOnEnter": "off",
+        "editor.formatOnSave": true,
         "editor.inlayHints.enabled": "on",
+        "editor.inlineSuggest.enabled": false,
+        "editor.parameterHints.enabled": false,
+        "files.exclude": {
+          "**/obj": true,
+          "**/bin": true,
+          "**/.paket": true
+        },
+        "fsharpPureDecorations.enabled": true,
         "workbench.colorCustomizations": {
           "editorHint.foreground": "#00000000",
           "editorHint.border": "#00000000",
@@ -168,66 +197,30 @@ Example `customizations` block (replace `YourSolution.sln`):
   }
 }
 ```
-### 2.3 Analyzer package in the container
-Restore/add the NuGet package as part of your normal project restore, **and** ensure Ionide can load the DLL from a workspace-relative path.
-Minimal `postCreateCommand` sketch:
+### 2.3 `.devcontainer/setup-fspure.sh`
+Runs on create and attach: installs the decorations extension when `code` is available, and mirrors the restored NuGet analyzer into workspace `analyzers/` so `FSharp.analyzersPath` works (FSAC does not expand home/`~`).
 ```bash
-# After your project restore (dotnet/paket):
-dotnet add path/to/YourProject.fsproj package FSharp.PureAnalyzer
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Mirror analyzer into workspace so FSharp.analyzersPath: ["analyzers"] works:
-PKG="$HOME/.nuget/packages/fsharp.pureanalyzer"
+# Install decorations extension (Open VSX / marketplace id).
+if command -v code >/dev/null 2>&1; then
+  code --install-extension e-st.fsharp-pure-decorations --force || true
+fi
+
+# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.
+PKG="${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer"
 DLL="$(find "$PKG" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' \
-  2>/dev/null | sort -V | tail -1)"
+  2>/dev/null | sort -V | tail -1 || true)"
+if [[ -z "${DLL}" || ! -f "${DLL}" ]]; then
+  echo "FSharp.PureAnalyzer DLL not found under $PKG — restore the package first." >&2
+  exit 1
+fi
 mkdir -p analyzers/dotnet/fs
 cp -f "$DLL" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll
+echo "PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
 ```
-Alternatively, install from Open VSX / VSIX in the same script:
-```bash
-code --install-extension e-st.fsharp-pure-decorations --force
-# or: code --install-extension /path/to/fsharp-pure-decorations-*.vsix --force
-```
-Run install steps again in `postAttachCommand` if the `code` CLI is only available after the editor attaches.
-### 2.4 Skeleton `devcontainer.json`
-Illustrative only — keep your own base image and features; merge the fspure-related parts:
-```json
-{
-  "name": "My F# app + fspure",
-  "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-noble",
-  "remoteUser": "vscode",
-  "postCreateCommand": "bash .devcontainer/setup-fspure-customer.sh",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ionide.ionide-fsharp",
-        "e-st.fsharp-pure-decorations"
-      ],
-      "settings": {
-        "FSharp.analyzersPath": [
-          "analyzers",
-          "packages/Analyzers"
-        ],
-        "FSharp.enableAnalyzers": true,
-        "fsharpPureDecorations.enabled": true,
-        "FSharp.inlayHints.enabled": true,
-        "FSharp.inlayHints.parameterNames": true,
-        "FSharp.inlayHints.typeAnnotations": false,
-        "FSharp.lineLens.enabled": "replaceCodeLens",
-        "FSharp.lineLens.prefix": "// ",
-        "editor.inlayHints.enabled": "on",
-        "workbench.colorCustomizations": {
-          "editorHint.foreground": "#00000000",
-          "editorHint.border": "#00000000",
-          "editorOverviewRuler.hintForeground": "#00000000"
-        },
-        "dotnet.defaultSolution": "YourSolution.sln",
-        "FSharp.workspacePath": "YourSolution.sln"
-      }
-    }
-  }
-}
-```
-Point `dotnet.defaultSolution` / `FSharp.workspacePath` at **your** solution file. Implement `setup-fspure-customer.sh` with restore + analyzer mirror + optional VSIX install as in §2.3.
+Make it executable (`chmod +x .devcontainer/setup-fspure.sh`). Restore your project (so the NuGet package is present) before or at the start of this script. After attach: open the solution, open an `.fs` file, wait for Ionide. If badges are missing, **Developer: Reload Window**.
 ---
 ## See also
 - [README — consume fspure](README.md#consume-fspure-end-users)
