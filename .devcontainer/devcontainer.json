@@ -66,6 +66,10 @@
     // Keep NuGet scratch off /tmp (chmod 700 can fail on some Docker/CI mounts).
     "TMPDIR": "/home/vscode/.cache/nuget-tmp",
     "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp"
+    "TMP": "/home/vscode/.cache/nuget-tmp",
+    // Forward host CI flags so setup-fspure-ide.sh can skip IDE install under
+    // devcontainers/ci (GITHUB_ACTIONS is not set inside the container by default).
+    "GITHUB_ACTIONS": "${localEnv:GITHUB_ACTIONS}",
+    "SKIP_FSPURE_IDE_SETUP": "${localEnv:SKIP_FSPURE_IDE_SETUP}"
   }
 }

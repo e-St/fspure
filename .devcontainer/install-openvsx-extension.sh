@@ -2,11 +2,32 @@
 # Install fsharp-pure-decorations.
 # Prefer packaging the in-repo VSIX (matches e2e phase2 / known-good labels).
 # Fall back to Open VSX if local packaging fails.
+#
+# Soft-skip when the VS Code CLI is missing or not usable (common in postCreate
+# before attach, and in headless CI). postAttachCommand re-runs setup.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 EXT_DIR="$ROOT/vscode-extension"
 PUBLISHER_EXT="e-st.fsharp-pure-decorations"
+
+# True only if `code` is on PATH and can report a version (stubs that print
+# "code or code-insiders is not installed" count as unavailable).
+code_cli_usable() {
+  command -v code >/dev/null 2>&1 || return 1
+  local out
+  if ! out="$(code --version 2>&1)"; then
+    return 1
+  fi
+  [[ "$out" != *"not installed"* ]] || return 1
+  return 0
+}
+
+skip_no_code() {
+  echo "WARNING: VS Code 'code' CLI not usable; skip extension install." >&2
+  echo "         After attach, re-run: bash .devcontainer/setup-fspure-ide.sh" >&2
+  exit 0
+}
 
 install_from_local() {
   local vsix
@@ -32,10 +53,8 @@ install_from_openvsx() {
   code --install-extension "$vsix" --force
 }
 
-if ! command -v code >/dev/null 2>&1; then
-  echo "WARNING: 'code' CLI not on PATH; skip VS Code extension install." >&2
-  echo "         After attach, re-run: bash .devcontainer/setup-fspure-ide.sh" >&2
-  exit 0
+if ! code_cli_usable; then
+  skip_no_code
 fi
 
 echo "==> fsharp-pure-decorations: package + install from local tree"
@@ -45,10 +64,19 @@ if install_from_local; then
 fi
 
 echo "    Local VSIX install failed."
+# CLI may have disappeared or become unusable mid-run (e.g. postCreate race).
+if ! code_cli_usable; then
+  skip_no_code
+fi
+
 echo "==> fsharp-pure-decorations: try Open VSX"
 if install_from_openvsx; then
   echo "✅ Installed $PUBLISHER_EXT from Open VSX"
   exit 0
+fi
+
+if ! code_cli_usable; then
+  skip_no_code
 fi
 
 echo "ERROR: could not install $PUBLISHER_EXT" >&2

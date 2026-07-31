@@ -136,7 +136,7 @@ Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md
 1. **FSharp.PureAnalyzer** — nuget.org if published, else packs this repo; always drops the DLL under `analyzers/dotnet/fs/` for Ionide  
 2. **fsharp-pure-decorations** — packages this repo’s VSIX (Open VSX as fallback)  
 
-Skipped under `GITHUB_ACTIONS` / `SKIP_FSPURE_IDE_SETUP=1`. Customer e2e never uses this container.
+Skipped under `GITHUB_ACTIONS` / `SKIP_FSPURE_IDE_SETUP=1` (forwarded into the container via `remoteEnv` / `${localEnv:…}` so `devcontainers/ci` pack/build jobs skip IDE install). Customer e2e never uses this container.
 
 While developing the analyzer against the local tree:
 

@@ -32,6 +32,10 @@ jobs:
 
       - name: Build Pure Analyzer inside the project devcontainer
         uses: devcontainers/ci@v0.3
+        # Host GITHUB_ACTIONS is resolved into remoteEnv via ${localEnv:...} so
+        # postCreate (setup-fspure-ide.sh) skips IDE install in CI.
+        env:
+          GITHUB_ACTIONS: "true"
         with:
           push: never
           runCmd: |

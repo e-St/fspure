@@ -13,7 +13,7 @@ There are **two** containers with different jobs. Do not mix them.
 - **On create/attach:** `setup-fspure-ide.sh` installs:
   1. `FSharp.PureAnalyzer` → workspace `analyzers/dotnet/fs/` (what Ionide loads)
   2. `fsharp-pure-decorations` VSIX (local package, Open VSX fallback)
-- **Skipped in GitHub Actions** (`GITHUB_ACTIONS=true`) so pack/build jobs are not slowed by IDE install.
+- **Skipped in GitHub Actions** when `GITHUB_ACTIONS=true` (forwarded from the host via `remoteEnv` / `${localEnv:GITHUB_ACTIONS}`) so pack/build jobs are not slowed by IDE install. Extension install also soft-skips if the `code` CLI is not usable (typical for bare `postCreate` before attach).
 - **Not** used by customer e2e CI.
 
 Refresh after changing the analyzer or extension:
