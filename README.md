@@ -121,20 +121,19 @@ dotnet add package FSharp.PureAnalyzer --source local-fspure
 code --install-extension fsharp-pure-decorations-0.2.5.vsix
 ```
 
-#### Dev Container / Codespaces (project-local drop)
+#### Dev Container / Codespaces (this repo)
 
-Useful when you want a pinned analyzer DLL next to the repo (no NuGet restore of the analyzer required):
+`.devcontainer/setup-fspure-ide.sh` (postCreate / postAttach) installs the latest:
 
-1. Drop `FSharp.PureAnalyzer.dll` under `analyzers/dotnet/fs/` (or point `FSharp.analyzersPath` at that tree).
-2. Install the extension from VSIX in `postCreateCommand` / `postAttachCommand`, for example:
+1. **FSharp.PureAnalyzer** from nuget.org  
+2. **fsharp-pure-decorations** from Open VSX  
+
+While developing the analyzer against the local tree:
 
 ```bash
-code --install-extension /path/to/fsharp-pure-decorations-*.vsix
+bash FSharp.PureAnalyzer/update-analyzer.sh
+# then: Developer: Reload Window
 ```
-
-3. Use the same Ionide settings as above.
-
-The in-repo e2e fixture (`e2e/customer-fixture`) is a complete minimal example of this layout.
 
 ---
 

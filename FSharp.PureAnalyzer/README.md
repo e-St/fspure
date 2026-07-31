@@ -20,7 +20,15 @@ Or Paket:
 nuget FSharp.PureAnalyzer
 ```
 
-The package ships the analyzer under `analyzers/dotnet/fs/`, which Ionide / `fsharp-analyzers` discover when `FSharp.analyzersPath` includes your package restore location (or a project-local `analyzers` folder).
+The package ships the analyzer under `analyzers/dotnet/fs/`, which Ionide / `fsharp-analyzers` discover when `FSharp.analyzersPath` includes your package restore location (or `~/.nuget/packages/fsharp.pureanalyzer`).
+
+### Local dev: install / refresh this checkout
+
+```bash
+bash FSharp.PureAnalyzer/update-analyzer.sh
+```
+
+Packs the current tree and installs it into the NuGet global packages folder (same layout as `dotnet add package`). Reload the VS Code window afterward so Ionide picks up the new DLL.
 
 ## Ionide settings
 

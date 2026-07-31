@@ -2,10 +2,10 @@
   "name": "F# .NET (Paket + Fun.Build + Ionide)",
   "image": "ghcr.io/e-st/fstarter:latest",
   "remoteUser": "vscode",
-  "postCreateCommand": "echo '✅ Dev container ready — newf <ProjectName> scaffolds a backend | newf <ProjectName> --ui scaffolds an Elmish Land frontend | watchf to start watch mode'",
-  // Official VS Code / Codespaces use the Marketplace gallery, so Open VSX
-  // extensions must be installed from a downloaded VSIX (not listed above).
-  "postAttachCommand": "bash .devcontainer/install-openvsx-extension.sh",
+  // Latest FSharp.PureAnalyzer (nuget.org) + fsharp-pure-decorations (Open VSX VSIX).
+  "postCreateCommand": "bash .devcontainer/setup-fspure-ide.sh",
+  // `code` CLI is available after attach; re-run is cheap if already installed.
+  "postAttachCommand": "bash .devcontainer/setup-fspure-ide.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -24,7 +24,8 @@
           "editor.suggestOnTriggerCharacters": false
         },
         // === Inlay Hints: HM-style types shown AFTER the code (on demand) ===
-        "dotnet.defaultSolution": "solution.slnx",
+        "dotnet.defaultSolution": "fspure.slnx",
+        "FSharp.workspacePath": "fspure.slnx",
         "FSharp.enableMSBuildProjectGraph": true,
         "editor.inlayHints.enabled": "on",
         "FSharp.inlayHints.typeAnnotations": false,

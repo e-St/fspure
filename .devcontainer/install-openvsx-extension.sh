@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install latest fsharp-pure-decorations from Open VSX (VSIX — VS Code can't browse Open VSX).
+# Install latest fsharp-pure-decorations from Open VSX (VSIX — Marketplace can't browse Open VSX).
 set -euo pipefail
 VSIX="$(mktemp --suffix=.vsix)"
 trap 'rm -f "$VSIX"' EXIT

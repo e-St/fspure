@@ -4,5 +4,7 @@
 .fake
 e2e/.artifacts/
 e2e/customer-fixture/analyzers/
+# Dev container / local Ionide drop of FSharp.PureAnalyzer.dll
+analyzers/
 e2e/phase2/playwright/node_modules/
 *.vsix
