@@ -1,8 +1,10 @@
 {
-  "name": "F# .NET (Paket + Fun.Build + Ionide)",
+  // Default Codespaces / "Reopen in Container" experience for this repo.
+  // Interactive IDE only — customer e2e uses e2e/phase2/.devcontainer (see .devcontainer/README.md).
+  "name": "fspure IDE",
   "image": "ghcr.io/e-st/fstarter:latest",
   "remoteUser": "vscode",
-  // Latest FSharp.PureAnalyzer (nuget.org) + fsharp-pure-decorations (Open VSX VSIX).
+  // Analyzer → analyzers/dotnet/fs/ + decorations VSIX (skipped under GITHUB_ACTIONS).
   "postCreateCommand": "bash .devcontainer/setup-fspure-ide.sh",
   // `code` CLI is available after attach; re-run is cheap if already installed.
   "postAttachCommand": "bash .devcontainer/setup-fspure-ide.sh",
@@ -23,7 +25,7 @@
           "editor.quickSuggestions": false,
           "editor.suggestOnTriggerCharacters": false
         },
-        // === Inlay Hints: HM-style types shown AFTER the code (on demand) ===
+        // === Solution + pure/impure decorations (consumer-style settings) ===
         "dotnet.defaultSolution": "fspure.slnx",
         "FSharp.workspacePath": "fspure.slnx",
         "FSharp.enableMSBuildProjectGraph": true,
@@ -35,10 +37,11 @@
         "FSharp.lineLens.prefix": "// ",
         "FSharp.linter": true,
         "FSharp.enableAnalyzers": true,
+        // Workspace-relative only: FSAC does not expand ${userHome} or ~.
+        // setup-fspure-ide.sh / update-analyzer.sh drop the DLL under analyzers/.
         "FSharp.analyzersPath": [
           "analyzers",
-          "packages/Analyzers",
-          "${userHome}/.nuget/packages/fsharp.pureanalyzer"
+          "packages/Analyzers"
         ],
         "FSharp.unusedDeclarationsAnalyzer": true, // Best for detecting unused code
         "FSharp.codeLenses.references.enabled": false, // Optional: shows "X references" above lines

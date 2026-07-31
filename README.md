@@ -54,8 +54,7 @@ Also install [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [
     "analyzers",
-    "packages/Analyzers",
-    "${userHome}/.nuget/packages/fsharp.pureanalyzer"
+    "packages/Analyzers"
   ],
   "FSharp.inlayHints.typeAnnotations": false,
   "FSharp.inlayHints.parameterNames": true,
@@ -69,6 +68,8 @@ Also install [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp
   }
 }
 ```
+
+`FSharp.analyzersPath` must resolve to a real directory for **FSAC** (Ionide’s language server). FSAC does **not** expand `${userHome}`, `~`, or other VS Code variables — use a workspace-relative folder (e.g. `analyzers`) or an absolute path. After `dotnet add package`, copy or symlink the package’s `analyzers/` tree into your workspace, or point the path at the absolute NuGet package version folder.
 
 Open your solution / project, open an F# file, wait for Ionide to load. You should see LineLens signatures and pure/impure badges on definitions.
 
@@ -121,19 +122,27 @@ dotnet add package FSharp.PureAnalyzer --source local-fspure
 code --install-extension fsharp-pure-decorations-0.2.5.vsix
 ```
 
-#### Dev Container / Codespaces (this repo)
+#### Dev containers in this repository
 
-`.devcontainer/setup-fspure-ide.sh` (postCreate / postAttach) installs:
+| Container | Path | Use for |
+|-----------|------|---------|
+| **fspure IDE** (default) | [`.devcontainer/`](.devcontainer/) | Codespaces, local “Reopen in Container”, seeing pure/impure labels while hacking |
+| **e2e** | [`e2e/phase2/.devcontainer/`](e2e/phase2/.devcontainer/) | CI / local phase 1–2 only (code-server + Playwright) — not for daily work |
 
-1. **FSharp.PureAnalyzer** — nuget.org if published, else packs this repo  
-2. **fsharp-pure-decorations** — Open VSX if published, else packages this repo’s VSIX  
+Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md](e2e/README.md).
 
-In **GitHub Actions** (`devcontainers/ci`) the script no-ops so pack/publish jobs do not run IDE install. Override with `SKIP_FSPURE_IDE_SETUP=1` locally if needed.
+**fspure IDE** (`postCreate` / `postAttach` → `setup-fspure-ide.sh`) installs:
+
+1. **FSharp.PureAnalyzer** — nuget.org if published, else packs this repo; always drops the DLL under `analyzers/dotnet/fs/` for Ionide  
+2. **fsharp-pure-decorations** — packages this repo’s VSIX (Open VSX as fallback)  
+
+Skipped under `GITHUB_ACTIONS` / `SKIP_FSPURE_IDE_SETUP=1`. Customer e2e never uses this container.
 
 While developing the analyzer against the local tree:
 
 ```bash
-bash FSharp.PureAnalyzer/update-analyzer.sh
+bash FSharp.PureAnalyzer/update-analyzer.sh   # → analyzers/dotnet/fs/ + NuGet global
+bash vscode-extension/update-extension.sh    # optional: refresh decorations VSIX
 # then: Developer: Reload Window
 ```
 
@@ -193,8 +202,9 @@ System.Text.Json.Serialization
 
 ## Develop this repository
 
+- **Interactive IDE:** open the repo in Codespaces or “Reopen in Container” → root [`.devcontainer/`](.devcontainer/) (“fspure IDE”)
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
-- Customer e2e: [e2e/README.md](e2e/README.md)
+- Customer e2e (separate container): [e2e/README.md](e2e/README.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 
 ```bash
@@ -204,7 +214,7 @@ cd FSharp.PureAnalyzer && paket restore && dotnet build -c Release
 # Extension unit tests
 node vscode-extension/test/decorations.logic.test.js
 
-# Phase 1 e2e (analyzer baseline)
+# Phase 1 e2e (analyzer baseline; in CI runs inside e2e/phase2/.devcontainer)
 bash e2e/phase1/run.sh
 ```
 

@@ -1,5 +1,7 @@
 {
-  "name": "fspure phase2 visual e2e",
+  // E2E CI only (phase 1 analyzer baseline + phase 2 screenshots).
+  // Not for Codespaces / daily work — use the root .devcontainer ("fspure IDE") instead.
+  "name": "fspure e2e (code-server + Playwright)",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."

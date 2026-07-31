@@ -29,7 +29,7 @@ Artifacts: `e2e/.artifacts/phase1/`
 ## Phase 2 — Visual VS Code decorations
 
 **Script:** `bash e2e/phase2/run.sh`  
-**Dev container:** `e2e/phase2/.devcontainer/`
+**Dev container:** `e2e/phase2/.devcontainer/` (e2e-only; daily Codespaces use root `.devcontainer/` — “fspure IDE”)
 
 | Step | Detail |
 |------|--------|
@@ -88,6 +88,8 @@ e2e/
 ## GitHub Actions
 
 Workflow: `.github/workflows/e2e-customer.yml`
+
+**Both phases** run inside `e2e/phase2/.devcontainer` (`.NET` + Node + code-server + Playwright). They do **not** use the root **fspure IDE** `.devcontainer`, so Codespaces/setup changes cannot break CI e2e. See [`.devcontainer/README.md`](../.devcontainer/README.md).
 
 ```
 phase1-analyzer  ──needs──►  phase2-visual

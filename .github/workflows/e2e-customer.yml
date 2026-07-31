@@ -3,8 +3,10 @@ name: Customer E2E (pure/impure labels)
 # Two-phase consumer check (analyzer baseline + visual pure/impure decorations):
 #
 #   Phase 1 — Analyzer baseline on e2e/customer-fixture/Program.fs
-#   Phase 2 — Devcontainer + VS Code (code-server) opens Program.fs and
-#             screenshots pure/impure decoration labels for visual review
+#   Phase 2 — VS Code (code-server) opens Program.fs and screenshots pure/impure labels
+#
+# Both phases use e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
+# root IDE .devcontainer — so IDE setup changes cannot break CI e2e.
 
 on:
   push:
@@ -39,16 +41,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run Phase 1 inside project devcontainer
+      - name: Run Phase 1 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
+          configFile: e2e/phase2/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
@@ -91,7 +87,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Phase 2 inside visual e2e devcontainer
+      - name: Run Phase 2 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
           configFile: e2e/phase2/.devcontainer/devcontainer.json

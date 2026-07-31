@@ -3,8 +3,7 @@
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [
     "analyzers",
-    "packages/Analyzers",
-    "${userHome}/.nuget/packages/fsharp.pureanalyzer"
+    "packages/Analyzers"
   ],
   "fsharpPureDecorations.enabled": true,
   "workbench.colorCustomizations": {

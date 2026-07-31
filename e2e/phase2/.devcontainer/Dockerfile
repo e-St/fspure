@@ -1,5 +1,6 @@
-# Phase 2 visual e2e image: .NET + Node + code-server (VS Code Web) + Playwright deps.
-# Used by e2e/phase2/.devcontainer and GitHub Actions (devcontainers/ci).
+# fspure e2e image: .NET + Node + code-server (VS Code Web) + Playwright deps.
+# Used only by e2e/phase2/.devcontainer and .github/workflows/e2e-customer.yml.
+# Interactive IDE: root .devcontainer/ ("fspure IDE") — do not merge the two.
 FROM mcr.microsoft.com/devcontainers/dotnet:10.0-noble
 
 USER root

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Pack the local FSharp.PureAnalyzer and install it into the NuGet global packages
-# folder so Ionide (FSharp.analyzersPath: ${userHome}/.nuget/packages/fsharp.pureanalyzer)
-# and `dotnet add package` consumers pick up the in-repo build.
+# Pack the local FSharp.PureAnalyzer and install it where Ionide can load it:
+#
+#   1) Workspace drop:  <repo>/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll
+#      (matches default FSharp.analyzersPath entry "analyzers" — reliable in
+#       VS Code / Codespaces; FSAC does NOT expand ${userHome} or ~)
+#   2) NuGet global packages folder (same layout as `dotnet add package`)
 #
 # Usage:
 #   bash FSharp.PureAnalyzer/update-analyzer.sh
@@ -25,6 +28,7 @@ PACKAGE_ID="FSharp.PureAnalyzer"
 PACKAGE_ID_LOWER="fsharp.pureanalyzer"
 NUPKG_OUT="${NUPKG_OUT:-$PROJ_DIR/nupkgs}"
 GLOBAL_PACKAGES="${NUGET_PACKAGES:-$HOME/.nuget/packages}"
+WORKSPACE_ANALYZERS="${WORKSPACE_ANALYZERS:-$ROOT/analyzers/dotnet/fs}"
 
 # Version: VERSION env wins, else <Version> from the fsproj.
 if [[ -z "${VERSION:-}" ]]; then
@@ -56,6 +60,21 @@ if [[ -z "${NUPKG}" || ! -f "$NUPKG" ]]; then
   exit 1
 fi
 echo "    nupkg → $NUPKG"
+
+BUILT_DLL="$PROJ_DIR/bin/$CONFIGURATION/net10.0/FSharp.PureAnalyzer.dll"
+if [[ ! -f "$BUILT_DLL" ]]; then
+  # pack may not leave bin/ if only packing; rebuild
+  dotnet build -c "$CONFIGURATION" --nologo -v q
+fi
+if [[ ! -f "$BUILT_DLL" ]]; then
+  echo "ERROR: built DLL not found: $BUILT_DLL" >&2
+  exit 1
+fi
+
+# --- Workspace drop (what Ionide actually loads via FSharp.analyzersPath "analyzers") ---
+mkdir -p "$WORKSPACE_ANALYZERS"
+cp -f "$BUILT_DLL" "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
 
 # Same version number must be wiped or NuGet will reuse stale extracted bits.
 DEST="$GLOBAL_PACKAGES/$PACKAGE_ID_LOWER/$VERSION"
@@ -98,5 +117,6 @@ if [[ ! -f "$DLL" ]]; then
 fi
 
 echo "✅ Installed $PACKAGE_ID $VERSION"
-echo "   $DLL"
+echo "   workspace: $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+echo "   nuget:     $DLL"
 echo "   Reload the window (or restart Ionide) if pure/impure badges do not refresh."
