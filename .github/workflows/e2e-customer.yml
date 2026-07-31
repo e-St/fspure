@@ -18,8 +18,8 @@ on:
       - "e2e/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
-      - "dotnet-tools.json"
       - ".github/workflows/e2e-customer.yml"
+      - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
     paths:
       - "FSharp.PureAnalyzer/**"
@@ -27,8 +27,8 @@ on:
       - "e2e/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
-      - "dotnet-tools.json"
       - ".github/workflows/e2e-customer.yml"
+      - ".github/workflows/devcontainer-flavours.yml"
   workflow_dispatch:
 
 permissions:
@@ -36,18 +36,22 @@ permissions:
   packages: read
 
 jobs:
+  generate-devcontainer-flavours:
+    uses: ./.github/workflows/devcontainer-flavours.yml
+
   # ---------------------------------------------------------------------------
   # Phase 1: FSharp.PureAnalyzer classification baseline
   # ---------------------------------------------------------------------------
   phase1-analyzer:
     name: "Phase 1 — Analyzer baseline"
+    needs: generate-devcontainer-flavours
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check generated devcontainer.json is up to date
-        run: python3 .devcontainer/generate.py --check
+      - name: Apply generated devcontainer flavours
+        uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (shared fstarter base image)
         uses: docker/login-action@v3
@@ -95,12 +99,15 @@ jobs:
   # ---------------------------------------------------------------------------
   phase2-visual:
     name: "Phase 2 — VS Code screenshots"
-    needs: phase1-analyzer
+    needs: [generate-devcontainer-flavours, phase1-analyzer]
     runs-on: ubuntu-latest
     # Screenshots are always uploaded; job fails if labels never appear.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Apply generated devcontainer flavours
+        uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (shared fstarter base image)
         uses: docker/login-action@v3

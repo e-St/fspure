@@ -1,0 +1,42 @@
+name: Devcontainer flavours
+
+# Reusable job: build (generate) all devcontainer flavour configs from fragments.
+# Callers that use devcontainers/ci must `needs` this job, then apply the artifact
+# so the workspace matches the fragment source of truth.
+#
+#   jobs:
+#     generate-devcontainer-flavours:
+#       uses: ./.github/workflows/devcontainer-flavours.yml
+#     build:
+#       needs: generate-devcontainer-flavours
+#       steps:
+#         - uses: actions/checkout@v4
+#         - uses: ./.github/actions/apply-devcontainer-flavours
+
+on:
+  workflow_call:
+
+jobs:
+  generate:
+    name: Generate devcontainer flavours
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate flavour configs
+        run: |
+          set -euo pipefail
+          python3 .devcontainer/generate.py
+          python3 .devcontainer/generate.py --check
+
+      - name: Upload generated devcontainer.json files
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcontainer-flavours
+          path: |
+            .devcontainer/devcontainer.json
+            FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+            e2e/phase2/.devcontainer/devcontainer.json
+          if-no-files-found: error
+          retention-days: 1

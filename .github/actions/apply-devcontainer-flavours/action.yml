@@ -1,0 +1,13 @@
+name: Apply generated devcontainer flavours
+description: >
+  Download the devcontainer-flavours artifact produced by
+  .github/workflows/devcontainer-flavours.yml into the workspace (after checkout).
+
+runs:
+  using: composite
+  steps:
+    - name: Download generated devcontainer flavours
+      uses: actions/download-artifact@v4
+      with:
+        name: devcontainer-flavours
+        path: .

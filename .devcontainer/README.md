@@ -30,7 +30,10 @@ python3 .devcontainer/generate.py          # write
 python3 .devcontainer/generate.py --check  # fail if stale
 ```
 
-CI: [`.github/workflows/generate-devcontainers.yml`](../.github/workflows/generate-devcontainers.yml) runs `generate.py` on every relevant change (fragments / generator) and **commits + pushes** updated outputs on same-repo branches. Fork PRs must run generate locally if outputs are stale.
+CI:
+
+- [`.github/workflows/generate-devcontainers.yml`](../.github/workflows/generate-devcontainers.yml) — on fragment/generator changes, regenerate and **commit + push** (same-repo). Fork PRs must run generate locally if outputs are stale.
+- [`.github/workflows/devcontainer-flavours.yml`](../.github/workflows/devcontainer-flavours.yml) — **reusable** job that every workflow using `devcontainers/ci` must `needs` first; callers then apply the artifact via [`.github/actions/apply-devcontainer-flavours`](../.github/actions/apply-devcontainer-flavours/action.yml).
 
 Generated files start with `// GENERATED FILE` — do not hand-edit them.
 
