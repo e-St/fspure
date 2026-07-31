@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# fspure IDE setup (root .devcontainer only — not e2e).
+# fspure IDE setup (root .devcontainer only).
 #
 # Install analyzer + decorations extension for interactive Codespaces / VS Code.
 #
@@ -9,12 +9,13 @@
 #
 # Extension: package in-repo VSIX (same packaging path as e2e phase2), else Open VSX.
 #
-# Skipped in GitHub Actions: pack/build jobs using this image do not need IDE install.
-# Customer e2e uses e2e/phase2/.devcontainer exclusively (see .devcontainer/README.md).
+# Not used by CI: analyzer pack/build uses FSharp.PureAnalyzer/.devcontainer/;
+# e2e uses e2e/phase2/.devcontainer/ (see .devcontainer/README.md).
+# Optional escape hatch: SKIP_FSPURE_IDE_SETUP=1.
 set -euo pipefail
 
-if [[ "${SKIP_FSPURE_IDE_SETUP:-}" == "1" ]] || [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-  echo "Skipping fspure IDE setup (GITHUB_ACTIONS or SKIP_FSPURE_IDE_SETUP=1)."
+if [[ "${SKIP_FSPURE_IDE_SETUP:-}" == "1" ]]; then
+  echo "Skipping fspure IDE setup (SKIP_FSPURE_IDE_SETUP=1)."
   exit 0
 fi
 

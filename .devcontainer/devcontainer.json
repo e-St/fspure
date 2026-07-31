@@ -1,10 +1,11 @@
 {
   // Default Codespaces / "Reopen in Container" experience for this repo.
-  // Interactive IDE only — customer e2e uses e2e/phase2/.devcontainer (see .devcontainer/README.md).
+  // Interactive IDE only.
+  // CI pack/build: FSharp.PureAnalyzer/.devcontainer/   e2e: e2e/phase2/.devcontainer/
   "name": "fspure IDE",
   "image": "ghcr.io/e-st/fstarter:latest",
   "remoteUser": "vscode",
-  // Analyzer → analyzers/dotnet/fs/ + decorations VSIX (skipped under GITHUB_ACTIONS).
+  // Analyzer → analyzers/dotnet/fs/ + decorations VSIX for interactive use.
   "postCreateCommand": "bash .devcontainer/setup-fspure-ide.sh",
   // `code` CLI is available after attach; re-run is cheap if already installed.
   "postAttachCommand": "bash .devcontainer/setup-fspure-ide.sh",
@@ -66,10 +67,6 @@
     // Keep NuGet scratch off /tmp (chmod 700 can fail on some Docker/CI mounts).
     "TMPDIR": "/home/vscode/.cache/nuget-tmp",
     "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp",
-    // Forward host CI flags so setup-fspure-ide.sh can skip IDE install under
-    // devcontainers/ci (GITHUB_ACTIONS is not set inside the container by default).
-    "GITHUB_ACTIONS": "${localEnv:GITHUB_ACTIONS}",
-    "SKIP_FSPURE_IDE_SETUP": "${localEnv:SKIP_FSPURE_IDE_SETUP}"
+    "TMP": "/home/vscode/.cache/nuget-tmp"
   }
 }

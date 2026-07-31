@@ -35,12 +35,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate List A inside the project devcontainer
+      - name: Generate List A inside the build devcontainer
         env:
           PACKAGE_ID: ${{ github.event.inputs.package_id || 'FSharp.Core+BCL' }}
           PUBLIC_ONLY: ${{ github.event.inputs.public_only || 'true' }}
         uses: devcontainers/ci@v0.3
         with:
+          # Shared fstarter build image (defined with PureAnalyzer; no IDE setup)
+          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           env: |
             PACKAGE_ID

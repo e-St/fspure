@@ -46,9 +46,11 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "nupkg=FSharp.PureAnalyzer.${VERSION}.nupkg" >> "$GITHUB_OUTPUT"
 
-      - name: Pack Pure Analyzer inside the project devcontainer
+      - name: Pack Pure Analyzer inside the build devcontainer
         uses: devcontainers/ci@v0.3
         with:
+          # PureAnalyzer build container — not the root fspure IDE .devcontainer
+          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail

@@ -30,13 +30,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Pure Analyzer inside the project devcontainer
+      - name: Build Pure Analyzer inside the build devcontainer
         uses: devcontainers/ci@v0.3
-        # Host GITHUB_ACTIONS is resolved into remoteEnv via ${localEnv:...} so
-        # postCreate (setup-fspure-ide.sh) skips IDE install in CI.
-        env:
-          GITHUB_ACTIONS: "true"
         with:
+          # PureAnalyzer build container — not the root fspure IDE .devcontainer
+          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail

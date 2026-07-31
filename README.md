@@ -126,7 +126,8 @@ code --install-extension fsharp-pure-decorations-0.2.5.vsix
 
 | Container | Path | Use for |
 |-----------|------|---------|
-| **fspure IDE** (default) | [`.devcontainer/`](.devcontainer/) | Codespaces, local “Reopen in Container”, seeing pure/impure labels while hacking |
+| **fspure IDE** (default) | [`.devcontainer/`](.devcontainer/) | Codespaces, local “Reopen in Container”, pure/impure labels while hacking |
+| **PureAnalyzer build** | [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) | CI pack/build (`dotnet` / `paket` / `bundlef`) — no IDE setup |
 | **e2e** | [`e2e/phase2/.devcontainer/`](e2e/phase2/.devcontainer/) | CI / local phase 1–2 only (code-server + Playwright) — not for daily work |
 
 Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md](e2e/README.md).
@@ -136,7 +137,7 @@ Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md
 1. **FSharp.PureAnalyzer** — nuget.org if published, else packs this repo; always drops the DLL under `analyzers/dotnet/fs/` for Ionide  
 2. **fsharp-pure-decorations** — packages this repo’s VSIX (Open VSX as fallback)  
 
-Skipped under `GITHUB_ACTIONS` / `SKIP_FSPURE_IDE_SETUP=1` (forwarded into the container via `remoteEnv` / `${localEnv:…}` so `devcontainers/ci` pack/build jobs skip IDE install). Customer e2e never uses this container.
+Pack/build and customer e2e use the other containers above, not this one.
 
 While developing the analyzer against the local tree:
 
@@ -203,6 +204,7 @@ System.Text.Json.Serialization
 ## Develop this repository
 
 - **Interactive IDE:** open the repo in Codespaces or “Reopen in Container” → root [`.devcontainer/`](.devcontainer/) (“fspure IDE”)
+- **CI pack/build:** [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) (not the IDE container)
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
 - Customer e2e (separate container): [e2e/README.md](e2e/README.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)

@@ -6,7 +6,8 @@ name: Customer E2E (pure/impure labels)
 #   Phase 2 — VS Code (code-server) opens Program.fs and screenshots pure/impure labels
 #
 # Both phases use e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
-# root IDE .devcontainer — so IDE setup changes cannot break CI e2e.
+# root IDE or FSharp.PureAnalyzer build containers — so those changes cannot
+# break CI e2e.
 
 on:
   push:

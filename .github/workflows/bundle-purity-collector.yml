@@ -30,9 +30,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and bundle purity-collector in the project devcontainer
+      - name: Build and bundle purity-collector in the build devcontainer
         uses: devcontainers/ci@v0.3
         with:
+          # Shared fstarter build image (defined with PureAnalyzer; no IDE setup)
+          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail

@@ -1,0 +1,17 @@
+{
+  // CI pack/build for FSharp.PureAnalyzer (and other jobs that need the same
+  // fstarter tool image: purity-collector bundle, list-a). No IDE install.
+  // Interactive Codespaces: root .devcontainer/ ("fspure IDE").
+  // Customer e2e: e2e/phase2/.devcontainer/ (code-server + Playwright).
+  "name": "FSharp.PureAnalyzer build",
+  "image": "ghcr.io/e-st/fstarter:latest",
+  "remoteUser": "vscode",
+  // No postCreate / postAttach: no analyzer NuGet install, no VSIX, no Ionide.
+  "remoteEnv": {
+    "DOTNET_ROLL_FORWARD": "Major",
+    // Keep NuGet scratch off /tmp (chmod 700 can fail on some Docker/CI mounts).
+    "TMPDIR": "/home/vscode/.cache/nuget-tmp",
+    "TEMP": "/home/vscode/.cache/nuget-tmp",
+    "TMP": "/home/vscode/.cache/nuget-tmp"
+  }
+}

@@ -49,7 +49,7 @@ GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Action
 
 `publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
 
-`nuget_publish.yml` uses `actions/setup-dotnet` + global `paket` on `ubuntu-latest` (no devcontainer).
+`nuget_publish.yml` uses `actions/setup-dotnet` + global `paket` on `ubuntu-latest` (no devcontainer). Analyzer pack/build workflows that do use a container pin `FSharp.PureAnalyzer/.devcontainer/devcontainer.json` (not the interactive IDE container).
 
 ## Versioning
 

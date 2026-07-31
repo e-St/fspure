@@ -89,7 +89,7 @@ e2e/
 
 Workflow: `.github/workflows/e2e-customer.yml`
 
-**Both phases** run inside `e2e/phase2/.devcontainer` (`.NET` + Node + code-server + Playwright). They do **not** use the root **fspure IDE** `.devcontainer`, so Codespaces/setup changes cannot break CI e2e. See [`.devcontainer/README.md`](../.devcontainer/README.md).
+**Both phases** run inside `e2e/phase2/.devcontainer` (`.NET` + Node + code-server + Playwright). They do **not** use the root **fspure IDE** `.devcontainer` or the **PureAnalyzer build** `FSharp.PureAnalyzer/.devcontainer/` container, so Codespaces/setup or pack/build changes cannot break visual e2e. See [`.devcontainer/README.md`](../.devcontainer/README.md).
 
 ```
 phase1-analyzer  ──needs──►  phase2-visual
