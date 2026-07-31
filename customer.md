@@ -71,7 +71,7 @@ These make LineLens signatures and pure/impure badges readable (badges sit after
   "FSharp.inlayHints.parameterNames": true,
   "FSharp.inlayHints.typeAnnotations": false,
   "FSharp.lineLens.enabled": "replaceCodeLens",
-  "FSharp.lineLens.prefix": "// ",
+  "FSharp.lineLens.prefix": "  // ",
   "editor.inlayHints.enabled": "on",
   "workbench.colorCustomizations": {
     "editorHint.foreground": "#00000000",
@@ -93,7 +93,7 @@ These make LineLens signatures and pure/impure badges readable (badges sit after
   "FSharp.inlayHints.parameterNames": true,
   "FSharp.inlayHints.typeAnnotations": false,
   "FSharp.lineLens.enabled": "replaceCodeLens",
-  "FSharp.lineLens.prefix": "// ",
+  "FSharp.lineLens.prefix": "  // ",
   "editor.inlayHints.enabled": "on",
   "workbench.colorCustomizations": {
     "editorHint.foreground": "#00000000",
@@ -109,6 +109,8 @@ Useful editor UX from our reference setup; not required for classification or ba
   "FSharp.codeLenses.references.enabled": false,
   "FSharp.enableMSBuildProjectGraph": true,
   "FSharp.linter": true,
+  "FSharp.pipelineHints.enabled": true,
+  "FSharp.pipelineHints.prefix": "  // ",
   "FSharp.unusedDeclarationsAnalyzer": true,
   "[fsharp]": {
     "editor.quickSuggestions": false,
@@ -167,8 +169,10 @@ Swap in your base image if you already have one. Keep `postCreateCommand`, `post
         "FSharp.inlayHints.parameterNames": true,
         "FSharp.inlayHints.typeAnnotations": false,
         "FSharp.lineLens.enabled": "replaceCodeLens",
-        "FSharp.lineLens.prefix": "// ",
+        "FSharp.lineLens.prefix": "  // ",
         "FSharp.linter": true,
+        "FSharp.pipelineHints.enabled": true,
+        "FSharp.pipelineHints.prefix": "  // ",
         "FSharp.unusedDeclarationsAnalyzer": true,
         "[fsharp]": {
           "editor.quickSuggestions": false,
@@ -203,9 +207,15 @@ Runs on create and attach: installs the decorations extension when `code` is ava
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install decorations extension (Open VSX / marketplace id).
+# Codespaces uses MS Marketplace — extension is on Open VSX only.
+# Install from downloaded VSIX (not marketplace id alone).
 if command -v code >/dev/null 2>&1; then
-  code --install-extension e-st.fsharp-pure-decorations --force || true
+  vsix=$(mktemp --suffix=.vsix)
+  url=$(curl -fsSL https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")
+  curl -fsSL -o "$vsix" "$url"
+  code --install-extension "$vsix" --force
+  rm -f "$vsix"
 fi
 
 # Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.

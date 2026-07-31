@@ -1,22 +1,17 @@
-// GENERATED FILE — do not edit by hand.
-// Source: .devcontainer/fragments/  |  Regenerate: python3 .devcontainer/generate.py
 {
+  "name": "F# .NET (Paket + Fun.Build + Ionide + fspure)",
+  "image": "ghcr.io/e-st/fstarter:latest",
   "remoteUser": "vscode",
-  "remoteEnv": {
-    "DOTNET_ROLL_FORWARD": "Major",
-    "TMPDIR": "/home/vscode/.cache/nuget-tmp",
-    "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp",
-    "CODE_SERVER_PORT": "8080",
-    "CODE_SERVER_HOST": "127.0.0.1"
-  },
+  "postCreateCommand": "bash .devcontainer/setup-fspure.sh",
+  "postAttachCommand": "bash .devcontainer/setup-fspure.sh",
   "customizations": {
     "vscode": {
       "extensions": [
         "ionide.ionide-fsharp",
         "ionide.ionide-paket",
         "ionide.ionide-fantomas",
-        "ms-dotnettools.csharp"
+        "ms-dotnettools.csharp",
+        "e-st.fsharp-pure-decorations"
       ],
       "settings": {
         "editor.inlineSuggest.enabled": false,
@@ -26,6 +21,8 @@
           "editor.quickSuggestions": false,
           "editor.suggestOnTriggerCharacters": false
         },
+        "dotnet.defaultSolution": "solution.slnx",
+        "FSharp.workspacePath": "solution.slnx",
         "FSharp.enableMSBuildProjectGraph": true,
         "editor.inlayHints.enabled": "on",
         "FSharp.inlayHints.typeAnnotations": false,
@@ -34,7 +31,7 @@
         "FSharp.lineLens.enabled": "replaceCodeLens",
         "FSharp.lineLens.prefix": "  // ",
         "FSharp.pipelineHints.enabled": true,
-        "FSharp.pipelineHints.prefix": "// ",
+        "FSharp.pipelineHints.prefix": "  // ",
         "FSharp.linter": true,
         "FSharp.enableAnalyzers": true,
         "FSharp.analyzersPath": [
@@ -54,27 +51,15 @@
           "**/obj": true,
           "**/bin": true,
           "**/.paket": true
-        },
-        "dotnet.defaultSolution": "e2e/customer-fixture/customer-fixture.slnx",
-        "FSharp.workspaceModePeekDeepLevel": 1,
-        "FSharp.showExplorerOnStartup": true,
-        "fsharpPureDecorations.impureColor": "#E2A66A",
-        "fsharpPureDecorations.pureColor": "#6A9955"
+        }
       }
     }
   },
-  "name": "fspure e2e (code-server + Playwright)",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
-  "forwardPorts": [
-    8080
-  ],
-  "portsAttributes": {
-    "8080": {
-      "label": "code-server (VS Code Web)",
-      "onAutoForward": "notify"
-    }
+  "features": {},
+  "remoteEnv": {
+    "DOTNET_ROLL_FORWARD": "Major",
+    "TMPDIR": "/home/vscode/.cache/nuget-tmp",
+    "TEMP": "/home/vscode/.cache/nuget-tmp",
+    "TMP": "/home/vscode/.cache/nuget-tmp"
   }
 }

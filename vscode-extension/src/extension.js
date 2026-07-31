@@ -46,10 +46,10 @@ function endOfLineAnchor(editor, lineNumber) {
 function badgeDecorationOptions(contentText, color) {
   return {
     after: {
-      // Leading spaces separate the badge from Ionide LineLens (`// …`).
-      contentText: `\u00A0${contentText}`,
+      // Two ASCII spaces after LineLens: `// unit -> 'a -> unit  impure`
+      // (nbsp-only was easy to miss; margin alone does not put spaces in the text run).
+      contentText: `  ${contentText}`,
       color,
-      margin: "0 0 0 0.75em",
       fontWeight: "bold",
       fontStyle: "italic",
     },

@@ -18,9 +18,9 @@
   "FSharp.inlayHints.parameterNames": true,
 
   "FSharp.lineLens.enabled": "replaceCodeLens",
-  "FSharp.lineLens.prefix": "// ",
+  "FSharp.lineLens.prefix": "  // ",
   "FSharp.pipelineHints.enabled": true,
-  "FSharp.pipelineHints.prefix": "// ",
+  "FSharp.pipelineHints.prefix": "  // ",
 
   "FSharp.linter": true,
   "FSharp.enableAnalyzers": true,

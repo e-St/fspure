@@ -21,7 +21,7 @@ Recommended companion settings:
   "FSharp.inlayHints.parameterNames": true,
   "FSharp.inlayHints.enabled": true,
   "FSharp.lineLens.enabled": "replaceCodeLens",
-  "FSharp.lineLens.prefix": "// ",
+  "FSharp.lineLens.prefix": "  // ",
   "FSharp.enableAnalyzers": true,
   "editor.inlayHints.enabled": "on",
   "fsharpPureDecorations.enabled": true

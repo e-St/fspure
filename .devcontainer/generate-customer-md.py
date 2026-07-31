@@ -286,31 +286,35 @@ def render(settings: dict, extensions: list[str]) -> str:
         "available, and mirrors the restored NuGet analyzer into workspace "
         "`analyzers/` so `FSharp.analyzersPath` works (FSAC does not expand home/`~`).\n"
     )
-    a("```bash\n")
-    a("#!/usr/bin/env bash\n")
-    a("set -euo pipefail\n")
-    a("\n")
-    a("# Install decorations extension (Open VSX / marketplace id).\n")
-    a("if command -v code >/dev/null 2>&1; then\n")
-    a("  code --install-extension e-st.fsharp-pure-decorations --force || true\n")
-    a("fi\n")
-    a("\n")
-    a("# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.\n")
-    a('PKG="${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer"\n')
     a(
-        'DLL="$(find "$PKG" -path \'*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\' \\\n'
+        "```bash\n"
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        "\n"
+        "# Codespaces uses MS Marketplace — extension is on Open VSX only.\n"
+        "# Install from downloaded VSIX (not marketplace id alone).\n"
+        "if command -v code >/dev/null 2>&1; then\n"
+        "  vsix=$(mktemp --suffix=.vsix)\n"
+        "  url=$(curl -fsSL https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest \\\n"
+        "    | python3 -c \"import json,sys; print(json.load(sys.stdin)['files']['download'])\")\n"
+        "  curl -fsSL -o \"$vsix\" \"$url\"\n"
+        "  code --install-extension \"$vsix\" --force\n"
+        "  rm -f \"$vsix\"\n"
+        "fi\n"
+        "\n"
+        "# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.\n"
+        "PKG=\"${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer\"\n"
+        "DLL=\"$(find \"$PKG\" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' \\\n"
+        "  2>/dev/null | sort -V | tail -1 || true)\"\n"
+        "if [[ -z \"${DLL}\" || ! -f \"${DLL}\" ]]; then\n"
+        "  echo \"FSharp.PureAnalyzer DLL not found under $PKG — restore the package first.\" >&2\n"
+        "  exit 1\n"
+        "fi\n"
+        "mkdir -p analyzers/dotnet/fs\n"
+        "cp -f \"$DLL\" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\n"
+        "echo \"PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\"\n"
+        "```\n"
     )
-    a('  2>/dev/null | sort -V | tail -1 || true)"\n')
-    a('if [[ -z "${DLL}" || ! -f "${DLL}" ]]; then\n')
-    a(
-        '  echo "FSharp.PureAnalyzer DLL not found under $PKG — restore the package first." >&2\n'
-    )
-    a("  exit 1\n")
-    a("fi\n")
-    a("mkdir -p analyzers/dotnet/fs\n")
-    a('cp -f "$DLL" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\n')
-    a('echo "PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"\n')
-    a("```\n")
     a(
         "Make it executable (`chmod +x .devcontainer/setup-fspure.sh`). "
         "Restore your project (so the NuGet package is present) before or at the "
