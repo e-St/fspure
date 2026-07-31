@@ -1,13 +1,4 @@
-// GENERATED FILE — do not edit by hand.
-// Source: .devcontainer/fragments/  |  Regenerate: python3 .devcontainer/generate.py
 {
-  "remoteUser": "vscode",
-  "remoteEnv": {
-    "DOTNET_ROLL_FORWARD": "Major",
-    "TMPDIR": "/home/vscode/.cache/nuget-tmp",
-    "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp"
-  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -50,15 +41,8 @@
           "**/obj": true,
           "**/bin": true,
           "**/.paket": true
-        },
-        "dotnet.defaultSolution": "fspure.slnx",
-        "FSharp.workspacePath": "fspure.slnx"
+        }
       }
     }
-  },
-  "name": "fspure IDE",
-  "image": "ghcr.io/e-st/fstarter:latest",
-  "postCreateCommand": "bash .devcontainer/setup-fspure-ide.sh",
-  "postAttachCommand": "bash .devcontainer/setup-fspure-ide.sh",
-  "features": {}
+  }
 }

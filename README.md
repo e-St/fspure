@@ -130,6 +130,8 @@ code --install-extension fsharp-pure-decorations-0.2.5.vsix
 | **PureAnalyzer build** | [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) | CI pack/build (`dotnet` / `paket` / `bundlef`) — no IDE setup |
 | **e2e** | [`e2e/phase2/.devcontainer/`](e2e/phase2/.devcontainer/) | CI / local phase 1–2 only (code-server + Playwright) — not for daily work |
 
+All three are **generated** from shared fragments under [`.devcontainer/fragments/`](.devcontainer/fragments/) (`python3 .devcontainer/generate.py`). Workflow [generate-devcontainers.yml](.github/workflows/generate-devcontainers.yml) regenerates and commits them when fragments change. Image base is `ghcr.io/e-st/fstarter`; e2e adds layers in its Dockerfile only. No Dev Container Features.
+
 Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md](e2e/README.md).
 
 **fspure IDE** (`postCreate` / `postAttach` → `setup-fspure-ide.sh`) installs:

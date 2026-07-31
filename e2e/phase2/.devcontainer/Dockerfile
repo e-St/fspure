@@ -1,11 +1,14 @@
-# fspure e2e image: .NET + Node + code-server (VS Code Web) + Playwright deps.
+# fspure e2e image: shared fstarter base + code-server + Playwright deps.
 # Used only by e2e/phase2/.devcontainer and .github/workflows/e2e-customer.yml.
-# Interactive IDE: root .devcontainer/ ("fspure IDE") — do not merge the two.
-FROM mcr.microsoft.com/devcontainers/dotnet:10.0-noble
+#
+# Shared tool base with IDE/build (ghcr.io/e-st/fstarter). This Dockerfile only
+# adds e2e-specific layers — no Dev Container Features.
+ARG BASE_IMAGE=ghcr.io/e-st/fstarter:latest
+FROM ${BASE_IMAGE}
 
 USER root
 
-# System deps for code-server, Playwright browsers, and screenshots
+# System deps for Playwright browsers / screenshots (code-server UI capture)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
@@ -34,23 +37,20 @@ RUN apt-get update \
         xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js 20 (Playwright driver)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
 # code-server = VS Code for the Web (same extension host as Codespaces)
-# Pins a recent stable; bump when needed.
 ARG CODE_SERVER_VERSION=4.96.4
 RUN curl -fsSL "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" \
       -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
-# Global tooling used by Phase 1/2 scripts
+# Phase 1 CLI analyzer. paket/node come from BASE_IMAGE (fstarter).
 USER vscode
 ENV PATH="/home/vscode/.dotnet/tools:${PATH}"
-RUN dotnet tool install --global paket \
-    && dotnet tool install --global fsharp-analyzers --version 0.35.0
+RUN if dotnet tool list -g 2>/dev/null | grep -q '^fsharp-analyzers'; then \
+      dotnet tool update --global fsharp-analyzers --version 0.35.0 ; \
+    else \
+      dotnet tool install --global fsharp-analyzers --version 0.35.0 ; \
+    fi
 
 WORKDIR /workspaces/fspure

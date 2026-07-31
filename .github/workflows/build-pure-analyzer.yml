@@ -23,6 +23,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check generated devcontainer.json is up to date
+        run: python3 .devcontainer/generate.py --check
+
       - name: Log in to GHCR (devcontainer image)
         uses: docker/login-action@v3
         with:

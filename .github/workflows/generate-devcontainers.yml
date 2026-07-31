@@ -1,0 +1,81 @@
+name: Generate devcontainer.json
+
+# When shared fragments or the generator change, regenerate the three
+# committed devcontainer.json outputs and push if they differ.
+#
+# Source of truth: .devcontainer/fragments/
+# Generator:       python3 .devcontainer/generate.py
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - ".devcontainer/fragments/**"
+      - ".devcontainer/generate.py"
+      - ".github/workflows/generate-devcontainers.yml"
+  pull_request:
+    paths:
+      - ".devcontainer/fragments/**"
+      - ".devcontainer/generate.py"
+      - ".github/workflows/generate-devcontainers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Regenerate devcontainer flavours
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # PR: update the head branch. Push: current branch.
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          # Need history/token that can push back to the same repo.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate devcontainer.json files
+        run: python3 .devcontainer/generate.py
+
+      - name: Verify outputs match generator
+        run: python3 .devcontainer/generate.py --check
+
+      - name: Commit and push if changed
+        # Fork PRs cannot push with GITHUB_TOKEN; fail with a clear message instead.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            .devcontainer/devcontainer.json \
+            FSharp.PureAnalyzer/.devcontainer/devcontainer.json \
+            e2e/phase2/.devcontainer/devcontainer.json
+
+          if git diff --staged --quiet; then
+            echo "Generated devcontainer.json files already up to date."
+            exit 0
+          fi
+
+          if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
+            echo "::error::Generated devcontainer.json files are stale."
+            echo "Run locally: python3 .devcontainer/generate.py"
+            echo "Then commit the three generated outputs."
+            git --no-pager diff --cached --stat
+            exit 1
+          fi
+
+          git commit -m "chore(devcontainer): regenerate flavour configs from fragments"
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git push origin "HEAD:${{ github.head_ref }}"
+          else
+            git push
+          fi
+          echo "Pushed regenerated devcontainer.json files."

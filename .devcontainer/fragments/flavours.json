@@ -1,0 +1,19 @@
+{
+  "flavours": {
+    "ide": {
+      "description": "Default Codespaces / Reopen in Container (interactive IDE)",
+      "fragments": ["base.json", "vscode-common.json", "flavours/ide.json"],
+      "output": "devcontainer.json"
+    },
+    "build": {
+      "description": "CI pack/build (paket/dotnet/bundlef) — no IDE lifecycle",
+      "fragments": ["base.json", "flavours/build.json"],
+      "output": "../FSharp.PureAnalyzer/.devcontainer/devcontainer.json"
+    },
+    "e2e": {
+      "description": "Customer e2e (code-server + Playwright)",
+      "fragments": ["base.json", "vscode-common.json", "flavours/e2e.json"],
+      "output": "../e2e/phase2/.devcontainer/devcontainer.json"
+    }
+  }
+}

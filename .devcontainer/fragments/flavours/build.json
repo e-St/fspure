@@ -1,0 +1,4 @@
+{
+  "name": "FSharp.PureAnalyzer build",
+  "image": "ghcr.io/e-st/fstarter:latest"
+}
