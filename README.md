@@ -73,7 +73,7 @@ Also install [Ionide for F#](https://marketplace.visualstudio.com/items?itemName
 
 Open your solution / project, open an F# file, wait for Ionide to load. You should see LineLens signatures and pure/impure badges on definitions.
 
-> **Note:** Marketplace and nuget.org publishes require maintainer secrets (`VSCE_PAT`, `NUGET_API_KEY`). Until those are configured, use the advanced GitHub path below — behavior is the same.
+> **Note:** Marketplace and nuget.org publishes require maintainer secrets (`VSCE_PAT`, `NUGET_USER` for Trusted Publishing). Until those are configured, use the advanced GitHub path below — behavior is the same.
 
 ---
 

@@ -1,10 +1,13 @@
-name: Release Pure Analyzer
+name: Publish Pure Analyzer to nuget.org
 
-# Packs FSharp.PureAnalyzer and publishes:
-#   - always → GitHub Packages (advanced / same as today)
+# Packs FSharp.PureAnalyzer and publishes via Trusted Publishing (OIDC):
+#   - always → nuget.org (short-lived API key from NuGet/login@v1)
+#   - always → GitHub Packages (advanced / same consumer path as today)
 #   - on GitHub Release events → attaches nupkg to the release
 #
-# nuget.org publishing lives in nuget_publish.yml (Trusted Publishing / OIDC).
+# Requires repository secret NUGET_USER = nuget.org username (profile name, not email).
+# Do not use a long-lived NUGET_API_KEY. Do not pin this job to a GitHub Environment
+# (Trusted Publishing policy Environment must stay empty).
 
 on:
   release:
@@ -13,15 +16,16 @@ on:
     inputs:
       version:
         description: "Version to pack (e.g. 0.1.0)"
-        required: true
+        required: false
         default: "0.1.0"
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      packages: write
+      id-token: write # NuGet Trusted Publishing (OIDC → short-lived API key)
+      contents: write # attach nupkg to GitHub Release
+      packages: write # push to GitHub Packages
 
     steps:
       - name: Checkout
@@ -46,6 +50,18 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "nupkg=FSharp.PureAnalyzer.${VERSION}.nupkg" >> "$GITHUB_OUTPUT"
 
+      - name: Require NUGET_USER for nuget.org
+        env:
+          NUGET_USER: ${{ secrets.NUGET_USER }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${NUGET_USER:-}" ]]; then
+            echo "::error::NUGET_USER secret is not configured."
+            echo "Set repository secret NUGET_USER to your nuget.org username (profile name, not email)."
+            echo "Also configure a Trusted Publishing policy on nuget.org for workflow nuget_publish.yml (Environment empty)."
+            exit 1
+          fi
+
       - name: Pack Pure Analyzer inside the project devcontainer
         uses: devcontainers/ci@v0.3
         with:
@@ -68,7 +84,7 @@ jobs:
       - name: Upload nupkg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pure-analyzer-nupkg
+          name: pure-analyzer-nupkg-nuget-org
           path: FSharp.PureAnalyzer/nupkgs/*.nupkg
           if-no-files-found: error
 
@@ -81,6 +97,22 @@ jobs:
           gh release upload "${{ github.ref_name }}" \
             FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --clobber
+
+      - name: NuGet login (OIDC → temp API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          # nuget.org username / profile name — not an email and not a long-lived API key
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish to nuget.org
+        run: |
+          set -euo pipefail
+          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "Published to nuget.org: FSharp.PureAnalyzer ${{ steps.ver.outputs.version }}"
 
       - name: Publish to GitHub Packages
         run: |

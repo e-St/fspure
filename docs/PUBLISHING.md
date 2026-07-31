@@ -18,27 +18,35 @@ Both distribution channels stay active:
 3. Add repository secret **`VSCE_PAT`** = that token.
 4. (Optional) For VSCodium / code-server registries, create an [Open VSX](https://open-vsx.org/) token and secret **`OVSX_PAT`**.
 
-### NuGet.org
+### NuGet.org (Trusted Publishing / OIDC)
 
-1. Create a [nuget.org](https://www.nuget.org/) account and API key with **Push** permission for `FSharp.PureAnalyzer`.
-2. Add repository secret **`NUGET_API_KEY`**.
-3. Ensure the package id `FSharp.PureAnalyzer` is reserved under your account (first successful push claims it if free).
+Do **not** use a long-lived `NUGET_API_KEY`. Publishing uses [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
+
+1. Create a [nuget.org](https://www.nuget.org/) account that will own `FSharp.PureAnalyzer`.
+2. Add repository secret **`NUGET_USER`** = your nuget.org **username / profile name** (not an email, not an API key).
+3. On nuget.org → your username → **Trusted Publishing**, create a policy:
+   - **Repository Owner:** `e-St`
+   - **Repository:** `fspure`
+   - **Workflow File:** `nuget_publish.yml` (file name only — no `.github/workflows/` path)
+   - **Environment:** leave empty (this repo does not use a GitHub Actions `environment:`)
+4. Ensure the package id `FSharp.PureAnalyzer` is reserved under your account (first successful push claims it if free).
 
 ### GitHub (already wired)
 
 - Extension: workflow packages a VSIX and uploads to GitHub Releases (`vscode-extension-v*` and floating `vscode-extension-latest`).
-- Analyzer: workflow packs a nupkg and pushes to **GitHub Packages** (`nuget.pkg.github.com`).
+- Analyzer: workflows pack a nupkg and push to **GitHub Packages** (`nuget.pkg.github.com`).
 
-No extra secrets beyond `GITHUB_TOKEN` (provided by Actions).
+GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Actions).
 
 ## Workflows
 
 | Workflow | Triggers | Publishes |
 |----------|----------|-----------|
 | `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release always; Marketplace if `VSCE_PAT`; Open VSX if `OVSX_PAT` |
-| `.github/workflows/release-pure-analyzer.yml` | GitHub Release published or manual version input | GitHub Packages always; nuget.org if `NUGET_API_KEY` |
+| `.github/workflows/release-pure-analyzer.yml` | GitHub Release published or manual version input | GitHub Packages + Release assets |
+| `.github/workflows/nuget_publish.yml` | GitHub Release published or manual version input | nuget.org via OIDC (`NUGET_USER` required); also GitHub Packages + Release assets |
 
-Secrets are optional: missing Marketplace / nuget.org keys **skip** those steps without failing the job, so GitHub-only publishing keeps working.
+Missing Marketplace / Open VSX secrets **skip** those steps without failing the job. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
 
 ## Versioning
 

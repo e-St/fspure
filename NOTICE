@@ -1,0 +1,9 @@
+fspure
+Copyright (c) 2025-2026 e-St
+
+This product is licensed under the MIT License.
+See the LICENSE file in the project root for the full license text.
+
+Third-party components bundled or referenced by this project remain under
+their own licenses. Consumers should consult dependency metadata (NuGet,
+npm, and package manifests) for those terms.
