@@ -49,6 +49,10 @@ GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Action
 
 `publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
 
+### Dev container + CI
+
+Pack/publish workflows use `devcontainers/ci` against the project `.devcontainer/`. That action runs `postCreateCommand` (`setup-fspure-ide.sh`) before `runCmd`. The setup script **exits immediately when `GITHUB_ACTIONS=true`** so CI never installs the IDE analyzer/extension (and never hits NuGet `/tmp` scratch permission issues during create). Pack steps set `TMPDIR=$HOME/.nuget-tmp` themselves.
+
 ## Versioning
 
 - **Extension:** bump `vscode-extension/package.json` → `version` before merge (Open VSX rejects reusing a version).

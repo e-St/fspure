@@ -11,6 +11,12 @@
 
 set -euo pipefail
 
+# NuGet scratch dir: avoid /tmp chmod 700 failures under Docker/CI mounts.
+export TMPDIR="${TMPDIR:-${HOME}/.cache/nuget-tmp}"
+export TEMP="${TEMP:-$TMPDIR}"
+export TMP="${TMP:-$TMPDIR}"
+mkdir -p "$TMPDIR"
+
 cd "$(dirname "$0")"
 PROJ_DIR="$(pwd)"
 ROOT="$(cd .. && pwd)"

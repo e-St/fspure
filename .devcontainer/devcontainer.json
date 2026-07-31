@@ -59,6 +59,10 @@
   },
   "features": {},
   "remoteEnv": {
-    "DOTNET_ROLL_FORWARD": "Major"
+    "DOTNET_ROLL_FORWARD": "Major",
+    // Keep NuGet scratch off /tmp (chmod 700 can fail on some Docker/CI mounts).
+    "TMPDIR": "/home/vscode/.cache/nuget-tmp",
+    "TEMP": "/home/vscode/.cache/nuget-tmp",
+    "TMP": "/home/vscode/.cache/nuget-tmp"
   }
 }

@@ -123,10 +123,12 @@ code --install-extension fsharp-pure-decorations-0.2.5.vsix
 
 #### Dev Container / Codespaces (this repo)
 
-`.devcontainer/setup-fspure-ide.sh` (postCreate / postAttach) installs the latest:
+`.devcontainer/setup-fspure-ide.sh` (postCreate / postAttach) installs:
 
-1. **FSharp.PureAnalyzer** from nuget.org  
-2. **fsharp-pure-decorations** from Open VSX  
+1. **FSharp.PureAnalyzer** — nuget.org if published, else packs this repo  
+2. **fsharp-pure-decorations** — Open VSX if published, else packages this repo’s VSIX  
+
+In **GitHub Actions** (`devcontainers/ci`) the script no-ops so pack/publish jobs do not run IDE install. Override with `SKIP_FSPURE_IDE_SETUP=1` locally if needed.
 
 While developing the analyzer against the local tree:
 
