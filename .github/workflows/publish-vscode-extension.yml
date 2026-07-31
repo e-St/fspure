@@ -1,8 +1,9 @@
 name: Publish VS Code Extension
 
-# Always builds a VSIX and publishes to GitHub Releases (advanced consumers).
-# Default registry publish target is Open VSX (no Azure DevOps / VS Marketplace).
-# Requires repository secret OVSX_PAT for Open VSX; missing secret fails the publish step clearly.
+# Builds a VSIX and publishes to GitHub Releases + Open VSX.
+# Skips package/publish entirely when the push did not change vscode-extension/**
+# (e.g. only this workflow file changed). Manual workflow_dispatch always runs.
+# Open VSX: also skips if package.json version is already published.
 
 on:
   push:
@@ -16,7 +17,63 @@ permissions:
   contents: write
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Gate: only package/publish when extension sources actually changed
+  # ---------------------------------------------------------------------------
+  detect-extension-changes:
+    name: Detect vscode-extension changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.gate.outputs.should_publish }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether to package and publish
+        id: gate
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Manual workflow_dispatch — will package and publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BEFORE="${{ github.event.before }}"
+          SHA="${{ github.sha }}"
+
+          # New branch / first push / force-push with unknown parent
+          if [[ -z "$BEFORE" || "$BEFORE" =~ ^0+$ ]]; then
+            echo "No usable before-sha — will package and publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "before-sha not in history — will package and publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mapfile -t CHANGED < <(git diff --name-only "$BEFORE" "$SHA" || true)
+          echo "Changed files in this push:"
+          printf '  %s\n' "${CHANGED[@]:-(none)}"
+
+          if printf '%s\n' "${CHANGED[@]}" | grep -qE '^vscode-extension/'; then
+            echo "vscode-extension/** changed — will package and publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes under vscode-extension/** — skip package/publish."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
   package-and-release:
+    name: Package and publish
+    needs: detect-extension-changes
+    if: needs.detect-extension-changes.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -113,5 +170,49 @@ jobs:
             echo "This is the default extension registry for fspure (VS Marketplace is not used)."
             exit 1
           fi
-          npx --yes ovsx publish "${{ steps.ver.outputs.vsix }}" --pat "$OVSX_PAT"
-          echo "Published to Open VSX: ${{ steps.ver.outputs.extensionId }}"
+
+          LOCAL_VERSION="${{ steps.ver.outputs.version }}"
+          PUBLISHER="${{ steps.ver.outputs.publisher }}"
+          NAME="${{ steps.ver.outputs.name }}"
+          VSIX="${{ steps.ver.outputs.vsix }}"
+
+          # Open VSX namespace casing may differ from package.json (e.g. e-st vs e-St).
+          openvsx_latest() {
+            local ns="$1"
+            curl -fsSL "https://open-vsx.org/api/${ns}/${NAME}/latest" 2>/dev/null \
+              | python3 -c "import json,sys; print(json.load(sys.stdin).get('version') or '')" 2>/dev/null \
+              || true
+          }
+
+          REMOTE_VERSION="$(openvsx_latest "$PUBLISHER")"
+          if [[ -z "$REMOTE_VERSION" && "$PUBLISHER" == "e-st" ]]; then
+            REMOTE_VERSION="$(openvsx_latest "e-St")"
+          fi
+
+          if [[ -n "$REMOTE_VERSION" && "$REMOTE_VERSION" == "$LOCAL_VERSION" ]]; then
+            echo "Open VSX already has ${PUBLISHER}.${NAME}@${LOCAL_VERSION} — skip Open VSX publish."
+            exit 0
+          fi
+
+          if [[ -n "$REMOTE_VERSION" ]]; then
+            echo "Open VSX latest is ${REMOTE_VERSION}; publishing ${LOCAL_VERSION}."
+          else
+            echo "No existing Open VSX version found (or API unavailable); attempting first publish of ${LOCAL_VERSION}."
+          fi
+
+          # If a race still hits "already published", treat as success.
+          set +e
+          OUT="$(npx --yes ovsx publish "$VSIX" --pat "$OVSX_PAT" 2>&1)"
+          STATUS=$?
+          set -e
+          echo "$OUT"
+          if [[ $STATUS -eq 0 ]]; then
+            echo "Published to Open VSX: ${{ steps.ver.outputs.extensionId }}@${LOCAL_VERSION}"
+            exit 0
+          fi
+          if echo "$OUT" | grep -qiE 'already published|already exists'; then
+            echo "Open VSX reports version already published — continuing gracefully."
+            exit 0
+          fi
+          echo "::error::Open VSX publish failed."
+          exit "$STATUS"
