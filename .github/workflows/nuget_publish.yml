@@ -5,6 +5,8 @@ name: Publish Pure Analyzer to nuget.org
 #   - always → GitHub Packages (advanced / same consumer path as today)
 #   - on GitHub Release events → attaches nupkg to the release
 #
+# No devcontainer: pack only needs .NET SDK + paket.
+#
 # Requires repository secret NUGET_USER = nuget.org username (profile name, not email).
 # Do not use a long-lived NUGET_API_KEY. Do not pin this job to a GitHub Environment
 # (Trusted Publishing policy Environment must stay empty).
@@ -31,12 +33,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          dotnet-version: "10.0.x"
 
       - name: Resolve version
         id: ver
@@ -62,24 +62,22 @@ jobs:
             exit 1
           fi
 
-      - name: Pack Pure Analyzer inside the project devcontainer
-        uses: devcontainers/ci@v0.3
-        with:
-          push: never
-          runCmd: |
-            set -euo pipefail
-            export TMPDIR="$HOME/.nuget-tmp"
-            mkdir -p "$TMPDIR"
-            VERSION="${{ steps.ver.outputs.version }}"
-            cd FSharp.PureAnalyzer
-            paket restore
-            dotnet build -c Release /p:Version="$VERSION"
-            dotnet pack FSharp.PureAnalyzer.fsproj \
-              -c Release \
-              -o ./nupkgs \
-              /p:Version="$VERSION" \
-              --no-build
-            ls -la ./nupkgs
+      - name: Install paket
+        run: dotnet tool install -g paket --version 10.3.1
+
+      - name: Pack FSharp.PureAnalyzer
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          cd FSharp.PureAnalyzer
+          paket restore
+          dotnet build -c Release /p:Version="$VERSION"
+          dotnet pack FSharp.PureAnalyzer.fsproj \
+            -c Release \
+            -o ./nupkgs \
+            /p:Version="$VERSION" \
+            --no-build
+          ls -la ./nupkgs
 
       - name: Upload nupkg artifact
         uses: actions/upload-artifact@v4
