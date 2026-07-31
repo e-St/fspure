@@ -212,6 +212,8 @@ System.Text.Json.Serialization
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
 - Customer e2e (separate container): [e2e/README.md](e2e/README.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
+- **Library authors** (ship `purity.json` for PureAnalyzer): [docs/library-authors/](docs/library-authors/)
+- **Strategy** (analyzer discovery of third-party purity): [docs/strategy/purity-json-extension.md](docs/strategy/purity-json-extension.md)
 
 ```bash
 # Analyzer

@@ -1,0 +1,30 @@
+<!--
+  Import from your library project to wire purity.json for PureAnalyzer consumers.
+
+    <Import Project="path/to/Library.purity.props" />
+
+  Or copy the ItemGroups into your .fsproj / .csproj.
+  Ensure purity/purity.json exists before build/pack (CI generates it).
+-->
+<Project>
+  <ItemGroup>
+    <!-- Preferred: embedded resource discovered inside the DLL -->
+    <EmbeddedResource Include="$(MSBuildProjectDirectory)\purity\purity.json"
+                      LogicalName="purity.json"
+                      Condition="Exists('$(MSBuildProjectDirectory)\purity\purity.json')" />
+
+    <!-- Sidecar for monorepo project references / bin output -->
+    <None Include="$(MSBuildProjectDirectory)\purity\purity.json"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Condition="Exists('$(MSBuildProjectDirectory)\purity\purity.json')" />
+  </ItemGroup>
+
+  <!-- Optional: also pack loose file next to the DLL in the nupkg -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and Exists('$(MSBuildProjectDirectory)\purity\purity.json')">
+    <None Include="$(MSBuildProjectDirectory)\purity\purity.json"
+          Pack="true"
+          PackagePath="lib\$(TargetFramework)\"
+          Visible="false" />
+  </ItemGroup>
+</Project>

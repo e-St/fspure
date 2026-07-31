@@ -56,6 +56,10 @@ GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Action
 - **Extension:** bump `vscode-extension/package.json` → `version` before merge (Open VSX rejects reusing a version).
 - **Analyzer:** pass version via release tag or `workflow_dispatch` input; do not re-use published nuget.org versions.
 
+## Third-party library purity (`purity.json`)
+
+Library authors who want PureAnalyzer to treat their APIs as pure leaves (no source annotations) should follow [library-authors/USER_GUIDE.md](library-authors/USER_GUIDE.md). Analyzer extension design: [strategy/purity-json-extension.md](strategy/purity-json-extension.md).
+
 ## Local dry-runs
 
 ```bash

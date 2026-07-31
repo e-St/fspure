@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "packageId": "MyLib",
+  "packageVersion": "1.0.0",
+  "generatedAt": "2026-07-31T00:00:00+00:00",
+  "generator": "purity-collector/example",
+  "pureMethods": [
+    {
+      "fullName": "MyLib.MathModule.add",
+      "origin": "automatic",
+      "comment": ""
+    },
+    {
+      "fullName": "MyLib.MathModule.multiply",
+      "origin": "automatic",
+      "comment": ""
+    }
+  ]
+}

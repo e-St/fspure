@@ -1,0 +1,96 @@
+# Copy to your library repo as: .github/workflows/purity-json.yml
+# Generates purity/purity.json for embedding in the library DLL.
+#
+# Prerequisites:
+#   - Library builds to a known assembly path
+#   - purity-collector available (global tool, local project path, or container)
+#
+# Adjust PROJECT, ASSEMBLY, PACKAGE_ID, and the purity-collector invocation.
+
+name: Generate purity.json
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "src/**"
+      - "purity/**"
+      - ".github/workflows/purity-json.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "purity/**"
+      - ".github/workflows/purity-json.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build library
+        run: |
+          set -euo pipefail
+          # TODO: set your project path
+          dotnet build -c Release path/to/MyLib.fsproj
+
+      - name: Resolve version
+        id: ver
+        run: |
+          set -euo pipefail
+          # Prefer package version from the project; fallback to git describe
+          VERSION=$(dotnet msbuild path/to/MyLib.fsproj -getProperty:Version -nologo | tr -d '\r' | tail -1)
+          if [[ -z "$VERSION" || "$VERSION" == *"error"* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using package version: $VERSION"
+
+      - name: Generate purity/purity.json
+        run: |
+          set -euo pipefail
+          mkdir -p purity
+          ASSEMBLY="path/to/MyLib/bin/Release/net10.0/MyLib.dll"
+          PACKAGE_ID="MyLib"
+          VERSION="${{ steps.ver.outputs.version }}"
+
+          # Option A: purity-collector as a project in a submodule / sibling
+          # dotnet run --project path/to/purity-collector -- \
+          #   --defaults false \
+          #   -a "$ASSEMBLY" \
+          #   --package-id "$PACKAGE_ID" \
+          #   --package-version "$VERSION" \
+          #   --public-only true \
+          #   -o purity/purity.json
+
+          # Option B: global tool (when published)
+          # dotnet tool install -g purity-collector --version <ver>
+          # purity-collector --defaults false -a "$ASSEMBLY" \
+          #   --package-id "$PACKAGE_ID" --package-version "$VERSION" \
+          #   --public-only true -o purity/purity.json
+
+          echo "Uncomment Option A or B and fix ASSEMBLY / PACKAGE_ID paths."
+          exit 1
+
+      - name: Upload purity.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: purity-json
+          path: purity/purity.json
+
+      - name: Pack (optional — embeds purity.json via your csproj/fsproj)
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          # Requires EmbeddedResource LogicalName=purity.json as in the user guide
+          # dotnet pack -c Release path/to/MyLib.fsproj -o ./nupkgs
+          echo "Enable pack step when ready."
