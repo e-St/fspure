@@ -103,6 +103,29 @@ a:focus-visible {
   font-weight: 500;
 }
 
+.starter-banner {
+  max-width: 28rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  background: #2b6cb0;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 4px 14px rgba(43, 108, 176, 0.28);
+}
+
+.starter-banner a {
+  color: #fff;
+  font-weight: 700;
+  border-bottom-color: rgba(255, 255, 255, 0.55);
+}
+
+.starter-banner a:hover,
+.starter-banner a:focus-visible {
+  color: #e8f1fb;
+  border-bottom-color: currentColor;
+}
+
 .home footer,
 .legal-footer {
   position: relative;
