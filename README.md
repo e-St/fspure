@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="fspure.png" alt="fspure logo" width="200" />
+  <img src="fspure.png" alt="fspure logo" width="520" />
 </p>
 
 > Typically, interactions with the outside world occur at the boundary of your application.  
