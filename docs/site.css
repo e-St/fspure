@@ -5,6 +5,8 @@
   --sand: #f3e2c4;
   --dune: #e8c99a;
   --dune-deep: #d4a574;
+  --desert-blue: #5b8fa8;
+  --desert-blue-deep: #3f6f88;
   --text: #4a3428;
   --muted: #7a5c45;
   --link: #2f6b4f;
@@ -109,20 +111,17 @@ a:focus-visible {
   margin: 0;
   padding: 0.9rem 1.4rem;
   border-radius: 0.65rem;
-  border: 1px solid #1e4e8c;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-  color: #ffffff;
+  border: 2px solid var(--desert-blue);
+  background: transparent;
+  color: var(--text);
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.4;
   text-align: center;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 8px 20px rgba(37, 99, 235, 0.35);
 }
 
 .starter-banner a {
-  color: #ffffff;
+  color: var(--desert-blue);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 0.15em;
@@ -131,7 +130,7 @@ a:focus-visible {
 
 .starter-banner a:hover,
 .starter-banner a:focus-visible {
-  color: #dbeafe;
+  color: var(--desert-blue-deep);
   border-bottom: none;
 }
 
