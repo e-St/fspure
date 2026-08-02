@@ -104,26 +104,35 @@ a:focus-visible {
 }
 
 .starter-banner {
-  max-width: 28rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  background: #2b6cb0;
-  color: #fff;
-  font-size: 0.95rem;
+  display: inline-block;
+  max-width: min(28rem, 100%);
+  margin: 0;
+  padding: 0.9rem 1.4rem;
+  border-radius: 0.65rem;
+  border: 1px solid #1e4e8c;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 1rem;
   font-weight: 500;
-  box-shadow: 0 4px 14px rgba(43, 108, 176, 0.28);
+  line-height: 1.4;
+  text-align: center;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 8px 20px rgba(37, 99, 235, 0.35);
 }
 
 .starter-banner a {
-  color: #fff;
+  color: #ffffff;
   font-weight: 700;
-  border-bottom-color: rgba(255, 255, 255, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  border-bottom: none;
 }
 
 .starter-banner a:hover,
 .starter-banner a:focus-visible {
-  color: #e8f1fb;
-  border-bottom-color: currentColor;
+  color: #dbeafe;
+  border-bottom: none;
 }
 
 .home footer,
