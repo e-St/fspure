@@ -109,29 +109,28 @@ a:focus-visible {
   display: inline-block;
   max-width: min(28rem, 100%);
   margin: 0;
-  padding: 0.9rem 1.4rem;
-  border-radius: 0.65rem;
-  border: 2px solid var(--desert-blue);
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--desert-blue);
   background: transparent;
-  color: var(--text);
-  font-size: 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.55;
   text-align: center;
 }
 
 .starter-banner a {
   color: var(--desert-blue);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-  border-bottom: none;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
 }
 
 .starter-banner a:hover,
 .starter-banner a:focus-visible {
   color: var(--desert-blue-deep);
-  border-bottom: none;
+  border-bottom-color: currentColor;
 }
 
 .home footer,
