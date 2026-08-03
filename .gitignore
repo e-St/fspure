@@ -13,6 +13,11 @@ e2e/phase2/playwright/node_modules/
 **/nupkgs/
 # Local tool feed / CI smoke outputs (purity-collector pack & smoke)
 artifacts/
+# Staged into the package at pack time (not committed)
+FSharp.PureAnalyzer/build/*.dll
+FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/bin/
+FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/obj/
+FSharp.PureAnalyzer.Tests/integration/**/local-feed/
 # Python bytecode from .devcontainer/generate*.py
 **/__pycache__/
 *.py[cod]

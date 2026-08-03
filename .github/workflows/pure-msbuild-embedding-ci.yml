@@ -1,0 +1,120 @@
+# Phase 3 gate: MSBuild pure.json generation + embed into library DLLs.
+# Requires FSharp.Analyzers.SDK 0.35.x for the analyser package that ships the targets.
+name: Pure MSBuild Embedding CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "fspure.slnx"
+      - ".github/workflows/pure-msbuild-embedding-ci.yml"
+  pull_request:
+    paths:
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "fspure.slnx"
+      - ".github/workflows/pure-msbuild-embedding-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  build-tasks-and-collector:
+    name: Build embed tasks and purity-collector
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Build Fspure.BuildTasks
+        run: dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c ${{ env.CONFIGURATION }} --nologo
+
+      - name: Restore and publish purity-collector
+        working-directory: purity-collector
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
+          mkdir -p ../artifacts/purity-collector-publish
+          dotnet publish -c ${{ env.CONFIGURATION }} -f net10.0 -o ../artifacts/purity-collector-publish --nologo
+
+  msbuild-embedding-tests:
+    name: MSBuild embedding unit tests
+    runs-on: ubuntu-latest
+    needs: build-tasks-and-collector
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Restore PureAnalyzer (paket)
+        working-directory: FSharp.PureAnalyzer
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
+
+      - name: Restore purity-collector (paket)
+        working-directory: purity-collector
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
+
+      - name: Test MSBuild embedding + package layout
+        run: >
+          dotnet test FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --verbosity normal
+          --filter "FullyQualifiedName~MsBuildEmbeddingTests"
+
+  pure-msbuild-phase3-gate:
+    name: Phase 3 gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-tasks-and-collector
+      - msbuild-embedding-tests
+    steps:
+      - name: Gate summary
+        run: |
+          echo "Phase 3 gate green:"
+          echo "  - BuildTasks + purity-collector publish"
+          echo "  - pure.json embedded as {AssemblyName}.pure.json"
+          echo "  - pure-extra.json merge"
+          echo "  - FSharp.PureAnalyzer nupkg ships build/ + tools/"

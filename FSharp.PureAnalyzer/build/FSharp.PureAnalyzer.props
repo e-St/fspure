@@ -1,0 +1,24 @@
+<Project>
+  <!--
+    Fspure / FSharp.PureAnalyzer MSBuild props (Phase 3).
+    Auto-imported when the package is referenced.
+    Opt out of pure.json generation/embedding with:
+      <FspureEmbedPureJson>false</FspureEmbedPureJson>
+  -->
+  <PropertyGroup>
+    <!-- Enable by default: one PackageReference makes a net10.0 library fspure-ready. -->
+    <FspureEmbedPureJson Condition="'$(FspureEmbedPureJson)' == ''">true</FspureEmbedPureJson>
+
+    <!-- Optional author escape hatch next to the project file. -->
+    <FspurePureExtraJson Condition="'$(FspurePureExtraJson)' == ''">$(MSBuildProjectDirectory)\pure-extra.json</FspurePureExtraJson>
+
+    <!-- Deterministic embedded resource name: {AssemblyName}.pure.json -->
+    <FspurePureJsonResourceName Condition="'$(FspurePureJsonResourceName)' == ''">$(AssemblyName).pure.json</FspurePureJsonResourceName>
+
+    <!-- Intermediate output path for generated pure.json (before embed). Set in targets once IntermediateOutputPath is known. -->
+    <FspureGeneratedPureJson Condition="'$(FspureGeneratedPureJson)' != ''">$(FspureGeneratedPureJson)</FspureGeneratedPureJson>
+
+    <!-- Fail the build if collector/embed fails (default true). -->
+    <FspureEmbedPureJsonTreatAsError Condition="'$(FspureEmbedPureJsonTreatAsError)' == ''">true</FspureEmbedPureJsonTreatAsError>
+  </PropertyGroup>
+</Project>

@@ -15,6 +15,7 @@
     <Compile Include="CompositionTests.fs" />
     <Compile Include="PathResolutionTests.fs" />
     <Compile Include="ManifestIntegrationTests.fs" />
+    <Compile Include="MsBuildEmbeddingTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
