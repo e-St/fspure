@@ -12,11 +12,11 @@
     <!-- Optional author escape hatch next to the project file. -->
     <FspurePureExtraJson Condition="'$(FspurePureExtraJson)' == ''">$(MSBuildProjectDirectory)\pure-extra.json</FspurePureExtraJson>
 
-    <!-- Deterministic embedded resource name: {AssemblyName}.pure.json -->
-    <FspurePureJsonResourceName Condition="'$(FspurePureJsonResourceName)' == ''">$(AssemblyName).pure.json</FspurePureJsonResourceName>
-
-    <!-- Intermediate output path for generated pure.json (before embed). Set in targets once IntermediateOutputPath is known. -->
-    <FspureGeneratedPureJson Condition="'$(FspureGeneratedPureJson)' != ''">$(FspureGeneratedPureJson)</FspureGeneratedPureJson>
+    <!--
+      Resource name defaults are applied in FSharp.PureAnalyzer.targets at CoreBuild time
+      so $(AssemblyName) is fully evaluated (avoid embedding as ".pure.json").
+      Override with FspurePureJsonResourceName if needed.
+    -->
 
     <!-- Fail the build if collector/embed fails (default true). -->
     <FspureEmbedPureJsonTreatAsError Condition="'$(FspureEmbedPureJsonTreatAsError)' == ''">true</FspureEmbedPureJsonTreatAsError>

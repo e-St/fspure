@@ -1,0 +1,119 @@
+# Push samples/fspure-ready-lib/ → https://github.com/e-St/fspure-ready-lib
+#
+# One synthetic commit on the satellite (source of truth remains the monorepo).
+# A normal git push still triggers satellite workflows (on: push).
+#
+# Setup: docs/SYNC-FSPURE-READY-LIB.md  ·  secret: FSPURE_READY_LIB_PUSH_TOKEN
+name: Sync fspure-ready-lib
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "samples/fspure-ready-lib/**"
+      - ".github/workflows/sync-fspure-ready-lib.yml"
+      - "docs/SYNC-FSPURE-READY-LIB.md"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Prepare commit but do not push"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-fspure-ready-lib
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync monorepo sample → e-St/fspure-ready-lib
+    runs-on: ubuntu-latest
+    if: github.repository == 'e-St/fspure'
+    steps:
+      - name: Checkout fspure
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Require push token
+        env:
+          FSPURE_READY_LIB_PUSH_TOKEN: ${{ secrets.FSPURE_READY_LIB_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${FSPURE_READY_LIB_PUSH_TOKEN:-}" ]]; then
+            echo "::error::Secret FSPURE_READY_LIB_PUSH_TOKEN is not set on e-St/fspure."
+            echo "Create a fine-grained PAT with Contents: Write on e-St/fspure-ready-lib,"
+            echo "then add it as repository secret FSPURE_READY_LIB_PUSH_TOKEN."
+            echo "See docs/SYNC-FSPURE-READY-LIB.md"
+            exit 1
+          fi
+
+      - name: Clone satellite repository
+        env:
+          FSPURE_READY_LIB_PUSH_TOKEN: ${{ secrets.FSPURE_READY_LIB_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            "https://x-access-token:${FSPURE_READY_LIB_PUSH_TOKEN}@github.com/e-St/fspure-ready-lib.git" \
+            "$RUNNER_TEMP/fspure-ready-lib"
+
+      - name: Update satellite working tree from monorepo sample
+        run: |
+          set -euo pipefail
+          SRC="${GITHUB_WORKSPACE}/samples/fspure-ready-lib"
+          DST="$RUNNER_TEMP/fspure-ready-lib"
+          test -d "$SRC"
+
+          rsync -a --delete \
+            --exclude '.git/' \
+            --exclude 'artifacts/' \
+            --exclude '**/bin/' \
+            --exclude '**/obj/' \
+            --exclude '**/.vs/' \
+            --exclude '**/TestResults/' \
+            "$SRC/" "$DST/"
+
+          cat > "$DST/.fspure-sync-source" <<EOF
+source_repo=e-St/fspure
+source_path=samples/fspure-ready-lib
+source_sha=${GITHUB_SHA}
+source_ref=${GITHUB_REF}
+synced_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+method=single-synthetic-commit
+EOF
+
+      - name: Commit and push (one synthetic commit; triggers satellite CI)
+        env:
+          FSPURE_READY_LIB_PUSH_TOKEN: ${{ secrets.FSPURE_READY_LIB_PUSH_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        working-directory: ${{ runner.temp }}/fspure-ready-lib
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to sync."
+            exit 0
+          fi
+
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          git commit -m "sync from e-St/fspure@${SHORT_SHA}
+
+          Source: samples/fspure-ready-lib
+          Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
+          "
+
+          if [[ "${DRY_RUN}" == "true" ]]; then
+            echo "Dry run: not pushing. Latest commit:"
+            git log -1 --stat
+            exit 0
+          fi
+
+          git push origin HEAD:main
+          echo "Pushed synthetic sync commit to e-St/fspure-ready-lib (satellite on: push CI should run)."

@@ -29,6 +29,8 @@
     <PropertyGroup>
       <!-- Prefer obj intermediate path so generated pure.json is not left next to the project. -->
       <FspureGeneratedPureJson Condition="'$(FspureGeneratedPureJson)' == ''">$(MSBuildProjectDirectory)\$(IntermediateOutputPath)$(AssemblyName).pure.json</FspureGeneratedPureJson>
+      <!-- Resource name must use AssemblyName evaluated at build time (not props-import time). -->
+      <FspurePureJsonResourceName Condition="'$(FspurePureJsonResourceName)' == ''">$(AssemblyName).pure.json</FspurePureJsonResourceName>
       <_FspurePureJsonOut>$([System.IO.Path]::GetFullPath('$(FspureGeneratedPureJson)'))</_FspurePureJsonOut>
       <_FspureTargetPath>$([System.IO.Path]::GetFullPath('$(TargetPath)'))</_FspureTargetPath>
       <_FspureCollectorDllFull>$([System.IO.Path]::GetFullPath('$(_FspureCollectorDll)'))</_FspureCollectorDllFull>
