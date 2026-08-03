@@ -19,6 +19,10 @@ on:
         description: "Prepare commit but do not push"
         type: boolean
         default: false
+      also_dev:
+        description: "Also push the same tree to satellite branch dev (integration testing)"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
