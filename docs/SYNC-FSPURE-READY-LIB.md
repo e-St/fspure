@@ -69,22 +69,20 @@ If you already created a token with only Contents, either **edit** that fine-gra
 1. Edit **`samples/fspure-ready-lib/`** in **fspure**.
 2. Merge/push to **`main`** on **fspure**.
 3. **Sync fspure-ready-lib** runs.
-4. **fspure-ready-lib** gets one new commit and runs its **CI**.
+4. **fspure-ready-lib** gets one synthetic commit on **`main`** (customer CI) and, by default, the same tip on **`dev`** (integration CI).
 
-Manual: **Actions → Sync fspure-ready-lib → Run workflow** (optional dry_run).
+Manual: **Actions → Sync fspure-ready-lib → Run workflow** (optional dry_run / also_dev).
 
 ---
 
-## Satellite CI
+## Satellite CI (two channels)
 
-```yaml
-on:
-  push:
-    branches: [main]
-  pull_request:
-```
+| Branch | Workflow | Analyzer source |
+|--------|----------|-----------------|
+| `main` | `CI` | Released **nuget.org** |
+| `dev` | `CI (dev)` | Latest **GitHub Packages** (`e-St`) |
 
-No special webhook is required.
+Both are pushed by the monorepo sync so the **same sample tree** is tested against released tools (customer story) and unreleased monorepo builds (dev).
 
 ---
 
