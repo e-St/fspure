@@ -95,6 +95,8 @@ jobs:
         env:
           FSPURE_READY_LIB_PUSH_TOKEN: ${{ secrets.FSPURE_READY_LIB_PUSH_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          # Default also push to dev so CI (dev) runs against the same tree
+          ALSO_DEV: ${{ github.event.inputs.also_dev == 'false' && 'false' || 'true' }}
         working-directory: ${{ runner.temp }}/fspure-ready-lib
         run: |
           set -euo pipefail
@@ -121,5 +123,12 @@ jobs:
             exit 0
           fi
 
+          # Customer-facing branch: nuget.org release CI
           git push origin HEAD:main
-          echo "Pushed synthetic sync commit to e-St/fspure-ready-lib (satellite on: push CI should run)."
+          echo "Pushed to e-St/fspure-ready-lib@main (customer CI)"
+
+          # Integration branch: GitHub Packages unreleased analyzer CI
+          if [[ "${ALSO_DEV}" == "true" ]]; then
+            git push origin HEAD:dev
+            echo "Pushed to e-St/fspure-ready-lib@dev (dev CI / unreleased tools)"
+          fi

@@ -69,9 +69,9 @@ If you already created a token with only Contents, either **edit** that fine-gra
 1. Edit **`samples/fspure-ready-lib/`** in **fspure**.
 2. Merge/push to **`main`** on **fspure**.
 3. **Sync fspure-ready-lib** runs.
-4. **fspure-ready-lib** gets one synthetic commit on **`main`** (customer CI) and, by default, the same tip on **`dev`** (integration CI).
+4. **fspure-ready-lib** gets one synthetic commit pushed to **both** **`main`** (customer CI) and **`dev`** (integration CI).
 
-Manual: **Actions → Sync fspure-ready-lib → Run workflow** (optional dry_run / also_dev).
+Manual: **Actions → Sync fspure-ready-lib → Run workflow** (optional dry_run).
 
 ---
 
