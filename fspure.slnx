@@ -1,4 +1,7 @@
 <Solution>
+  <Project Path="schema/FSharp.PureSchema/FSharp.PureSchema.fsproj" />
+  <Project Path="schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" />
   <Project Path="purity-collector/purity-collector.fsproj" />
+  <Project Path="purity-collector.Tests/purity-collector.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
 </Solution>

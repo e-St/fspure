@@ -6,7 +6,25 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>purity_collector</RootNamespace>
     <AssemblyName>purity-collector</AssemblyName>
+
+    <!-- Pack as an installable dotnet tool (net10.0) -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>purity-collector</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    <PackageId>purity-collector</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Generate PureFile (.pure.json) pure-method whitelists from managed assemblies for fspure / FSharp.PureAnalyzer.</Description>
+    <PackageTags>fsharp;pure;functional;purity;dotnet-tool</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/e-St/fspure</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/e-St/fspure</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>e-St</Authors>
+    <Copyright>Copyright (c) e-St and contributors</Copyright>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Types.fs" />
     <!-- CollectionLeaves before ImpurityRules (isKnownPureLeaf references it) -->
@@ -19,5 +37,11 @@
     <Compile Include="JsonCodec.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\schema\FSharp.PureSchema\FSharp.PureSchema.fsproj" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\LICENSE')" />
+  </ItemGroup>
+
   <Import Project=".paket\Paket.Restore.targets" />
 </Project>

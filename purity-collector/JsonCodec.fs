@@ -4,28 +4,17 @@ open System
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
+open FSharp.PureSchema
 
 /// DTO shapes used for JSON (de)serialisation of public artefacts.
 module JsonCodec =
 
-    [<CLIMutable>]
-    type PureMethodDto =
-        {
-            fullName: string
-            origin: string
-            comment: string | null
-        }
-
-    [<CLIMutable>]
-    type PureFileDto =
-        {
-            schemaVersion: string
-            packageId: string
-            packageVersion: string
-            generatedAt: string
-            generator: string
-            pureMethods: PureMethodDto array
-        }
+    // Re-export PureFile wire helpers from the shared schema library.
+    let pureMethodToDto = PureFileIO.pureMethodToDto
+    let pureFileToDto = PureFileIO.pureFileToDto
+    let writePureFile (path: string) (file: PureFile) : unit = PureFileIO.write path file
+    let readPureFile (path: string) : Result<PureFile, PureFileError> = PureFileIO.load path
+    let parsePureFile (json: string) : Result<PureFile, PureFileError> = PureFileIO.parse json
 
     [<CLIMutable>]
     type MethodDiagDto =
@@ -52,7 +41,7 @@ module JsonCodec =
             totalMethods: int
             pureMethodCount: int
             impureMethodCount: int
-            pureMethods: PureMethodDto array
+            pureMethods: PureFileIO.PureMethodDto array
             /// Optional diagnostics dump (only when --verbose-report is set).
             diagnostics: MethodDiagDto array
         }
@@ -62,43 +51,6 @@ module JsonCodec =
         o.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
         o.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
         o
-
-    let private originToDto (origin: PureOrigin) : string * string option =
-        match origin with
-        | Automatic -> "automatic", None
-        | Manual None -> "manual", None
-        | Manual(Some c) -> "manual", Some c
-
-    let private pureMethodToDto (m: PureMethod) : PureMethodDto =
-        let origin, comment = originToDto m.Origin
-
-        {
-            fullName = m.FullName
-            origin = origin
-            comment =
-                match comment with
-                | None -> null
-                | Some c -> c
-        }
-
-    let pureFileToDto (file: PureFile) : PureFileDto =
-        {
-            schemaVersion = file.SchemaVersion
-            packageId = file.PackageId
-            packageVersion = file.PackageVersion
-            generatedAt = file.GeneratedAt.ToString("o")
-            generator = file.Generator
-            pureMethods = file.PureMethods |> List.map pureMethodToDto |> Array.ofList
-        }
-
-    let writePureFile (path: string) (file: PureFile) : unit =
-        let dto = pureFileToDto file
-        let json = JsonSerializer.Serialize(dto, options)
-        match Path.GetDirectoryName path with
-        | null | "" -> ()
-        | dir -> Directory.CreateDirectory(dir) |> ignore
-
-        File.WriteAllText(path, json)
 
     let writeListAReport
         (path: string)
@@ -147,7 +99,8 @@ module JsonCodec =
         let json = JsonSerializer.Serialize(dto, options)
 
         match Path.GetDirectoryName path with
-        | null | "" -> ()
+        | null
+        | "" -> ()
         | dir -> Directory.CreateDirectory(dir) |> ignore
 
         File.WriteAllText(path, json)

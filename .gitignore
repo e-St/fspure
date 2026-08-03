@@ -11,6 +11,8 @@ e2e/phase2/playwright/node_modules/
 # Local `dotnet pack` output (see FSharp.PureAnalyzer/update-analyzer.sh)
 *.nupkg
 **/nupkgs/
+# Local tool feed / CI smoke outputs (purity-collector pack & smoke)
+artifacts/
 # Python bytecode from .devcontainer/generate*.py
 **/__pycache__/
 *.py[cod]

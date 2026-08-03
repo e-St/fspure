@@ -2,25 +2,8 @@ namespace FSharp.PureAnalyzer
 
 open System
 
-/// Origin of a pure-method whitelist entry.
-type PureOrigin =
-    | Automatic
-    | Manual of comment: string option
-
-/// A single method known (or proposed) to be pure.
-type PureMethod =
-    { FullName: string; Origin: PureOrigin }
-
-/// Official `.pure.json` whitelist document.
-type PureFile =
-    {
-        SchemaVersion: string
-        PackageId: string
-        PackageVersion: string
-        GeneratedAt: DateTimeOffset
-        Generator: string
-        PureMethods: PureMethod list
-    }
+// PureFile / PureMethod / PureOrigin live in FSharp.PureSchema (single source of truth).
+// Collector-specific document types and analysis IR remain here.
 
 /// One counter-evidence / doubt entry (List C – informational only).
 type DoubtEntry =
@@ -74,8 +57,9 @@ type AnalyzedMethod =
     }
 
 module Constants =
+    /// Re-export of the frozen PureFile schema version for call sites in the collector.
     [<Literal>]
-    let SchemaVersion = "1.0"
+    let SchemaVersion = FSharp.PureSchema.SchemaVersion.Current
 
     [<Literal>]
     let GeneratorName = "fsharp-pure-analyzer/purity-collector"

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/e-St/fspure/schema/pure-file.schema.json",
+  "title": "F# PureFile",
+  "description": "Authoritative pure-method whitelist document (.pure.json). Single source of truth for the wire format consumed by purity-collector and FSharp.PureAnalyzer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "packageVersion",
+    "generatedAt",
+    "generator",
+    "pureMethods"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Document schema version. Loaders must reject unknown or newer versions."
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Logical package or assembly identity this whitelist describes."
+    },
+    "packageVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version string of the package or assembly identity."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the document was produced (ISO-8601 / round-trip)."
+    },
+    "generator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tool identity that produced the document (name/version)."
+    },
+    "pureMethods": {
+      "type": "array",
+      "description": "List of methods considered pure.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fullName", "origin"],
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Fully-qualified method name (IL-style when produced by the collector)."
+          },
+          "origin": {
+            "type": "string",
+            "enum": ["automatic", "manual"],
+            "description": "How the entry was obtained."
+          },
+          "comment": {
+            "type": ["string", "null"],
+            "description": "Optional note when origin is manual."
+          }
+        }
+      }
+    }
+  }
+}

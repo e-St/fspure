@@ -1,0 +1,219 @@
+# Phase 0 gate: PureFile schema, purity-collector tool pack/install, merge, smoke.
+# Keeps the collector story green without touching the analyser.
+name: Purity Collector CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "purity-collector/**"
+      - "purity-collector.Tests/**"
+      - "schema/**"
+      - "fspure.slnx"
+      - ".github/workflows/purity-collector-ci.yml"
+  pull_request:
+    paths:
+      - "purity-collector/**"
+      - "purity-collector.Tests/**"
+      - "schema/**"
+      - "fspure.slnx"
+      - ".github/workflows/purity-collector-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  pure-schema-tests:
+    name: Pure schema unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore schema test project
+        run: dotnet restore schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+
+      - name: Test PureFile schema (round-trip, version reject, required fields)
+        run: >
+          dotnet test schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --no-restore
+          --verbosity normal
+
+  purity-collector-build-and-tests:
+    name: Purity collector build, merge tests, pack as tool
+    runs-on: ubuntu-latest
+    needs: pure-schema-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: dotnet tool restore || dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+        # Prefer repo local tools if present; fall back to a user tool install.
+
+      - name: Restore purity-collector (paket)
+        working-directory: purity-collector
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then
+            paket restore
+          elif [ -f "$HOME/.dotnet/tools/paket" ]; then
+            "$HOME/.dotnet/tools/paket" restore
+          else
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            "$HOME/.dotnet/tools/paket" restore
+          fi
+
+      - name: Build purity-collector
+        run: dotnet build purity-collector/purity-collector.fsproj -c ${{ env.CONFIGURATION }} --nologo
+
+      - name: Test collector merge + schema smoke
+        env:
+          PURITY_COLLECTOR_DLL: ${{ github.workspace }}/purity-collector/bin/${{ env.CONFIGURATION }}/net10.0/purity-collector.dll
+        run: >
+          dotnet test purity-collector.Tests/purity-collector.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --verbosity normal
+
+      - name: Pack purity-collector as dotnet tool
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/local-feed
+          dotnet pack purity-collector/purity-collector.fsproj \
+            -c ${{ env.CONFIGURATION }} \
+            --no-build \
+            -o artifacts/local-feed \
+            --nologo
+          ls -lh artifacts/local-feed
+
+      - name: Upload tool nupkg (local feed artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: purity-collector-tool-nupkg
+          path: artifacts/local-feed/*.nupkg
+          if-no-files-found: error
+
+  purity-collector-tool-install-smoke:
+    name: Purity collector tool install smoke
+    runs-on: ubuntu-latest
+    needs: purity-collector-build-and-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Download tool nupkg
+        uses: actions/download-artifact@v4
+        with:
+          name: purity-collector-tool-nupkg
+          path: artifacts/local-feed
+
+      - name: Install purity-collector from local feed
+        run: |
+          set -euo pipefail
+          ls -lh artifacts/local-feed
+          dotnet tool install purity-collector \
+            --add-source "$(pwd)/artifacts/local-feed" \
+            --tool-path "$HOME/fspure-tools" \
+            --version 0.1.0
+          "$HOME/fspure-tools/purity-collector" --help
+
+      - name: Smoke-run tool against a known assembly
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/smoke
+          # Use the installed tool's own directory assemblies: analyze mscorlib-equivalent via defaults if available,
+          # otherwise analyze a system-managed assembly from the shared framework.
+          SHARED="$(dirname "$(dirname "$(readlink -f "$(command -v dotnet)")")")/shared/Microsoft.NETCore.App"
+          RUNTIME_DIR="$(ls -d "$SHARED"/10.* 2>/dev/null | sort -V | tail -n1 || true)"
+          if [ -z "${RUNTIME_DIR}" ] || [ ! -f "$RUNTIME_DIR/System.Runtime.dll" ]; then
+            echo "Could not locate System.Runtime.dll under $SHARED" >&2
+            exit 1
+          fi
+          "$HOME/fspure-tools/purity-collector" \
+            --defaults false \
+            --assembly "$RUNTIME_DIR/System.Runtime.dll" \
+            -o artifacts/smoke/smoke.pure.json \
+            --package-id Smoke.SystemRuntime \
+            --package-version 0.0.0 \
+            --public-only true
+          test -f artifacts/smoke/smoke.pure.json
+          python3 - <<'PY'
+          import json, sys
+          d = json.load(open("artifacts/smoke/smoke.pure.json"))
+          assert d.get("schemaVersion") == "1.0", d.get("schemaVersion")
+          assert "pureMethods" in d and isinstance(d["pureMethods"], list)
+          assert d.get("packageId") == "Smoke.SystemRuntime"
+          print(f"smoke pure methods: {len(d['pureMethods'])}")
+          PY
+
+      - name: Smoke-run tool with --merge-with
+        run: |
+          set -euo pipefail
+          cat > artifacts/smoke/extra.pure.json <<'EOF'
+          {
+            "schemaVersion": "1.0",
+            "packageId": "extra",
+            "packageVersion": "0.0.1",
+            "generatedAt": "2026-08-03T00:00:00.0000000+00:00",
+            "generator": "test/extra",
+            "pureMethods": [
+              { "fullName": "Author.Claimed.PureMethod", "origin": "manual", "comment": "escape hatch" }
+            ]
+          }
+          EOF
+          SHARED="$(dirname "$(dirname "$(readlink -f "$(command -v dotnet)")")")/shared/Microsoft.NETCore.App"
+          RUNTIME_DIR="$(ls -d "$SHARED"/10.* 2>/dev/null | sort -V | tail -n1)"
+          "$HOME/fspure-tools/purity-collector" \
+            --defaults false \
+            --assembly "$RUNTIME_DIR/System.Runtime.dll" \
+            --merge-with artifacts/smoke/extra.pure.json \
+            -o artifacts/smoke/merged.pure.json \
+            --package-id Smoke.Merged \
+            --package-version 0.0.0 \
+            --public-only true
+          python3 - <<'PY'
+          import json
+          d = json.load(open("artifacts/smoke/merged.pure.json"))
+          names = {m["fullName"] for m in d["pureMethods"]}
+          assert "Author.Claimed.PureMethod" in names, names
+          print("merge-with smoke ok; methods:", len(names))
+          PY
+
+      - name: Reject missing assembly with non-zero exit
+        run: |
+          set -euo pipefail
+          set +e
+          "$HOME/fspure-tools/purity-collector" --defaults false -o /tmp/should-not-exist.pure.json
+          code=$?
+          set -e
+          test "$code" -ne 0
+          echo "missing-assembly exit code: $code (expected non-zero)"
+
+      - name: Upload smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: purity-collector-smoke-output
+          path: artifacts/smoke/
+          if-no-files-found: error

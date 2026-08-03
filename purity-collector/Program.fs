@@ -3,6 +3,7 @@ open System.CommandLine
 open System.CommandLine.Invocation
 open System.IO
 open FSharp.PureAnalyzer
+open FSharp.PureSchema
 
 module Cli =
     let generatorBanner () =
@@ -17,10 +18,28 @@ module Cli =
         |> List.filter (fun p -> not (String.IsNullOrWhiteSpace p) && File.Exists p)
         |> List.distinctBy (fun p -> Path.GetFullPath p)
 
+    /// Load merge files in order. Fail with a non-zero exit description if any are invalid.
+    let loadMergeFiles (paths: string list) : Result<PureFile list, string> =
+        let rec loop acc remaining =
+            match remaining with
+            | [] -> Ok(List.rev acc)
+            | path :: rest ->
+                if String.IsNullOrWhiteSpace path then
+                    Error "empty path in --merge-with"
+                elif not (File.Exists path) then
+                    Error $"merge file not found: {path}"
+                else
+                    match PureFileIO.load path with
+                    | Error e -> Error $"failed to load merge file '{path}': {e}"
+                    | Ok file -> loop (file :: acc) rest
+
+        loop [] paths
+
     let runListA
         (outputPath: string)
         (reportPath: string option)
         (assemblyPaths: string list)
+        (mergeWithPaths: string list)
         (packageId: string)
         (packageVersion: string)
         (publicOnly: bool)
@@ -29,49 +48,71 @@ module Cli =
         generatorBanner ()
 
         if assemblyPaths.IsEmpty then
-            eprintfn "error: no assemblies to analyze. Pass --assembly or use --defaults."
+            eprintfn "error: no assemblies to analyze. Pass --assembly <path> or use --defaults."
+            eprintfn "       Run with --help for usage."
             2
         else
-            printfn "Assemblies:"
+            match loadMergeFiles mergeWithPaths with
+            | Error msg ->
+                eprintfn $"error: {msg}"
+                2
+            | Ok mergeFiles ->
+                printfn "Assemblies:"
 
-            for p in assemblyPaths do
-                printfn $"  - {p}"
+                for p in assemblyPaths do
+                    printfn $"  - {p}"
 
-            printfn ""
-            printfn "Analyzing IL and building call graphs..."
+                if not mergeFiles.IsEmpty then
+                    printfn ""
+                    printfn "Merge-with pure.json files (last wins on fullName):"
 
-            let methods, analyzed = IlAnalyzer.analyzeAssemblies assemblyPaths
+                    for p in mergeWithPaths do
+                        printfn $"  - {p}"
 
-            printfn $"Discovered {methods.Length} methods in {analyzed.Length} assembly/assemblies."
-            printfn "Computing pure fixed-point (List A)..."
+                printfn ""
+                printfn "Analyzing IL and building call graphs..."
 
-            let pureFile, pureSet, _byName =
-                PurityEngine.buildListA methods packageId packageVersion publicOnly
+                let methods, analyzed = IlAnalyzer.analyzeAssemblies assemblyPaths
 
-            printfn $"List A pure methods: {pureFile.PureMethods.Length} (set size before public filter: {pureSet.Count})"
+                printfn $"Discovered {methods.Length} methods in {analyzed.Length} assembly/assemblies."
+                printfn "Computing pure fixed-point (List A)..."
 
-            let outFull = Path.GetFullPath outputPath
-            JsonCodec.writePureFile outFull pureFile
-            printfn $"Wrote pure whitelist: {outFull}"
+                let pureFile, pureSet, _byName =
+                    PurityEngine.buildListA methods packageId packageVersion publicOnly
 
-            match reportPath with
-            | Some rp ->
-                let rpFull = Path.GetFullPath rp
+                let pureFile =
+                    if mergeFiles.IsEmpty then
+                        pureFile
+                    else
+                        let merged = PureFileIO.mergeWith pureFile mergeFiles
+                        printfn $"Merged pure methods: {merged.PureMethods.Length} (from collector + {mergeFiles.Length} file(s))"
+                        merged
 
-                JsonCodec.writeListAReport
-                    rpFull
-                    packageId
-                    packageVersion
-                    analyzed
-                    methods
-                    pureFile.PureMethods
-                    verboseReport
+                printfn
+                    $"List A pure methods: {pureFile.PureMethods.Length} (set size before public filter: {pureSet.Count})"
 
-                printfn $"Wrote List A report: {rpFull}"
-            | None -> ()
+                let outFull = Path.GetFullPath outputPath
+                JsonCodec.writePureFile outFull pureFile
+                printfn $"Wrote pure whitelist: {outFull}"
 
-            printfn "Done."
-            0
+                match reportPath with
+                | Some rp ->
+                    let rpFull = Path.GetFullPath rp
+
+                    JsonCodec.writeListAReport
+                        rpFull
+                        packageId
+                        packageVersion
+                        analyzed
+                        methods
+                        pureFile.PureMethods
+                        verboseReport
+
+                    printfn $"Wrote List A report: {rpFull}"
+                | None -> ()
+
+                printfn "Done."
+                0
 
 open Cli
 
@@ -80,7 +121,7 @@ let main argv =
     let outputOption =
         Option<string>(
             aliases = [| "-o"; "--output" |],
-            description = "Path to the List A .pure.json output file",
+            description = "Path to the .pure.json output file",
             getDefaultValue = fun () -> "list-a.pure.json"
         )
 
@@ -93,10 +134,21 @@ let main argv =
     let assemblyOption =
         Option<string[]>(
             aliases = [| "-a"; "--assembly" |],
-            description = "Assembly path(s) to analyze (repeatable)"
+            description = "Assembly path(s) to analyze (repeatable). Required unless --defaults is used."
         )
 
     assemblyOption.AllowMultipleArgumentsPerToken <- true
+
+    let mergeWithOption =
+        Option<string[]>(
+            aliases = [| "--merge-with" |],
+            description =
+                "Additional .pure.json file(s) to merge after collection (repeatable). \
+Union of pureMethods; when the same fullName appears more than once, the last file wins. \
+Escape hatch for methods the Core-centric heuristics miss."
+        )
+
+    mergeWithOption.AllowMultipleArgumentsPerToken <- true
 
     let defaultsOption =
         Option<bool>(
@@ -137,11 +189,15 @@ let main argv =
         )
 
     let root =
-        RootCommand("purity-collector – generate List A (foundational pure set) from FSharp.Core / BCL")
+        RootCommand(
+            "purity-collector – generate a PureFile (.pure.json) whitelist from managed assemblies. \
+Optionally merge author-supplied pure.json files via --merge-with."
+        )
 
     root.AddOption outputOption
     root.AddOption reportOption
     root.AddOption assemblyOption
+    root.AddOption mergeWithOption
     root.AddOption defaultsOption
     root.AddOption packageIdOption
     root.AddOption packageVersionOption
@@ -154,6 +210,7 @@ let main argv =
         let output = pr.GetValueForOption<string>(outputOption)
         let report = pr.GetValueForOption<string>(reportOption)
         let assemblies = pr.GetValueForOption<string[]>(assemblyOption)
+        let mergeWith = pr.GetValueForOption<string[]>(mergeWithOption)
 
         // Boolean options: read via GetResult to avoid FS3265 nullable-bool warnings.
         let boolOrDefault (opt: Option<bool>) (fallback: bool) =
@@ -175,30 +232,49 @@ let main argv =
 
             resolveAssemblies explicitPaths useDefaults
 
+        let mergeList =
+            match mergeWith with
+            | null -> []
+            | arr -> arr |> Array.toList |> List.filter (fun p -> not (String.IsNullOrWhiteSpace p))
+
         let reportOpt =
             match report with
-            | null | "" -> None
+            | null
+            | "" -> None
             | rp when String.IsNullOrWhiteSpace rp -> None
             | rp -> Some rp
 
         let outputPath =
             match output with
-            | null | "" -> "list-a.pure.json"
+            | null
+            | "" -> "list-a.pure.json"
             | o -> o
 
         let pkgId =
             match packageId with
-            | null | "" -> "FSharp.Core+BCL"
+            | null
+            | "" -> "FSharp.Core+BCL"
             | p -> p
 
         let pkgVer =
             match packageVersion with
-            | null | "" -> "0.0.0"
+            | null
+            | "" -> "0.0.0"
             | p -> p
 
+        // Missing assemblies already yield exit 2; also catch invalid arg shapes early.
         let code =
-            runListA outputPath reportOpt asmList pkgId pkgVer publicOnly verboseReport
+            if asmList.IsEmpty && useDefaults then
+                eprintfn "error: --defaults was set but no default assemblies could be resolved."
+                eprintfn "       Pass --assembly <path> explicitly, or run where the .NET runtime packs are installed."
+                2
+            else
+                runListA outputPath reportOpt asmList mergeList pkgId pkgVer publicOnly verboseReport
 
         ctx.ExitCode <- code)
 
-    root.Invoke argv
+    try
+        root.Invoke argv
+    with ex ->
+        eprintfn $"error: unhandled exception: {ex.Message}"
+        1

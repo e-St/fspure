@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FSharp.PureSchema</RootNamespace>
+    <AssemblyName>FSharp.PureSchema</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="PureFileIO.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Canonical JSON Schema for PureFile documents; kept next to the DTOs. -->
+    <None Include="pure-file.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="pure-file.schema.json" LogicalName="FSharp.PureSchema.pure-file.schema.json" />
+  </ItemGroup>
+
+  <!-- FSharp.Core is provided by the .NET 10 SDK F# targets; do not pin a second PackageReference. -->
+</Project>

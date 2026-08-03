@@ -2,6 +2,7 @@ namespace FSharp.PureAnalyzer
 
 open System
 open System.Collections.Generic
+open FSharp.PureSchema
 
 /// Recursive purity fixed-point over a call graph (List A core).
 module PurityEngine =
