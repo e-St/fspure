@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>MultiPureResources</AssemblyName>
+    <RootNamespace>MultiPureResources</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Matching pure.json resources -->
+    <EmbeddedResource Include="MultiPureResources.pure.json" LogicalName="MultiPureResources.pure.json" />
+    <EmbeddedResource Include="extra.pure.json" LogicalName="Some.Namespace.extra.pure.json" />
+    <!-- Non-matching resources (must be ignored by the reader) -->
+    <EmbeddedResource Include="notes.txt" LogicalName="MultiPureResources.notes.txt" />
+    <EmbeddedResource Include="data.json" LogicalName="MultiPureResources.data.json" />
+  </ItemGroup>
+</Project>

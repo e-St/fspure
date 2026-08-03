@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>SinglePureResource</AssemblyName>
+    <RootNamespace>SinglePureResource</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Conventional name: {AssemblyName}.pure.json -->
+    <EmbeddedResource Include="SinglePureResource.pure.json" LogicalName="SinglePureResource.pure.json" />
+  </ItemGroup>
+</Project>

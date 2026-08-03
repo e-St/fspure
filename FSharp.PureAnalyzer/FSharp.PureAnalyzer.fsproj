@@ -39,14 +39,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared PureFile schema + PE pure.json reader (net10.0). -->
+    <ProjectReference Include="..\schema\FSharp.PureSchema\FSharp.PureSchema.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\NOTICE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <!-- Place the analyzer DLL where Ionide expects it -->
+  <!-- Place the analyzer DLL (and PureSchema dependency) where Ionide expects them -->
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/fs"
+          Visible="false" />
+    <None Include="$(OutputPath)FSharp.PureSchema.dll"
           Pack="true"
           PackagePath="analyzers/dotnet/fs"
           Visible="false" />

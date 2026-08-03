@@ -1,7 +1,11 @@
 <Solution>
   <Project Path="schema/FSharp.PureSchema/FSharp.PureSchema.fsproj" />
   <Project Path="schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" />
+  <Project Path="schema/fixtures/ZeroPureResources/ZeroPureResources.csproj" />
+  <Project Path="schema/fixtures/SinglePureResource/SinglePureResource.csproj" />
+  <Project Path="schema/fixtures/MultiPureResources/MultiPureResources.csproj" />
   <Project Path="purity-collector/purity-collector.fsproj" />
   <Project Path="purity-collector.Tests/purity-collector.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
+  <Project Path="FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
 </Solution>

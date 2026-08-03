@@ -1,35 +1,19 @@
 namespace FSharp.PureAnalyzer
 
 open System
+open System.Collections.Concurrent
 open System.Collections.Generic
 open System.IO
 open System.Reflection
 open System.Text
-open System.Text.Json
-
-/// DTO for the embedded foundational.pure.json resource.
-[<CLIMutable>]
-type PureMethodDto =
-    {
-        fullName: string
-        origin: string
-        comment: string
-    }
-
-[<CLIMutable>]
-type PureFileDto =
-    {
-        schemaVersion: string
-        packageId: string
-        packageVersion: string
-        generatedAt: string
-        generator: string
-        pureMethods: PureMethodDto array
-    }
+open FSharp.PureSchema
 
 /// Cached access to the embedded foundational pure set, with lookup that tolerates
 /// FCS vs IL naming differences and includes a large supplemental pure allowlist
 /// for FSharp.Core collection combinators (HOFs the IL fixed-point often drops).
+///
+/// Phase 1: composition + caching are exposed for library-embedded pure.json manifests.
+/// The live analyser still uses foundational-only `contains` until Phase 2 wires discovery.
 module PureSet =
 
     let normalizeName (fullName: string) : string =
@@ -589,14 +573,16 @@ module PureSet =
                 use reader = new StreamReader(stream)
                 reader.ReadToEnd()
 
-    type private PureIndex =
+    /// Lookup index over pure method full names (exact, normalized, last-segment).
+    /// Treat as opaque; construct only via PureSet helpers. Reference equality matters for cache hits.
+    type Index =
         {
             Exact: HashSet<string>
             Normalized: HashSet<string>
             LastSegment: HashSet<string>
         }
 
-    let private buildIndex (names: seq<string>) =
+    let private buildIndex (names: seq<string>) : Index =
         let exact = HashSet<string>(StringComparer.Ordinal)
         let normalized = HashSet<string>(StringComparer.Ordinal)
         let lastSeg = HashSet<string>(StringComparer.Ordinal)
@@ -614,19 +600,23 @@ module PureSet =
             LastSegment = lastSeg
         }
 
-    let private parsedIndex =
+    let private namesFromPureFiles (files: PureFile seq) : seq<string> =
+        files
+        |> Seq.collect (fun f -> f.PureMethods |> Seq.map _.FullName)
+
+    let private foundationalIndexLazy =
         lazy
             let json = loadResource ()
 
-            let options =
-                JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
             let fromJson =
-                match JsonSerializer.Deserialize<PureFileDto>(json, options) with
-                | null -> failwith "Failed to deserialize foundational.pure.json."
-                | dto -> dto.pureMethods |> Array.map (fun m -> m.fullName) |> Seq.ofArray
+                match PureFileIO.parse json with
+                | Ok file -> file.PureMethods |> List.map _.FullName |> Seq.ofList
+                | Error e -> failwith $"Failed to parse foundational.pure.json: {e}"
 
             buildIndex (Seq.append fromJson supplementalLeaves)
+
+    /// Immutable foundational pure index (embedded foundational.pure.json + supplemental leaves).
+    let foundationalIndex () : Index = foundationalIndexLazy.Value
 
     let private isKnownPureOperator (normalized: string) =
         let key = lastSegmentKey normalized
@@ -669,21 +659,85 @@ module PureSet =
         | "op_greaterthanorequal" -> true
         | _ -> false
 
-    let contains (fullName: string) : bool =
+    /// Lookup using the given index, preserving foundational name-normalisation,
+    /// last-segment, operator, and FSharpFunc.Invoke special cases.
+    let containsIn (index: Index) (fullName: string) : bool =
         let n = normalizeName fullName
 
         if isFunctionInvokeLeaf n then
             true
         elif isKnownPureOperator n then
             true
+        elif index.Exact.Contains(fullName) then
+            true
+        elif index.Normalized.Contains(n) || index.Exact.Contains(n) then
+            true
         else
-            let idx = parsedIndex.Value
+            index.LastSegment.Contains(lastSegmentKey fullName)
 
-            if idx.Exact.Contains(fullName) then
-                true
-            elif idx.Normalized.Contains(n) || idx.Exact.Contains(n) then
-                true
+    /// Compose base index with additional PureFile manifests (library embeds, etc.).
+    /// Additional method names are unioned into a new index; base is not mutated.
+    let compose (baseIndex: Index) (additional: PureFile seq) : Index =
+        let extraNames = namesFromPureFiles additional
+
+        if Seq.isEmpty extraNames then
+            baseIndex
+        else
+            let exact = HashSet<string>(baseIndex.Exact, StringComparer.Ordinal)
+            let normalized = HashSet<string>(baseIndex.Normalized, StringComparer.Ordinal)
+            let lastSeg = HashSet<string>(baseIndex.LastSegment, StringComparer.Ordinal)
+
+            for fn in extraNames do
+                if not (String.IsNullOrWhiteSpace fn) then
+                    exact.Add(fn) |> ignore
+                    let n = normalizeName fn
+                    normalized.Add(n) |> ignore
+                    lastSeg.Add(lastSegmentKey fn) |> ignore
+
+            {
+                Exact = exact
+                Normalized = normalized
+                LastSegment = lastSeg
+            }
+
+    /// Compose foundational index with additional PureFiles.
+    let composeWithFoundational (additional: PureFile seq) : Index =
+        compose (foundationalIndex ()) additional
+
+    // --- Composition cache (MVID + pure.json content hashes) ---
+
+    let private compositionCache = ConcurrentDictionary<string, Index>(StringComparer.Ordinal)
+
+    /// Build a cache key from assembly MVIDs and per-resource content hashes.
+    /// Order of assemblies does not matter (fragments are sorted).
+    let makeCompositionCacheKey (parts: (Guid * string seq) seq) : string =
+        parts
+        |> Seq.map (fun (mvid, hashes) -> PureResourceReader.cacheKeyFragment mvid hashes)
+        |> PureResourceReader.compositionCacheKey
+
+    /// Return a cached composed index for `cacheKey`, or compose and store it.
+    /// Identical keys always return the same Index instance.
+    let getOrComposeCached (cacheKey: string) (baseIndex: Index) (additional: PureFile seq) : Index =
+        let key =
+            if String.IsNullOrWhiteSpace cacheKey then
+                "empty"
             else
-                idx.LastSegment.Contains(lastSegmentKey fullName)
+                cacheKey
 
-    let knownPure: IReadOnlySet<string> = parsedIndex.Value.Exact
+        compositionCache.GetOrAdd(
+            key,
+            fun _ -> compose baseIndex additional
+        )
+
+    /// Clear the composition cache (tests / process recycle).
+    let clearCompositionCache () : unit =
+        compositionCache.Clear()
+
+    /// Number of entries currently held in the composition cache (tests / diagnostics).
+    let compositionCacheCount () : int = compositionCache.Count
+
+    /// Foundational-only lookup (Phase 0/1 default for the live analyser).
+    let contains (fullName: string) : bool =
+        containsIn (foundationalIndex ()) fullName
+
+    let knownPure: IReadOnlySet<string> = foundationalIndex().Exact

@@ -1,0 +1,4 @@
+{
+  "notAPureFile": true,
+  "reason": "does not end with .pure.json"
+}

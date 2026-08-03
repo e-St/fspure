@@ -7,11 +7,18 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
+    <!-- Align with FSharp.Analyzers.SDK / paket FSharp.Core so ProjectReference consumers avoid MSB3277. -->
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="10.0.101" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="PureFileIO.fs" />
+    <Compile Include="PureResourceReader.fs" />
   </ItemGroup>
 
   <ItemGroup>

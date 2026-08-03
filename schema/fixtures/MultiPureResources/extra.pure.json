@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "packageId": "MultiPureResources.Extra",
+  "packageVersion": "1.0.0",
+  "generatedAt": "2026-08-03T00:00:00.0000000+00:00",
+  "generator": "fspure-phase1-fixture",
+  "pureMethods": [
+    { "fullName": "MultiPureResources.Api.FromExtra", "origin": "manual", "comment": "extra resource" }
+  ]
+}

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "FSharp.PureAnalyzer/**"
+      - "schema/FSharp.PureSchema/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/build-pure-analyzer.yml"
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - "FSharp.PureAnalyzer/**"
+      - "schema/FSharp.PureSchema/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/build-pure-analyzer.yml"
@@ -53,6 +55,8 @@ jobs:
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
+            # Phase 1: analyser depends on shared PureSchema (ProjectReference)
+            dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
             cd FSharp.PureAnalyzer
             paket restore
             dotnet build -c Release

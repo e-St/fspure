@@ -1,0 +1,152 @@
+# Phase 1 gate: pure-resource reader + PureSet composition/caching.
+# Isolated from project discovery (Phase 2) and MSBuild embedding (Phase 3).
+name: Pure Set Composition CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "schema/**"
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "fspure.slnx"
+      - ".github/workflows/pure-set-composition-ci.yml"
+      - ".github/workflows/build-pure-analyzer.yml"
+  pull_request:
+    paths:
+      - "schema/**"
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "fspure.slnx"
+      - ".github/workflows/pure-set-composition-ci.yml"
+      - ".github/workflows/build-pure-analyzer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  pure-resource-reader-tests:
+    name: Pure resource reader tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore schema + fixture assemblies
+        run: >
+          dotnet restore
+          schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+
+      - name: Test PureResourceReader (synthetic net10.0 assemblies)
+        run: >
+          dotnet test schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --no-restore
+          --verbosity normal
+          --filter "FullyQualifiedName~ResourceReaderTests"
+
+  pure-set-composition-tests:
+    name: PureSet composition and cache tests
+    runs-on: ubuntu-latest
+    needs: pure-resource-reader-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Restore PureAnalyzer (paket)
+        working-directory: FSharp.PureAnalyzer
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then
+            paket restore
+          else
+            "$HOME/.dotnet/tools/paket" restore
+          fi
+
+      - name: Build PureAnalyzer with composition API
+        run: >
+          dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --nologo
+
+      - name: Test PureSet compose + cache
+        run: >
+          dotnet test FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --verbosity normal
+
+  pure-set-phase1-gate:
+    name: Phase 1 gate (schema + composition full suite)
+    runs-on: ubuntu-latest
+    needs:
+      - pure-resource-reader-tests
+      - pure-set-composition-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Restore PureAnalyzer (paket)
+        working-directory: FSharp.PureAnalyzer
+        run: |
+          set -euo pipefail
+          if command -v paket >/dev/null 2>&1; then
+            paket restore
+          else
+            "$HOME/.dotnet/tools/paket" restore
+          fi
+
+      - name: Full schema suite (schema + merge + resource reader)
+        run: >
+          dotnet test schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --verbosity normal
+
+      - name: Full composition suite
+        run: >
+          dotnet test FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          -c ${{ env.CONFIGURATION }}
+          --verbosity normal
+
+      - name: Foundational-only smoke (contains still works)
+        run: |
+          set -euo pipefail
+          # Ensure the analyser project still builds after Phase 1 composition API work.
+          dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj -c ${{ env.CONFIGURATION }} --nologo
+          echo "Phase 1 gate green: resource reader + composition isolated; analyser foundational path intact."
