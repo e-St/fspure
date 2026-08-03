@@ -1,0 +1,93 @@
+# Publish FSharp.PureAnalyzer prerelease builds to GitHub Packages on every
+# relevant main push so fspure-ready-lib@dev can restore "latest" unreleased tools.
+name: Publish analyzer to GitHub Packages (CI)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "FSharp.PureAnalyzer/**"
+      - "msbuild/**"
+      - "schema/FSharp.PureSchema/**"
+      - "purity-collector/**"
+      - ".github/workflows/publish-analyzer-gh-packages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-analyzer-gh-packages
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  publish:
+    name: Pack and push CI prerelease
+    runs-on: ubuntu-latest
+    if: github.repository == 'e-St/fspure'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Compute CI package version
+        id: ver
+        run: |
+          set -euo pipefail
+          # Prerelease always sorts as a distinct build line for ready-lib@dev.
+          # Format: 0.3.2-ci.{run_number}+{sha} is invalid for NuGet (+ stripped);
+          # use 0.3.2-ci.{run_number}.{sha7}
+          SHA7="${GITHUB_SHA:0:7}"
+          # Base tracks last public line; bump manually when nuget.org release changes.
+          BASE="${FSPURE_ANALYZER_CI_BASE:-0.3.2}"
+          VERSION="${BASE}-ci.${GITHUB_RUN_NUMBER}.${SHA7}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "CI package version: $VERSION"
+
+      - name: Restore and pack
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          cd FSharp.PureAnalyzer
+          if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
+          # PrepareFspurePackageTools runs during pack (collector + build tasks).
+          dotnet pack FSharp.PureAnalyzer.fsproj \
+            -c ${{ env.CONFIGURATION }} \
+            -o ./nupkgs \
+            --nologo \
+            "/p:Version=$VERSION" \
+            "/p:PackageVersion=$VERSION"
+          ls -lh ./nupkgs
+
+      - name: Push to GitHub Packages
+        run: |
+          set -euo pipefail
+          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --skip-duplicate
+          echo "Published FSharp.PureAnalyzer ${{ steps.ver.outputs.version }} to GitHub Packages"
+
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FSharp.PureAnalyzer-ci-nupkg
+          path: FSharp.PureAnalyzer/nupkgs/*.nupkg
