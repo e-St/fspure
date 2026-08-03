@@ -61,7 +61,9 @@ if [[ -z "${NUPKG}" || ! -f "$NUPKG" ]]; then
 fi
 echo "    nupkg → $NUPKG"
 
-BUILT_DLL="$PROJ_DIR/bin/$CONFIGURATION/net10.0/FSharp.PureAnalyzer.dll"
+BUILT_DIR="$PROJ_DIR/bin/$CONFIGURATION/net10.0"
+BUILT_DLL="$BUILT_DIR/FSharp.PureAnalyzer.dll"
+BUILT_SCHEMA="$BUILT_DIR/FSharp.PureSchema.dll"
 if [[ ! -f "$BUILT_DLL" ]]; then
   # pack may not leave bin/ if only packing; rebuild
   dotnet build -c "$CONFIGURATION" --nologo -v q
@@ -70,11 +72,17 @@ if [[ ! -f "$BUILT_DLL" ]]; then
   echo "ERROR: built DLL not found: $BUILT_DLL" >&2
   exit 1
 fi
+if [[ ! -f "$BUILT_SCHEMA" ]]; then
+  echo "ERROR: FSharp.PureSchema.dll not found next to analyzer: $BUILT_SCHEMA" >&2
+  exit 1
+fi
 
 # --- Workspace drop (what Ionide actually loads via FSharp.analyzersPath "analyzers") ---
 mkdir -p "$WORKSPACE_ANALYZERS"
 cp -f "$BUILT_DLL" "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+cp -f "$BUILT_SCHEMA" "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
 echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
 
 # Same version number must be wiped or NuGet will reuse stale extracted bits.
 DEST="$GLOBAL_PACKAGES/$PACKAGE_ID_LOWER/$VERSION"
@@ -111,12 +119,18 @@ dotnet add package "$PACKAGE_ID" --version "$VERSION" --source "$NUPKG_OUT" --pa
 popd >/dev/null
 
 DLL="$DEST/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
+SCHEMA="$DEST/analyzers/dotnet/fs/FSharp.PureSchema.dll"
 if [[ ! -f "$DLL" ]]; then
   echo "ERROR: analyzer DLL missing after install: $DLL" >&2
+  exit 1
+fi
+if [[ ! -f "$SCHEMA" ]]; then
+  echo "ERROR: FSharp.PureSchema.dll missing after install: $SCHEMA" >&2
   exit 1
 fi
 
 echo "✅ Installed $PACKAGE_ID $VERSION"
 echo "   workspace: $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+echo "   workspace: $WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
 echo "   nuget:     $DLL"
 echo "   Reload the window (or restart Ionide) if pure/impure badges do not refresh."

@@ -25,9 +25,16 @@ if command -v paket >/dev/null 2>&1; then
   paket restore
 fi
 dotnet build -c "$CONFIGURATION"
-cp -f "bin/$CONFIGURATION/net10.0/FSharp.PureAnalyzer.dll" "$ANALYZER_DROP/"
+OUT_DIR="bin/$CONFIGURATION/net10.0"
+cp -f "$OUT_DIR/FSharp.PureAnalyzer.dll" "$ANALYZER_DROP/"
+if [[ ! -f "$OUT_DIR/FSharp.PureSchema.dll" ]]; then
+  echo "ERROR: FSharp.PureSchema.dll missing next to analyzer at $OUT_DIR" >&2
+  exit 1
+fi
+cp -f "$OUT_DIR/FSharp.PureSchema.dll" "$ANALYZER_DROP/"
 popd >/dev/null
 echo "    Analyzer → $ANALYZER_DROP/FSharp.PureAnalyzer.dll"
+echo "    Schema   → $ANALYZER_DROP/FSharp.PureSchema.dll"
 
 echo "==> Phase 2 prepare: build customer fixture (solution)"
 SOLUTION="$FIXTURE_DIR/customer-fixture.slnx"

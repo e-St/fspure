@@ -32,9 +32,17 @@ if command -v paket >/dev/null 2>&1; then
   paket restore
 fi
 dotnet build -c "$CONFIGURATION"
-cp -f "bin/$CONFIGURATION/net10.0/FSharp.PureAnalyzer.dll" "$ANALYZER_OUT/dotnet/fs/"
+OUT_DIR="bin/$CONFIGURATION/net10.0"
+cp -f "$OUT_DIR/FSharp.PureAnalyzer.dll" "$ANALYZER_OUT/dotnet/fs/"
+# Phase 1+: analyser ProjectReferences FSharp.PureSchema — must sit next to the analyzer DLL.
+if [[ ! -f "$OUT_DIR/FSharp.PureSchema.dll" ]]; then
+  echo "ERROR: FSharp.PureSchema.dll missing next to analyzer at $OUT_DIR" >&2
+  exit 1
+fi
+cp -f "$OUT_DIR/FSharp.PureSchema.dll" "$ANALYZER_OUT/dotnet/fs/"
 popd >/dev/null
 echo "    DLL → $ANALYZER_OUT/dotnet/fs/FSharp.PureAnalyzer.dll"
+echo "    DLL → $ANALYZER_OUT/dotnet/fs/FSharp.PureSchema.dll"
 
 echo "==> Phase 1: build customer fixture"
 dotnet build "$FIXTURE_DIR/customer-fixture.fsproj" -c "$CONFIGURATION"

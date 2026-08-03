@@ -18,7 +18,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 mirror_workspace_drop_from_global() {
   # Find newest installed version under the global packages folder.
-  local src
+  local src schema
   src="$(
     find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
       | sort -V \
@@ -27,9 +27,18 @@ mirror_workspace_drop_from_global() {
   if [[ -z "$src" || ! -f "$src" ]]; then
     return 1
   fi
+  schema="$(dirname "$src")/FSharp.PureSchema.dll"
   mkdir -p "$WORKSPACE_ANALYZERS"
   cp -f "$src" "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+  if [[ -f "$schema" ]]; then
+    cp -f "$schema" "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
+  else
+    echo "WARNING: FSharp.PureSchema.dll missing next to $src (older package?)" >&2
+  fi
   echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll (from $src)"
+  if [[ -f "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll" ]]; then
+    echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
+  fi
 }
 
 install_from_nuget_org() {

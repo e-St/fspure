@@ -38,6 +38,10 @@ if [[ ! -f "$ANALYZER_DIR/dotnet/fs/FSharp.PureAnalyzer.dll" ]]; then
   echo "ERROR: PureAnalyzer DLL missing under $ANALYZER_DIR (run prepare-workspace.sh first)" >&2
   exit 1
 fi
+if [[ ! -f "$ANALYZER_DIR/dotnet/fs/FSharp.PureSchema.dll" ]]; then
+  echo "ERROR: FSharp.PureSchema.dll missing under $ANALYZER_DIR (required dependency of PureAnalyzer)" >&2
+  exit 1
+fi
 
 echo "==> Install extensions into code-server"
 # Ionide (F# language service + analyzer host). On Open VSX this also pulls

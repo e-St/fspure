@@ -255,8 +255,9 @@ def render(settings: dict, extensions: list[str]) -> str:
     )
     a("3. `.devcontainer/setup-fspure.sh` — use the script below as-is.\n")
     a(
-        "Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` on every create/attach "
-        "via the setup script; you normally do **not** commit that drop.\n"
+        "Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` (and "
+        "`FSharp.PureSchema.dll`) on every create/attach via the setup script; "
+        "you normally do **not** commit that drop.\n"
     )
 
     a("### 2.2 `.devcontainer/devcontainer.json`\n")
@@ -302,7 +303,7 @@ def render(settings: dict, extensions: list[str]) -> str:
         "  rm -f \"$vsix\"\n"
         "fi\n"
         "\n"
-        "# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.\n"
+        "# Mirror NuGet analyzer + PureSchema into workspace-relative analyzers/ for FSAC.\n"
         "PKG=\"${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer\"\n"
         "DLL=\"$(find \"$PKG\" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' \\\n"
         "  2>/dev/null | sort -V | tail -1 || true)\"\n"
@@ -310,8 +311,14 @@ def render(settings: dict, extensions: list[str]) -> str:
         "  echo \"FSharp.PureAnalyzer DLL not found under $PKG — restore the package first.\" >&2\n"
         "  exit 1\n"
         "fi\n"
+        "SCHEMA=\"$(dirname \"$DLL\")/FSharp.PureSchema.dll\"\n"
         "mkdir -p analyzers/dotnet/fs\n"
         "cp -f \"$DLL\" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\n"
+        "if [[ -f \"$SCHEMA\" ]]; then\n"
+        "  cp -f \"$SCHEMA\" analyzers/dotnet/fs/FSharp.PureSchema.dll\n"
+        "else\n"
+        "  echo \"WARNING: FSharp.PureSchema.dll missing next to analyzer (older package?).\" >&2\n"
+        "fi\n"
         "echo \"PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll\"\n"
         "```\n"
     )

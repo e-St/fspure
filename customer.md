@@ -138,7 +138,7 @@ You do **not** need this repository’s internal IDE, build, or e2e containers.
 1. `FSharp.PureAnalyzer` as a normal NuGet or Paket dependency on your F# project.
 2. `.devcontainer/devcontainer.json` — use the template below (only change the two solution path strings).
 3. `.devcontainer/setup-fspure.sh` — use the script below as-is.
-Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` on every create/attach via the setup script; you normally do **not** commit that drop.
+Regenerate `analyzers/dotnet/fs/FSharp.PureAnalyzer.dll` (and `FSharp.PureSchema.dll`) on every create/attach via the setup script; you normally do **not** commit that drop.
 ### 2.2 `.devcontainer/devcontainer.json`
 Swap in your base image if you already have one. Keep `postCreateCommand`, `postAttachCommand`, and `customizations.vscode` as shown. Replace `YourSolution.sln` with your solution (or `.slnx`).
 ```json
@@ -218,7 +218,7 @@ if command -v code >/dev/null 2>&1; then
   rm -f "$vsix"
 fi
 
-# Mirror NuGet analyzer into workspace-relative analyzers/ for FSAC.
+# Mirror NuGet analyzer + PureSchema into workspace-relative analyzers/ for FSAC.
 PKG="${NUGET_PACKAGES:-$HOME/.nuget/packages}/fsharp.pureanalyzer"
 DLL="$(find "$PKG" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' \
   2>/dev/null | sort -V | tail -1 || true)"
@@ -226,8 +226,14 @@ if [[ -z "${DLL}" || ! -f "${DLL}" ]]; then
   echo "FSharp.PureAnalyzer DLL not found under $PKG — restore the package first." >&2
   exit 1
 fi
+SCHEMA="$(dirname "$DLL")/FSharp.PureSchema.dll"
 mkdir -p analyzers/dotnet/fs
 cp -f "$DLL" analyzers/dotnet/fs/FSharp.PureAnalyzer.dll
+if [[ -f "$SCHEMA" ]]; then
+  cp -f "$SCHEMA" analyzers/dotnet/fs/FSharp.PureSchema.dll
+else
+  echo "WARNING: FSharp.PureSchema.dll missing next to analyzer (older package?)." >&2
+fi
 echo "PureAnalyzer → analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
 ```
 Make it executable (`chmod +x .devcontainer/setup-fspure.sh`). Restore your project (so the NuGet package is present) before or at the start of this script. After attach: open the solution, open an `.fs` file, wait for Ionide. If badges are missing, **Developer: Reload Window**.

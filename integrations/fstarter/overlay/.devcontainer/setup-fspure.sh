@@ -31,7 +31,7 @@ code_cli_usable() {
 }
 
 mirror_from_global() {
-  local src
+  local src schema
   src="$(
     find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" \
       -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
@@ -41,9 +41,18 @@ mirror_from_global() {
   if [[ -z "$src" || ! -f "$src" ]]; then
     return 1
   fi
+  schema="$(dirname "$src")/FSharp.PureSchema.dll"
   mkdir -p "$WORKSPACE_ANALYZERS"
   cp -f "$src" "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+  if [[ -f "$schema" ]]; then
+    cp -f "$schema" "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
+  else
+    echo "WARNING: FSharp.PureSchema.dll missing next to $src (older package?)" >&2
+  fi
   echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
+  if [[ -f "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll" ]]; then
+    echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
+  fi
 }
 
 install_analyzer_nuget() {
