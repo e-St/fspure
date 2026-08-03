@@ -4,4 +4,5 @@ source /usr/share/dotnet/sdk/$(dotnet --version)/FSharp/library-packs
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Analyzers.SDK 0.35.0
+# Locked: Phase 2 integration targets AnalyzerProjectOptions / CliContext surface of 0.35.x only.
+nuget FSharp.Analyzers.SDK == 0.35.0

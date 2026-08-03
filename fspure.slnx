@@ -8,4 +8,7 @@
   <Project Path="purity-collector.Tests/purity-collector.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
+  <Project Path="FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />
+  <Project Path="FSharp.PureAnalyzer.Tests/integration/ConsumerProjectRef/ConsumerProjectRef.fsproj" />
+  <Project Path="FSharp.PureAnalyzer.Tests/integration/ConsumerPackageRef/ConsumerPackageRef.fsproj" />
 </Solution>

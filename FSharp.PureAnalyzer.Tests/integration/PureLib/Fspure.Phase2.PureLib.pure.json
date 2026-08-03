@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "packageId": "Fspure.Phase2.PureLib",
+  "packageVersion": "1.0.0",
+  "generatedAt": "2026-08-03T00:00:00.0000000+00:00",
+  "generator": "fspure-phase2-fixture",
+  "pureMethods": [
+    {
+      "fullName": "Fspure.Phase2.PureLib.Api.libraryPureAdd",
+      "origin": "manual",
+      "comment": "fixture: pure only via library embed"
+    }
+  ]
+}

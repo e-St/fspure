@@ -28,6 +28,8 @@
 
   <ItemGroup>
     <Compile Include="PureSet.fs" />
+    <Compile Include="ReferencedAssemblies.fs" />
+    <Compile Include="PureManifestLoader.fs" />
     <Compile Include="Name.fs" />
     <Compile Include="Analysis.fs" />
     <Compile Include="Diagnostics.fs" />

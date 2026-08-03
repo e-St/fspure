@@ -32,10 +32,12 @@ module Analyzer =
         (implementationFiles: FSharpImplementationFileContents seq)
         (fileSymbolUses: FSharpSymbolUse seq)
         (source: string)
+        (pureIndex: PureSet.Index)
         : Async<Message list> =
         async {
+            let isKnownPure name = PureSet.containsIn pureIndex name
             let callGraph, nonLocalMutation = buildCallGraph implementationFiles allSymbolUses
-            let nonPure = findNonPure callGraph nonLocalMutation
+            let nonPure = findNonPure isKnownPure callGraph nonLocalMutation
             let messages = ResizeArray<Message>()
 
             if emitDebugSummary then
@@ -118,23 +120,41 @@ module Analyzer =
             return messages |> Seq.toList
         }
 
-    let private tryAnalyzeWithProjectResults (fileName: string) (projectResults: FSharpCheckProjectResults) =
+    let private loadPureIndex
+        (projectOptions: AnalyzerProjectOptions)
+        (projectResults: FSharpCheckProjectResults option)
+        : PureSet.Index =
+        try
+            (PureManifestLoader.loadForAnalysis (Some projectOptions) projectResults).Index
+        with _ ->
+            // Never fail analysis because of manifest discovery.
+            PureSet.foundationalIndex ()
+
+    let private tryAnalyzeWithProjectResults
+        (fileName: string)
+        (projectOptions: AnalyzerProjectOptions)
+        (projectResults: FSharpCheckProjectResults)
+        =
         async {
+            let pureIndex = loadPureIndex projectOptions (Some projectResults)
             let allSymbolUses = projectResults.GetAllUsesOfAllSymbols() |> Seq.toArray
             let implementationFiles = projectResults.AssemblyContents.ImplementationFiles
 
             let fileSymbolUses =
                 allSymbolUses |> Array.filter (fun su -> su.FileName = fileName) |> Seq.ofArray
 
-            return! analyze fileName allSymbolUses implementationFiles fileSymbolUses "project"
+            return! analyze fileName allSymbolUses implementationFiles fileSymbolUses "project" pureIndex
         }
 
     let private tryAnalyzeWithFileResults
         (fileName: string)
+        (projectOptions: AnalyzerProjectOptions)
         (fileResults: FSharpCheckFileResults)
         (typedTree: FSharpImplementationFileContents option)
+        (projectResults: FSharpCheckProjectResults option)
         =
         async {
+            let pureIndex = loadPureIndex projectOptions projectResults
             let fileSymbolUses = fileResults.GetAllUsesOfAllSymbolsInFile() |> Seq.toArray
 
             let implementationFiles =
@@ -144,21 +164,29 @@ module Analyzer =
 
             let source = if typedTree.IsSome then "file+tree" else "file-no-tree"
 
-            return! analyze fileName fileSymbolUses implementationFiles (Seq.ofArray fileSymbolUses) source
+            return! analyze fileName fileSymbolUses implementationFiles (Seq.ofArray fileSymbolUses) source pureIndex
         }
 
     [<EditorAnalyzer("FSharp.PureAnalyzer")>]
     let pureAnalyzerEditor (ctx: EditorContext) : Async<Message list> =
         async {
             match ctx.CheckProjectResults with
-            | Some projectResults -> return! tryAnalyzeWithProjectResults ctx.FileName projectResults
+            | Some projectResults ->
+                return! tryAnalyzeWithProjectResults ctx.FileName ctx.ProjectOptions projectResults
 
             | None ->
                 match ctx.CheckFileResults with
-                | Some fileResults -> return! tryAnalyzeWithFileResults ctx.FileName fileResults ctx.TypedTree
+                | Some fileResults ->
+                    return!
+                        tryAnalyzeWithFileResults
+                            ctx.FileName
+                            ctx.ProjectOptions
+                            fileResults
+                            ctx.TypedTree
+                            None
                 | None -> return []
         }
 
     [<CliAnalyzer("FSharp.PureAnalyzer")>]
     let pureAnalyzerCli (ctx: CliContext) : Async<Message list> =
-        tryAnalyzeWithProjectResults ctx.FileName ctx.CheckProjectResults
+        tryAnalyzeWithProjectResults ctx.FileName ctx.ProjectOptions ctx.CheckProjectResults

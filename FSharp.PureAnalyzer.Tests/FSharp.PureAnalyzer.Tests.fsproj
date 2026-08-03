@@ -11,7 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="TestProcess.fs" />
     <Compile Include="CompositionTests.fs" />
+    <Compile Include="PathResolutionTests.fs" />
+    <Compile Include="ManifestIntegrationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

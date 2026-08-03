@@ -264,13 +264,19 @@ module Analysis =
 
         callGraph, (nonLocalMutation |> Set.ofSeq)
 
-    let isPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) (name: string) =
+    /// isKnownPure: true when the name is in the composed pure index (foundational + library embeds).
+    let isPure
+        (isKnownPure: string -> bool)
+        (callGraph: CallGraph)
+        (nonLocalMutation: Set<string>)
+        (name: string)
+        =
         let rec check visited name =
             if Set.contains name visited then
                 true
             elif Set.contains name nonLocalMutation then
                 false
-            elif PureSet.contains name then
+            elif isKnownPure name then
                 true
             else
                 match Map.tryFind name callGraph with
@@ -281,9 +287,13 @@ module Analysis =
 
         check Set.empty name
 
-    let findNonPure (callGraph: CallGraph) (nonLocalMutation: Set<string>) : Set<string> =
+    let findNonPure
+        (isKnownPure: string -> bool)
+        (callGraph: CallGraph)
+        (nonLocalMutation: Set<string>)
+        : Set<string> =
         callGraph
         |> Map.toSeq
         |> Seq.map fst
-        |> Seq.filter (fun name -> not (isPure callGraph nonLocalMutation name))
+        |> Seq.filter (fun name -> not (isPure isKnownPure callGraph nonLocalMutation name))
         |> Set.ofSeq
