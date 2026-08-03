@@ -76,15 +76,16 @@ jobs:
             --exclude '**/TestResults/' \
             "$SRC/" "$DST/"
 
-          cat > "$DST/.fspure-sync-source" <<EOF
-source_repo=e-St/fspure
-source_path=samples/fspure-ready-lib
-source_sha=${GITHUB_SHA}
-source_ref=${GITHUB_REF}
-synced_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-method=single-synthetic-commit
-EOF
+          # Write stamp with printf (avoid unindented heredoc — breaks YAML block scalars).
+          {
+            echo "source_repo=e-St/fspure"
+            echo "source_path=samples/fspure-ready-lib"
+            echo "source_sha=${GITHUB_SHA}"
+            echo "source_ref=${GITHUB_REF}"
+            echo "synced_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "method=single-synthetic-commit"
+          } > "$DST/.fspure-sync-source"
 
       - name: Commit and push (one synthetic commit; triggers satellite CI)
         env:
@@ -103,11 +104,12 @@ EOF
           fi
 
           SHORT_SHA="${GITHUB_SHA:0:7}"
-          git commit -m "sync from e-St/fspure@${SHORT_SHA}
+          MSG="sync from e-St/fspure@${SHORT_SHA}
 
           Source: samples/fspure-ready-lib
           Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
           "
+          git commit -m "$MSG"
 
           if [[ "${DRY_RUN}" == "true" ]]; then
             echo "Dry run: not pushing. Latest commit:"
