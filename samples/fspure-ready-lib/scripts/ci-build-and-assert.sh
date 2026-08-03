@@ -8,7 +8,7 @@ cd "$ROOT"
 
 CONFIGURATION="${CONFIGURATION:-Release}"
 VERSION="${FspureReadyLibVersion:-0.1.0-preview.1}"
-ANALYZER_VERSION="${FspureAnalyzerVersion:-0.1.0}"
+ANALYZER_VERSION="${FspureAnalyzerVersion:-0.3.2}"
 PKG_DIR="$ROOT/artifacts/packages"
 mkdir -p "$PKG_DIR" "$ROOT/artifacts"
 

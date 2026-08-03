@@ -14,7 +14,7 @@ on:
       fspure_analyzer_version:
         description: "FSharp.PureAnalyzer version to build against"
         required: true
-        default: "0.1.0"
+        default: "0.3.2"
       destination:
         description: "nuget.org | github | both"
         required: true

@@ -56,7 +56,7 @@ Until Phase 3 lands on nuget.org, run CI with a pre-seeded feed:
 | Package | Suggested version |
 |---------|-------------------|
 | `Fspure.ReadyLib` | `0.1.0-preview.N` until stable |
-| `FSharp.PureAnalyzer` | pin exactly (e.g. `0.1.0`) in `Directory.Packages.props` |
+| `FSharp.PureAnalyzer` | pin exactly (e.g. `0.3.2`) in `Directory.Packages.props` |
 
 ## What not to put in this repo
 

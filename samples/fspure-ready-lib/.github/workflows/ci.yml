@@ -10,7 +10,7 @@ on:
       fspure_analyzer_version:
         description: "FSharp.PureAnalyzer package version to restore"
         required: false
-        default: "0.1.0"
+        default: "0.3.2"
       fspure_analyzer_source:
         description: "Optional extra NuGet source (e.g. local feed or GitHub Packages URL)"
         required: false

@@ -18,7 +18,7 @@ In your **library** project (or `Directory.Build.props`):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="FSharp.PureAnalyzer" Version="0.1.0" PrivateAssets="all" />
+  <PackageReference Include="FSharp.PureAnalyzer" Version="0.3.2" PrivateAssets="all" />
 </ItemGroup>
 ```
 
