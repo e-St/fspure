@@ -38,11 +38,24 @@ flowchart LR
 
 ### Fine-grained PAT
 
-1. Create a fine-grained PAT with access **only** to **`fspure-ready-lib`**:
-   - **Contents:** Read and write  
-2. In **`e-St/fspure`** → **Settings → Secrets and variables → Actions**:
+1. Create a fine-grained PAT with access **only** to **`fspure-ready-lib`**.
+2. Under **Repository permissions**, set **both**:
+
+   | Permission | Access | Why |
+   |------------|--------|-----|
+   | **Contents** | **Read and write** | Clone, commit, push normal files |
+   | **Workflows** | **Read and write** | Required to create/update `.github/workflows/*.yml` |
+
+   Without **Workflows**, GitHub rejects the push with:
+
+   > refusing to allow a Personal Access Token to create or update workflow  
+   > `...` without `workflow` scope
+
+3. In **`e-St/fspure`** → **Settings → Secrets and variables → Actions**:
    - Name: **`FSPURE_READY_LIB_PUSH_TOKEN`**  
    - Value: the PAT  
+
+If you already created a token with only Contents, either **edit** that fine-grained token and add **Workflows: Read and write**, or generate a new one and update the secret.
 
 ### Branch protection on the satellite
 
