@@ -139,21 +139,59 @@ jobs:
             --version 0.1.0
           "$HOME/fspure-tools/purity-collector" --help
 
+      - name: Resolve shared framework assembly
+        id: runtime
+        run: |
+          set -euo pipefail
+          # setup-dotnet sets DOTNET_ROOT. Fall back to the directory that contains the
+          # `dotnet` host (one dirname — NOT two, which wrongly yields /usr/share/shared).
+          candidates=()
+          if [ -n "${DOTNET_ROOT:-}" ]; then
+            candidates+=("${DOTNET_ROOT}/shared/Microsoft.NETCore.App")
+          fi
+          if command -v dotnet >/dev/null 2>&1; then
+            dotnet_bin="$(command -v dotnet)"
+            resolved="$(readlink -f "$dotnet_bin" 2>/dev/null || echo "$dotnet_bin")"
+            candidates+=("$(dirname "$resolved")/shared/Microsoft.NETCore.App")
+          fi
+          candidates+=(
+            "/usr/share/dotnet/shared/Microsoft.NETCore.App"
+            "$HOME/.dotnet/shared/Microsoft.NETCore.App"
+          )
+
+          RUNTIME_DLL=""
+          for shared in "${candidates[@]}"; do
+            if [ ! -d "$shared" ]; then
+              continue
+            fi
+            # Prefer newest runtime band (10.x first if present, else any).
+            while IFS= read -r dir; do
+              [ -z "$dir" ] && continue
+              if [ -f "$dir/System.Runtime.dll" ]; then
+                RUNTIME_DLL="$dir/System.Runtime.dll"
+                break 2
+              fi
+            done < <( {
+              ls -d "$shared"/10.* 2>/dev/null || true
+              ls -d "$shared"/* 2>/dev/null || true
+            } | sort -V | tac )
+          done
+
+          if [ -z "$RUNTIME_DLL" ]; then
+            echo "Could not locate System.Runtime.dll. Tried:" >&2
+            printf '  - %s\n' "${candidates[@]}" >&2
+            exit 1
+          fi
+          echo "Using assembly: $RUNTIME_DLL"
+          echo "assembly=$RUNTIME_DLL" >> "$GITHUB_OUTPUT"
+
       - name: Smoke-run tool against a known assembly
         run: |
           set -euo pipefail
           mkdir -p artifacts/smoke
-          # Use the installed tool's own directory assemblies: analyze mscorlib-equivalent via defaults if available,
-          # otherwise analyze a system-managed assembly from the shared framework.
-          SHARED="$(dirname "$(dirname "$(readlink -f "$(command -v dotnet)")")")/shared/Microsoft.NETCore.App"
-          RUNTIME_DIR="$(ls -d "$SHARED"/10.* 2>/dev/null | sort -V | tail -n1 || true)"
-          if [ -z "${RUNTIME_DIR}" ] || [ ! -f "$RUNTIME_DIR/System.Runtime.dll" ]; then
-            echo "Could not locate System.Runtime.dll under $SHARED" >&2
-            exit 1
-          fi
           "$HOME/fspure-tools/purity-collector" \
             --defaults false \
-            --assembly "$RUNTIME_DIR/System.Runtime.dll" \
+            --assembly "${{ steps.runtime.outputs.assembly }}" \
             -o artifacts/smoke/smoke.pure.json \
             --package-id Smoke.SystemRuntime \
             --package-version 0.0.0 \
@@ -183,11 +221,9 @@ jobs:
             ]
           }
           EOF
-          SHARED="$(dirname "$(dirname "$(readlink -f "$(command -v dotnet)")")")/shared/Microsoft.NETCore.App"
-          RUNTIME_DIR="$(ls -d "$SHARED"/10.* 2>/dev/null | sort -V | tail -n1)"
           "$HOME/fspure-tools/purity-collector" \
             --defaults false \
-            --assembly "$RUNTIME_DIR/System.Runtime.dll" \
+            --assembly "${{ steps.runtime.outputs.assembly }}" \
             --merge-with artifacts/smoke/extra.pure.json \
             -o artifacts/smoke/merged.pure.json \
             --package-id Smoke.Merged \
