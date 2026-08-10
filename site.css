@@ -239,110 +239,107 @@ a:focus-visible {
   white-space: nowrap;
 }
 
-/* ---------- Code / terminal boxes ---------- */
+/* ---------- Code boxes (academic / print-like) ---------- */
 :root {
-  --code-bg: #2a211c;
-  --code-bg-2: #342820;
-  --code-fg: #f6e9d8;
-  --code-muted: #c4a88a;
-  --code-accent: #7eb8a0;
-  --code-border: rgba(74, 52, 40, 0.35);
-  --code-shadow: 0 10px 28px rgba(74, 52, 40, 0.18), 0 2px 6px rgba(74, 52, 40, 0.1);
-  --code-label-bg: rgba(126, 184, 160, 0.16);
-  --code-label-fg: #9fd4bc;
+  --code-paper: #fbf7f0;
+  --code-paper-edge: #e8dcc8;
+  --code-ink: #2c241e;
+  --code-caption: #6b5646;
+  --code-rule: #c4b09a;
+  --code-rule-strong: #8a735c;
 }
 
-/* Labeled box: preferred for site pages */
+/* Labeled listing: plain caption + ruled paper panel (no window chrome) */
 .codebox {
   position: relative;
-  margin: 1rem 0 1.35rem;
-  border-radius: 0.7rem;
-  border: 1px solid var(--code-border);
-  background:
-    linear-gradient(165deg, var(--code-bg-2) 0%, var(--code-bg) 55%, #231b17 100%);
-  box-shadow: var(--code-shadow);
+  margin: 1.15rem 0 1.5rem;
+  border: 1px solid var(--code-rule);
+  border-left: 3px solid var(--code-rule-strong);
+  border-radius: 2px;
+  background: var(--code-paper);
+  box-shadow: none;
   overflow: hidden;
 }
 
 .codebox figcaption,
 .codebox .codebox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: block;
   margin: 0;
-  padding: 0.55rem 0.9rem 0.45rem;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--code-label-fg);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
-  border-bottom: 1px solid rgba(246, 233, 216, 0.08);
+  padding: 0.4rem 0.85rem 0.35rem;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--code-caption);
+  background: transparent;
+  border-bottom: 1px solid var(--code-paper-edge);
 }
 
+/* no decorative dots / traffic lights */
 .codebox figcaption::before,
 .codebox .codebox-label::before {
-  content: "";
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--code-accent);
-  box-shadow:
-    0 0 0 2px rgba(126, 184, 160, 0.2),
-    1.1rem 0 0 #e2a66a,
-    2.2rem 0 0 #c47b6a;
-  margin-right: 2.4rem;
-  flex-shrink: 0;
+  content: none;
+  display: none;
 }
 
-.codebox[data-lang="shell"] figcaption,
-.codebox[data-lang="bash"] figcaption,
-.codebox[data-lang="shell"] .codebox-label,
-.codebox[data-lang="bash"] .codebox-label {
-  color: #9fd4bc;
+.codebox[data-lang="shell"] figcaption::after,
+.codebox[data-lang="bash"] figcaption::after {
+  content: " · shell";
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.65;
+  font-size: 0.72rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.codebox[data-lang="json"] figcaption,
-.codebox[data-lang="json"] .codebox-label {
-  color: #e2c07a;
+.codebox[data-lang="json"] figcaption::after {
+  content: " · json";
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.65;
+  font-size: 0.72rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.codebox[data-lang="fsharp"] figcaption,
-.codebox[data-lang="fsharp"] .codebox-label,
-.codebox[data-lang="xml"] figcaption,
-.codebox[data-lang="xml"] .codebox-label {
-  color: #9bb8e8;
+.codebox[data-lang="fsharp"] figcaption::after,
+.codebox[data-lang="xml"] figcaption::after {
+  content: none;
 }
 
 .codebox pre,
 .legal pre {
   margin: 0;
-  padding: 0.95rem 1.1rem 1.1rem;
+  padding: 0.75rem 0.9rem 0.9rem;
   overflow-x: auto;
   background: transparent;
   border: none;
   border-radius: 0;
-  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.86rem;
-  line-height: 1.55;
-  color: var(--code-fg);
+  font-family: "Latin Modern Mono", "Courier New", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--code-ink);
   tab-size: 2;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Bare pre (no figure) still looks like a box */
+/* Bare pre still matches the listing style */
 .legal > pre,
 .legal p + pre,
 .legal h2 + pre {
-  margin: 1rem 0 1.35rem;
-  padding: 1rem 1.1rem;
-  border-radius: 0.7rem;
-  border: 1px solid var(--code-border);
-  background:
-    linear-gradient(165deg, var(--code-bg-2) 0%, var(--code-bg) 55%, #231b17 100%);
-  box-shadow: var(--code-shadow);
-  color: var(--code-fg);
+  margin: 1.15rem 0 1.5rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--code-rule);
+  border-left: 3px solid var(--code-rule-strong);
+  border-radius: 2px;
+  background: var(--code-paper);
+  box-shadow: none;
+  color: var(--code-ink);
 }
 
 .codebox pre code,
@@ -358,12 +355,6 @@ a:focus-visible {
   word-break: normal;
 }
 
-/* Soft syntax accents inside code boxes (no highlighter required) */
-.codebox[data-lang="shell"] code::first-line,
-.codebox[data-lang="bash"] code::first-line {
-  /* visual cue: commands read as one block */
-}
-
 .placeholder {
   background: rgba(184, 125, 82, 0.18);
   border-radius: 0.2em;
@@ -373,13 +364,8 @@ a:focus-visible {
 @media (max-width: 520px) {
   .codebox pre,
   .legal pre {
-    font-size: 0.8rem;
-    padding-left: 0.85rem;
-    padding-right: 0.85rem;
-  }
-
-  .codebox figcaption::before,
-  .codebox .codebox-label::before {
-    margin-right: 2rem;
+    font-size: 0.78rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }
