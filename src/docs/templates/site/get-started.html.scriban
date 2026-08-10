@@ -36,12 +36,12 @@
 
     <h2>1. Add the analyzer to your project</h2>
     <figure class="codebox" data-lang="shell">
-      <figcaption>Terminal · .NET CLI</figcaption>
+      <figcaption>Command line</figcaption>
       <pre><code>dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}</code></pre>
     </figure>
     <p>Or with Paket:</p>
     <figure class="codebox" data-lang="shell">
-      <figcaption>paket.dependencies</figcaption>
+      <figcaption>Paket</figcaption>
       <pre><code>nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}</code></pre>
     </figure>
     <p>
@@ -62,7 +62,7 @@
     <h2>3. Turn on analyzers in the workspace</h2>
     <p>Create or edit <code>.vscode/settings.json</code>:</p>
     <figure class="codebox" data-lang="json">
-      <figcaption>.vscode/settings.json</figcaption>
+      <figcaption>Workspace settings</figcaption>
       <pre><code>{{ MinimalSettingsJson }}</code></pre>
     </figure>
 
