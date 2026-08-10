@@ -32,11 +32,31 @@ scan_nuget_project() {
     return 0
   fi
   log "--> $proj"
-  # Restore so assets exist for list package
-  if ! dotnet restore "$proj" -v q >/dev/null 2>&1; then
-    die_soft "restore failed: $proj"
-    return 0
+  # Restore so assets exist for list package.
+  # - TreatWarningsAsErrors=false: NuGet auth warnings (e.g. unauthenticated github-e-st
+  #   source in sample NuGet.Config) must not fail the audit restore.
+  # - RestoreIgnoreFailedSources=true: fall back to nuget.org when optional feeds 401.
+  # - Prefer nuget.org as an explicit source so public packages always resolve.
+  local restore_log
+  restore_log="$(mktemp)"
+  if ! dotnet restore "$proj" \
+    --source "https://api.nuget.org/v3/index.json" \
+    /p:TreatWarningsAsErrors=false \
+    /p:RestoreIgnoreFailedSources=true \
+    -v q >"$restore_log" 2>&1; then
+    # Retry without forcing a single source (paket / multi-source projects).
+    if ! dotnet restore "$proj" \
+      /p:TreatWarningsAsErrors=false \
+      /p:RestoreIgnoreFailedSources=true \
+      -v q >>"$restore_log" 2>&1; then
+      cat "$restore_log" >&2 || true
+      rm -f "$restore_log"
+      die_soft "restore failed: $proj"
+      return 0
+    fi
   fi
+  rm -f "$restore_log"
+
   local out
   out="$(dotnet list "$proj" package --vulnerable --include-transitive 2>&1 || true)"
   echo "$out"
