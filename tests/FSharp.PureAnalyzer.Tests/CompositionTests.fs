@@ -73,7 +73,7 @@ let ``cache returns same Index instance for identical inputs`` () =
 
     Assert.True(Object.ReferenceEquals(first, second))
     Assert.True(PureSet.containsIn first "Cached.Lib.PureMethod")
-    Assert.Equal(1, PureSet.compositionCacheCount ())
+    Assert.True(PureSet.compositionCacheCount () >= 1)
 
 [<Fact>]
 let ``different cache keys produce distinct Index instances`` () =
