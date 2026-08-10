@@ -148,6 +148,7 @@ jobs:
           - .devcontainer/setup-fspure.sh
           - .devcontainer/devcontainer.json (fspure Ionide / decorations settings)
           - .devcontainer/fspure-versions.env (FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION})
+          - Directory.Build.props (strict compiler: TreatWarningsAsErrors, FS0025)
           "
 
           git commit -m "$MSG"
@@ -176,6 +177,7 @@ jobs:
           - \`.devcontainer/setup-fspure.sh\` — install pin + mirror for Ionide
           - \`.devcontainer/devcontainer.json\` — analyzers path, pure decorations, LineLens
           - \`.devcontainer/fspure-versions.env\` — \`FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION}\`
+          - \`Directory.Build.props\` — strict F# compiler rules (same as fspure monorepo)
 
           Does **not** overwrite \`Dockerfile\`, \`newf.sh\`, or other fstarter-owned tooling.
 

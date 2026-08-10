@@ -55,9 +55,11 @@ let add a b =  // unit -> 'a -> unit  impure
 integrations/fstarter/
   versions.env                 # FSPURE_ANALYZER_VERSION pin
   optional-newf.md             # optional newf.sh notes
-  overlay/.devcontainer/
-    devcontainer.json          # fspure-enabled Codespace settings
-    setup-fspure.sh            # install analyzer + decorations
+  overlay/
+    Directory.Build.props      # same strict F# rules as fspure monorepo
+    .devcontainer/
+      devcontainer.json        # fspure-enabled Codespace settings
+      setup-fspure.sh          # install analyzer + decorations
 ```
 
 ## Optional: newf package reference

@@ -1,16 +1,25 @@
 <Project>
+  <!--
+    Repo-wide compiler strictness (aligned with e-St/fstarter Directory.Build.props).
+    Applies to every project under this tree (analyzer, collector, tests, fixtures, samples
+    that do not override these properties).
+
+    Intent: local Debug builds, CI, and pack all use the same hard fail-on-warning rules.
+  -->
   <PropertyGroup>
-    <!-- === Compiler Strictness ===
-         FS0025 = incomplete pattern match. Treating this as an error turns F#'s
-         exhaustive matching into a hard compile-time guarantee (see
-         https://fsharpforfunandprofit.com on domain modeling / exhaustive matching). -->
+    <!-- FS0025 = incomplete pattern match → hard error in every configuration. -->
     <WarningsAsErrors>$(WarningsAsErrors);FS0025</WarningsAsErrors>
 
     <!-- Modern .NET defaults -->
     <Nullable>enable</Nullable>
+    <LangVersion Condition="'$(LangVersion)' == ''">latest</LangVersion>
 
-    <!-- Stricter in Release/CI builds: fail on any warning, with a small allow-list. -->
-    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors Condition="'$(Configuration)' == 'Release'">$(WarningsNotAsErrors);FS0049;FS0020</WarningsNotAsErrors>
+    <!-- Fail the build on any warning (Debug, Release, and CI). -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Small allow-list: FS0049 (uppercase identifiers), FS0020 (this value is unused). -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);FS0049;FS0020</WarningsNotAsErrors>
+
+    <!-- Deterministic CI-friendly defaults when ContinuousIntegrationBuild is set by agents. -->
+    <ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == '' and '$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>

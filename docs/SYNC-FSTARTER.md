@@ -29,6 +29,7 @@ flowchart LR
 | `.devcontainer/setup-fspure.sh` | `integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
 | `.devcontainer/devcontainer.json` | overlay (fspure Ionide / decorations settings) |
 | `.devcontainer/fspure-versions.env` | generated pin (`FSPURE_ANALYZER_VERSION=…`) |
+| `Directory.Build.props` | strict compiler rules (FS0025, TreatWarningsAsErrors, Nullable) |
 | `.fspure-sync-source` | sync metadata |
 | `.gitignore` | ensures `**/analyzers/` is ignored |
 
