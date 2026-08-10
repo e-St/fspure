@@ -52,7 +52,7 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\..\docs\NOTICE" Pack="true" PackagePath="\" />
+    <None Include="..\docs\NOTICE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Place the analyzer DLL (and PureSchema dependency) where Ionide expects them -->
