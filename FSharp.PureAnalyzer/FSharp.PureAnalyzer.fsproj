@@ -25,9 +25,9 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
-    <!-- Paths used when packing MSBuild + purity-collector tooling -->
+    <!-- Paths used when packing MSBuild + fspure-collector tooling -->
     <_FspureTasksOut>$(MSBuildThisFileDirectory)..\msbuild\Fspure.BuildTasks\bin\$(Configuration)\net10.0\</_FspureTasksOut>
-    <_FspureCollectorPublish>$(MSBuildThisFileDirectory)..\artifacts\purity-collector-publish\</_FspureCollectorPublish>
+    <_FspureCollectorPublish>$(MSBuildThisFileDirectory)..\artifacts\fspure-collector-publish\</_FspureCollectorPublish>
   </PropertyGroup>
 
   <ItemGroup>
@@ -74,11 +74,11 @@
   </ItemGroup>
 
   <!--
-    Stage BuildTasks + purity-collector into the nupkg before GenerateNuspec.
+    Stage BuildTasks + fspure-collector into the nupkg before GenerateNuspec.
     Pack items are added here only (once) to avoid NU5118 duplicates.
   -->
   <Target Name="PrepareFspurePackageTools" BeforeTargets="GenerateNuspec;_GetPackageFiles;Pack">
-    <Message Importance="high" Text="Fspure: building BuildTasks + publishing purity-collector for package layout..." />
+    <Message Importance="high" Text="Fspure: building BuildTasks + publishing fspure-collector for package layout..." />
 
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\msbuild\Fspure.BuildTasks\Fspure.BuildTasks.csproj"
              Targets="Restore;Build"
@@ -94,13 +94,13 @@
           SkipUnchangedFiles="true" />
 
     <MakeDir Directories="$(_FspureCollectorPublish)" />
-    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\purity-collector\purity-collector.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCollectorPublish)&quot; --nologo -v q" />
+    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\fspure-collector\fspure-collector.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCollectorPublish)&quot; --nologo -v q" />
 
     <ItemGroup>
       <_FspureCollectorFiles Include="$(_FspureCollectorPublish)**\*.*" />
       <None Include="@(_FspureCollectorFiles)"
             Pack="true"
-            PackagePath="tools\purity-collector\%(RecursiveDir)%(Filename)%(Extension)"
+            PackagePath="tools\fspure-collector\%(RecursiveDir)%(Filename)%(Extension)"
             Visible="false" />
 
       <None Include="$(MSBuildThisFileDirectory)build\Fspure.BuildTasks.dll"

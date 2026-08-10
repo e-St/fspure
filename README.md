@@ -252,7 +252,7 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 
 - **Interactive IDE:** open the repo in Codespaces or “Reopen in Container” → root [`.devcontainer/`](.devcontainer/) (“fspure IDE”)
 - **CI pack/build:** [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) (not the IDE container)
-- Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
+- Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `fspure-collector`)
 - Customer e2e (separate container): [e2e/README.md](e2e/README.md)
 - Library-embed gate: [e2e/ready-lib/README.md](e2e/ready-lib/README.md) · workflow `fspure-ready-lib-gate.yml`
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)

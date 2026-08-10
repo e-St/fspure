@@ -190,7 +190,7 @@ Escape hatch for methods the Core-centric heuristics miss."
 
     let root =
         RootCommand(
-            "purity-collector – generate a PureFile (.pure.json) whitelist from managed assemblies. \
+            "fspure-collector – generate a PureFile (.pure.json) whitelist from managed assemblies. \
 Optionally merge author-supplied pure.json files via --merge-with."
         )
 

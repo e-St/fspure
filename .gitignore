@@ -11,7 +11,7 @@ e2e/phase2/playwright/node_modules/
 # Local `dotnet pack` output (see FSharp.PureAnalyzer/update-analyzer.sh)
 *.nupkg
 **/nupkgs/
-# Local tool feed / CI smoke outputs (purity-collector pack & smoke)
+# Local tool feed / CI smoke outputs (fspure-collector pack & smoke)
 artifacts/
 # Staged into the package at pack time (not committed)
 FSharp.PureAnalyzer/build/*.dll

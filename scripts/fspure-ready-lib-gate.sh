@@ -81,7 +81,7 @@ paket_restore() {
 step "Pack FSharp.PureAnalyzer $VERSION → $FEED"
 # ---------------------------------------------------------------------------
 paket_restore "$ROOT/FSharp.PureAnalyzer"
-paket_restore "$ROOT/purity-collector"
+paket_restore "$ROOT/fspure-collector"
 
 dotnet pack "$ROOT/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" \
   -c "$CONFIGURATION" \
@@ -101,8 +101,8 @@ trap 'rm -rf "$TMP_AN"' EXIT
 unzip -q "$ANALYZER_NUPKG" -d "$TMP_AN"
 [[ -f "$TMP_AN/build/FSharp.PureAnalyzer.targets" ]] \
   || die "packed analyzer missing build/FSharp.PureAnalyzer.targets"
-[[ -f "$TMP_AN/tools/purity-collector/purity-collector.dll" ]] \
-  || die "packed analyzer missing tools/purity-collector/purity-collector.dll"
+[[ -f "$TMP_AN/tools/fspure-collector/fspure-collector.dll" ]] \
+  || die "packed analyzer missing tools/fspure-collector/fspure-collector.dll"
 [[ -f "$TMP_AN/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll" ]] \
   || die "packed analyzer missing analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
 [[ -f "$TMP_AN/analyzers/dotnet/fs/FSharp.PureSchema.dll" ]] \

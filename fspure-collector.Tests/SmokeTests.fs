@@ -1,6 +1,6 @@
 /// Smoke-level checks that a well-formed .pure.json document matches the
 /// frozen PureFile schema (used after the collector tool produces output).
-module purity_collector.Tests.SmokeTests
+module fspure_collector.Tests.SmokeTests
 
 open System
 open System.Diagnostics
@@ -16,7 +16,7 @@ let ``well-formed pure.json from fixture parses as schema 1.0`` () =
   "packageId": "Smoke.Fixture",
   "packageVersion": "0.0.0",
   "generatedAt": "2026-08-03T00:00:00.0000000+00:00",
-  "generator": "fsharp-pure-analyzer/purity-collector/0.1.0",
+  "generator": "fsharp-pure-analyzer/fspure-collector/0.1.0",
   "pureMethods": [
     { "fullName": "System.String.Concat", "origin": "automatic" }
   ]
@@ -31,14 +31,14 @@ let ``well-formed pure.json from fixture parses as schema 1.0`` () =
 
 [<Fact>]
 let ``collector tool binary when present produces well-formed pure.json`` () =
-    // Optional smoke: only runs when PURITY_COLLECTOR_DLL is set by CI after build/pack.
-    match Environment.GetEnvironmentVariable("PURITY_COLLECTOR_DLL") with
+    // Optional smoke: only runs when FSPURE_COLLECTOR_DLL is set by CI after build/pack.
+    match Environment.GetEnvironmentVariable("FSPURE_COLLECTOR_DLL") with
     | null
     | "" ->
         // Local `dotnet test` without the env var still passes; CI sets the var after pack/build.
         Assert.True(true)
     | toolPath when not (File.Exists toolPath) ->
-        Assert.Fail($"PURITY_COLLECTOR_DLL points to missing file: {toolPath}")
+        Assert.Fail($"FSPURE_COLLECTOR_DLL points to missing file: {toolPath}")
     | toolPath ->
         let work =
             Path.Combine(Path.GetTempPath(), "fspure-collector-smoke", Guid.NewGuid().ToString("N"))
@@ -59,7 +59,7 @@ let ``collector tool binary when present produces well-formed pure.json`` () =
                 )
 
             match Process.Start(psi) with
-            | null -> Assert.Fail("failed to start purity-collector process")
+            | null -> Assert.Fail("failed to start fspure-collector process")
             | proc ->
                 use proc = proc
                 let stdout = proc.StandardOutput.ReadToEnd()

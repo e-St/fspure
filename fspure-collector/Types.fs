@@ -62,7 +62,7 @@ module Constants =
     let SchemaVersion = FSharp.PureSchema.SchemaVersion.Current
 
     [<Literal>]
-    let GeneratorName = "fsharp-pure-analyzer/purity-collector"
+    let GeneratorName = "fsharp-pure-analyzer/fspure-collector"
 
     [<Literal>]
     let GeneratorVersion = "0.1.0"

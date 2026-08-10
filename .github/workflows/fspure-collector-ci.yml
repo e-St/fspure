@@ -1,23 +1,23 @@
-# Phase 0 gate: PureFile schema, purity-collector tool pack/install, merge, smoke.
+# Phase 0 gate: PureFile schema, fspure-collector tool pack/install, merge, smoke.
 # Keeps the collector story green without touching the analyser.
-name: Purity Collector CI
+name: Fspure Collector CI
 
 on:
   push:
     branches: [main]
     paths:
-      - "purity-collector/**"
-      - "purity-collector.Tests/**"
+      - "fspure-collector/**"
+      - "fspure-collector.Tests/**"
       - "schema/**"
       - "fspure.slnx"
-      - ".github/workflows/purity-collector-ci.yml"
+      - ".github/workflows/fspure-collector-ci.yml"
   pull_request:
     paths:
-      - "purity-collector/**"
-      - "purity-collector.Tests/**"
+      - "fspure-collector/**"
+      - "fspure-collector.Tests/**"
       - "schema/**"
       - "fspure.slnx"
-      - ".github/workflows/purity-collector-ci.yml"
+      - ".github/workflows/fspure-collector-ci.yml"
   workflow_dispatch:
 
 permissions:
@@ -51,7 +51,7 @@ jobs:
           --no-restore
           --verbosity normal
 
-  purity-collector-build-and-tests:
+  fspure-collector-build-and-tests:
     name: Purity collector build, merge tests, pack as tool
     runs-on: ubuntu-latest
     needs: pure-schema-tests
@@ -68,8 +68,8 @@ jobs:
         run: dotnet tool restore || dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
         # Prefer repo local tools if present; fall back to a user tool install.
 
-      - name: Restore purity-collector (paket)
-        working-directory: purity-collector
+      - name: Restore fspure-collector (paket)
+        working-directory: fspure-collector
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then
@@ -81,22 +81,22 @@ jobs:
             "$HOME/.dotnet/tools/paket" restore
           fi
 
-      - name: Build purity-collector
-        run: dotnet build purity-collector/purity-collector.fsproj -c ${{ env.CONFIGURATION }} --nologo
+      - name: Build fspure-collector
+        run: dotnet build fspure-collector/fspure-collector.fsproj -c ${{ env.CONFIGURATION }} --nologo
 
       - name: Test collector merge + schema smoke
         env:
-          PURITY_COLLECTOR_DLL: ${{ github.workspace }}/purity-collector/bin/${{ env.CONFIGURATION }}/net10.0/purity-collector.dll
+          FSPURE_COLLECTOR_DLL: ${{ github.workspace }}/fspure-collector/bin/${{ env.CONFIGURATION }}/net10.0/fspure-collector.dll
         run: >
-          dotnet test purity-collector.Tests/purity-collector.Tests.fsproj
+          dotnet test fspure-collector.Tests/fspure-collector.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
 
-      - name: Pack purity-collector as dotnet tool
+      - name: Pack fspure-collector as dotnet tool
         run: |
           set -euo pipefail
           mkdir -p artifacts/local-feed
-          dotnet pack purity-collector/purity-collector.fsproj \
+          dotnet pack fspure-collector/fspure-collector.fsproj \
             -c ${{ env.CONFIGURATION }} \
             --no-build \
             -o artifacts/local-feed \
@@ -106,14 +106,14 @@ jobs:
       - name: Upload tool nupkg (local feed artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: purity-collector-tool-nupkg
+          name: fspure-collector-tool-nupkg
           path: artifacts/local-feed/*.nupkg
           if-no-files-found: error
 
-  purity-collector-tool-install-smoke:
+  fspure-collector-tool-install-smoke:
     name: Purity collector tool install smoke
     runs-on: ubuntu-latest
-    needs: purity-collector-build-and-tests
+    needs: fspure-collector-build-and-tests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,18 +126,18 @@ jobs:
       - name: Download tool nupkg
         uses: actions/download-artifact@v4
         with:
-          name: purity-collector-tool-nupkg
+          name: fspure-collector-tool-nupkg
           path: artifacts/local-feed
 
-      - name: Install purity-collector from local feed
+      - name: Install fspure-collector from local feed
         run: |
           set -euo pipefail
           ls -lh artifacts/local-feed
-          dotnet tool install purity-collector \
+          dotnet tool install fspure-collector \
             --add-source "$(pwd)/artifacts/local-feed" \
             --tool-path "$HOME/fspure-tools" \
             --version 0.1.0
-          "$HOME/fspure-tools/purity-collector" --help
+          "$HOME/fspure-tools/fspure-collector" --help
 
       - name: Resolve shared framework assembly
         id: runtime
@@ -189,7 +189,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/smoke
-          "$HOME/fspure-tools/purity-collector" \
+          "$HOME/fspure-tools/fspure-collector" \
             --defaults false \
             --assembly "${{ steps.runtime.outputs.assembly }}" \
             -o artifacts/smoke/smoke.pure.json \
@@ -221,7 +221,7 @@ jobs:
             ]
           }
           EOF
-          "$HOME/fspure-tools/purity-collector" \
+          "$HOME/fspure-tools/fspure-collector" \
             --defaults false \
             --assembly "${{ steps.runtime.outputs.assembly }}" \
             --merge-with artifacts/smoke/extra.pure.json \
@@ -241,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           set +e
-          "$HOME/fspure-tools/purity-collector" --defaults false -o /tmp/should-not-exist.pure.json
+          "$HOME/fspure-tools/fspure-collector" --defaults false -o /tmp/should-not-exist.pure.json
           code=$?
           set -e
           test "$code" -ne 0
@@ -250,6 +250,6 @@ jobs:
       - name: Upload smoke artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: purity-collector-smoke-output
+          name: fspure-collector-smoke-output
           path: artifacts/smoke/
           if-no-files-found: error

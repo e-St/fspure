@@ -1,18 +1,18 @@
 <Project>
   <!--
-    Fspure Phase 3: after CoreBuild, run purity-collector on $(TargetPath),
+    Fspure Phase 3: after CoreBuild, run fspure-collector on $(TargetPath),
     optionally merge pure-extra.json, then embed the result into the DLL.
 
     Package layout:
       build/FSharp.PureAnalyzer.props|.targets
       build/Fspure.BuildTasks.dll (+ Mono.Cecil.dll)
-      tools/purity-collector/purity-collector.dll (+ deps)
+      tools/fspure-collector/fspure-collector.dll (+ deps)
   -->
 
   <PropertyGroup>
     <_FspureBuildDir>$(MSBuildThisFileDirectory)</_FspureBuildDir>
     <_FspureTasksAssembly Condition="'$(_FspureTasksAssembly)' == ''">$(_FspureBuildDir)Fspure.BuildTasks.dll</_FspureTasksAssembly>
-    <_FspureCollectorDll Condition="'$(_FspureCollectorDll)' == ''">$(_FspureBuildDir)..\tools\purity-collector\purity-collector.dll</_FspureCollectorDll>
+    <_FspureCollectorDll Condition="'$(_FspureCollectorDll)' == ''">$(_FspureBuildDir)..\tools\fspure-collector\fspure-collector.dll</_FspureCollectorDll>
   </PropertyGroup>
 
   <UsingTask TaskName="EmbedPureJson"
@@ -45,13 +45,13 @@
     </PropertyGroup>
 
     <Warning Condition="!Exists('$(_FspureCollectorDllFull)')"
-             Text="Fspure: purity-collector not found at '$(_FspureCollectorDllFull)'; skipping pure.json embed." />
+             Text="Fspure: fspure-collector not found at '$(_FspureCollectorDllFull)'; skipping pure.json embed." />
     <PropertyGroup Condition="!Exists('$(_FspureCollectorDllFull)')">
       <_FspureSkipEmbed>true</_FspureSkipEmbed>
     </PropertyGroup>
 
     <Error Condition="'$(_FspureSkipEmbed)' == 'true' and '$(FspureEmbedPureJsonTreatAsError)' == 'true' and !Exists('$(_FspureCollectorDllFull)')"
-           Text="Fspure: purity-collector not found at '$(_FspureCollectorDllFull)'. Reinstall/pack FSharp.PureAnalyzer, or set _FspureCollectorDll." />
+           Text="Fspure: fspure-collector not found at '$(_FspureCollectorDllFull)'. Reinstall/pack FSharp.PureAnalyzer, or set _FspureCollectorDll." />
 
     <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_FspurePureJsonOut)'))"
              Condition="'$(_FspureSkipEmbed)' != 'true'" />
@@ -75,7 +75,7 @@
     </Exec>
 
     <Error Condition="'$(_FspureSkipEmbed)' != 'true' and '$(FspureEmbedPureJsonTreatAsError)' == 'true' and '$(_FspureCollectorExitCode)' != '0' and '$(_FspureCollectorExitCode)' != ''"
-           Text="Fspure: purity-collector failed with exit code $(_FspureCollectorExitCode)." />
+           Text="Fspure: fspure-collector failed with exit code $(_FspureCollectorExitCode)." />
 
     <Error Condition="'$(_FspureSkipEmbed)' != 'true' and '$(FspureEmbedPureJsonTreatAsError)' == 'true' and !Exists('$(_FspurePureJsonOut)')"
            Text="Fspure: expected pure.json at '$(_FspurePureJsonOut)' after collector run." />

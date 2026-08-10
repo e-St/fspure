@@ -4,8 +4,8 @@
   <Project Path="schema/fixtures/ZeroPureResources/ZeroPureResources.csproj" />
   <Project Path="schema/fixtures/SinglePureResource/SinglePureResource.csproj" />
   <Project Path="schema/fixtures/MultiPureResources/MultiPureResources.csproj" />
-  <Project Path="purity-collector/purity-collector.fsproj" />
-  <Project Path="purity-collector.Tests/purity-collector.Tests.fsproj" />
+  <Project Path="fspure-collector/fspure-collector.fsproj" />
+  <Project Path="fspure-collector.Tests/fspure-collector.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />

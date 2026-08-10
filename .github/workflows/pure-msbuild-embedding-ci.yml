@@ -9,7 +9,7 @@ on:
       - "FSharp.PureAnalyzer/**"
       - "FSharp.PureAnalyzer.Tests/**"
       - "msbuild/**"
-      - "purity-collector/**"
+      - "fspure-collector/**"
       - "schema/**"
       - "fspure.slnx"
       - ".github/workflows/pure-msbuild-embedding-ci.yml"
@@ -18,7 +18,7 @@ on:
       - "FSharp.PureAnalyzer/**"
       - "FSharp.PureAnalyzer.Tests/**"
       - "msbuild/**"
-      - "purity-collector/**"
+      - "fspure-collector/**"
       - "schema/**"
       - "fspure.slnx"
       - ".github/workflows/pure-msbuild-embedding-ci.yml"
@@ -34,7 +34,7 @@ env:
 
 jobs:
   build-tasks-and-collector:
-    name: Build embed tasks and purity-collector
+    name: Build embed tasks and fspure-collector
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -56,13 +56,13 @@ jobs:
       - name: Build Fspure.BuildTasks
         run: dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c ${{ env.CONFIGURATION }} --nologo
 
-      - name: Restore and publish purity-collector
-        working-directory: purity-collector
+      - name: Restore and publish fspure-collector
+        working-directory: fspure-collector
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
-          mkdir -p ../artifacts/purity-collector-publish
-          dotnet publish -c ${{ env.CONFIGURATION }} -f net10.0 -o ../artifacts/purity-collector-publish --nologo
+          mkdir -p ../artifacts/fspure-collector-publish
+          dotnet publish -c ${{ env.CONFIGURATION }} -f net10.0 -o ../artifacts/fspure-collector-publish --nologo
 
   msbuild-embedding-tests:
     name: MSBuild embedding unit tests
@@ -91,8 +91,8 @@ jobs:
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
-      - name: Restore purity-collector (paket)
-        working-directory: purity-collector
+      - name: Restore fspure-collector (paket)
+        working-directory: fspure-collector
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
@@ -114,7 +114,7 @@ jobs:
       - name: Gate summary
         run: |
           echo "Phase 3 gate green:"
-          echo "  - BuildTasks + purity-collector publish"
+          echo "  - BuildTasks + fspure-collector publish"
           echo "  - pure.json embedded as {AssemblyName}.pure.json"
           echo "  - pure-extra.json merge"
           echo "  - FSharp.PureAnalyzer nupkg ships build/ + tools/"

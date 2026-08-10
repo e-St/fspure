@@ -4,17 +4,17 @@
     <OutputType>Exe</OutputType>
     <NoWarn>$(NoWarn);NU1510</NoWarn>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>purity_collector</RootNamespace>
-    <AssemblyName>purity-collector</AssemblyName>
+    <RootNamespace>fspure_collector</RootNamespace>
+    <AssemblyName>fspure-collector</AssemblyName>
 
     <!-- Pack as an installable dotnet tool (net10.0) -->
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>purity-collector</ToolCommandName>
+    <ToolCommandName>fspure-collector</ToolCommandName>
     <IsPackable>true</IsPackable>
-    <PackageId>purity-collector</PackageId>
+    <PackageId>fspure-collector</PackageId>
     <Version>0.1.0</Version>
     <Description>Generate PureFile (.pure.json) pure-method whitelists from managed assemblies for fspure / FSharp.PureAnalyzer.</Description>
-    <PackageTags>fsharp;pure;functional;purity;dotnet-tool</PackageTags>
+    <PackageTags>fsharp;fspure;pure;functional;dotnet-tool</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/e-St/fspure</PackageProjectUrl>
     <RepositoryUrl>https://github.com/e-St/fspure</RepositoryUrl>

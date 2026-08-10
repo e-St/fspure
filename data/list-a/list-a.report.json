@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "generatedAt": "2026-08-01T06:47:48.4536477\u002B00:00",
-  "generator": "fsharp-pure-analyzer/purity-collector/0.1.0",
+  "generator": "fsharp-pure-analyzer/fspure-collector/0.1.0",
   "packageId": "FSharp.Core\u002BBCL",
   "packageVersion": "10.1.0",
   "analyzedAssemblies": [
@@ -20,7 +20,7 @@
     "/usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.10/System.Text.Json.dll",
     "/usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.10/System.Text.RegularExpressions.dll",
     "/usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.10/System.Threading.dll",
-    "/workspaces/fspure/purity-collector/bin/Release/net10.0/FSharp.Core.dll"
+    "/workspaces/fspure/fspure-collector/bin/Release/net10.0/FSharp.Core.dll"
   ],
   "totalMethods": 56441,
   "pureMethodCount": 6362,

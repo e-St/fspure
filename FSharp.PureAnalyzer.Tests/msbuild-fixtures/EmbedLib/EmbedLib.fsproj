@@ -25,7 +25,7 @@
   <PropertyGroup>
     <!-- Point at in-repo build outputs for collector + embed task. -->
     <_FspureTasksAssembly>$(MSBuildThisFileDirectory)..\..\..\msbuild\Fspure.BuildTasks\bin\$(Configuration)\net10.0\Fspure.BuildTasks.dll</_FspureTasksAssembly>
-    <_FspureCollectorDll>$(MSBuildThisFileDirectory)..\..\..\artifacts\purity-collector-publish\purity-collector.dll</_FspureCollectorDll>
+    <_FspureCollectorDll>$(MSBuildThisFileDirectory)..\..\..\artifacts\fspure-collector-publish\fspure-collector.dll</_FspureCollectorDll>
   </PropertyGroup>
   <Import Project="..\..\..\FSharp.PureAnalyzer\build\FSharp.PureAnalyzer.targets" />
 </Project>

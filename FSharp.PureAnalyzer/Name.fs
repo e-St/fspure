@@ -4,7 +4,7 @@ open System
 open FSharp.Compiler.Symbols
 
 /// Normalise F# symbols to the same `{Namespace}.{Type}.{Member}` shape used by
-/// the purity-collector whitelist.
+/// the fspure-collector whitelist.
 module Name =
 
     /// Prefer CompiledName (usually PascalCase, matches IL) over LogicalName

@@ -32,7 +32,7 @@ type AssemblyPureManifests =
     }
 
 /// Reads embedded `.pure.json` resources from managed assemblies using
-/// System.Reflection.Metadata + PEReader (same stack as purity-collector).
+/// System.Reflection.Metadata + PEReader (same stack as fspure-collector).
 module PureResourceReader =
 
     /// SHA-256 hex digest of UTF-8 bytes (stable cache key component).

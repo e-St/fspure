@@ -6,7 +6,7 @@ Short note on how pure/impure labels are decided for **vanilla fspure** (analyze
 
 | Piece | Role |
 |-------|------|
-| **purity-collector** | Scans managed assemblies (IL) and writes a `PureFile` (`.pure.json`) whitelist |
+| **fspure-collector** | Scans managed assemblies (IL) and writes a `PureFile` (`.pure.json`) whitelist |
 | **FSharp.PureAnalyzer** | F# analyzer: builds a pure set, classifies definitions (`PURE002` impure / `PURE003` pure) |
 | **fsharp-pure-decorations** | VS Code: turns `PURE002`/`PURE003` into end-of-line badges |
 | **MSBuild targets** (in the analyzer package) | After build: collect → optional `pure-extra.json` merge → embed `{AssemblyName}.pure.json` into the library DLL |
@@ -65,7 +65,7 @@ Invalid override files are ignored (analysis never fails because of them).
 <PackageReference Include="FSharp.PureAnalyzer" Version="VERSION" PrivateAssets="all" />
 ```
 
-Requires a package that ships **Phase 3** layout (`build/FSharp.PureAnalyzer.targets` + `tools/purity-collector/`).  
+Requires a package that ships **Phase 3** layout (`build/FSharp.PureAnalyzer.targets` + `tools/fspure-collector/`).  
 See [samples/fspure-ready-lib](../samples/fspure-ready-lib/).
 
 Optional author merge file next to the library project: **`pure-extra.json`** (same PureFile shape as collector output).

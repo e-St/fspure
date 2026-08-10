@@ -3,7 +3,7 @@
   "packageId": "FSharp.Core\u002BBCL",
   "packageVersion": "10.1.0",
   "generatedAt": "2026-08-01T06:47:48.4165189\u002B00:00",
-  "generator": "fsharp-pure-analyzer/purity-collector/0.1.0",
+  "generator": "fsharp-pure-analyzer/fspure-collector/0.1.0",
   "pureMethods": [
     {
       "fullName": "ASCIIEncodingSealed..ctor",

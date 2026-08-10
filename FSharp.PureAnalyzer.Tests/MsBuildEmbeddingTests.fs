@@ -21,15 +21,15 @@ module private Paths =
     let embedConsumerProj () =
         Path.Combine(fixtures (), "EmbedConsumer", "EmbedConsumer.fsproj")
 
-/// Build purity-collector publish layout + BuildTasks (same as pack prep).
+/// Build fspure-collector publish layout + BuildTasks (same as pack prep).
 let private ensureToolsBuilt () =
     let root = repoRoot ()
     let tasksProj = Path.Combine(root, "msbuild", "Fspure.BuildTasks", "Fspure.BuildTasks.csproj")
     let code, o, e = runDotnet root (sprintf "build \"%s\" -c Release --nologo -v q" tasksProj) 120_000
     assertExitZero "build Fspure.BuildTasks" code o e
 
-    let collectorProj = Path.Combine(root, "purity-collector", "purity-collector.fsproj")
-    let publishOut = Path.Combine(root, "artifacts", "purity-collector-publish")
+    let collectorProj = Path.Combine(root, "fspure-collector", "fspure-collector.fsproj")
+    let publishOut = Path.Combine(root, "artifacts", "fspure-collector-publish")
     Directory.CreateDirectory publishOut |> ignore
 
     let code2, o2, e2 =
@@ -41,8 +41,8 @@ let private ensureToolsBuilt () =
                 publishOut)
             180_000
 
-    assertExitZero "publish purity-collector" code2 o2 e2
-    Assert.True(File.Exists(Path.Combine(publishOut, "purity-collector.dll")))
+    assertExitZero "publish fspure-collector" code2 o2 e2
+    Assert.True(File.Exists(Path.Combine(publishOut, "fspure-collector.dll")))
 
 [<Fact>]
 let ``MSBuild targets embed AssemblyName.pure.json into library DLL`` () =
@@ -156,7 +156,7 @@ let ``local library with embedded pure.json yields pure wrapper via analyser ind
     Assert.False(Set.contains wrapper withEmb)
 
 [<Fact>]
-let ``FSharp.PureAnalyzer nupkg ships build targets and purity-collector tools`` () =
+let ``FSharp.PureAnalyzer nupkg ships build targets and fspure-collector tools`` () =
     let root = repoRoot ()
     let analyzerProj = Path.Combine(root, "FSharp.PureAnalyzer", "FSharp.PureAnalyzer.fsproj")
     let outDir =
@@ -182,7 +182,7 @@ let ``FSharp.PureAnalyzer nupkg ships build targets and purity-collector tools``
                 Path.Combine(extractDir, "build", "FSharp.PureAnalyzer.props")
                 Path.Combine(extractDir, "build", "FSharp.PureAnalyzer.targets")
                 Path.Combine(extractDir, "build", "Fspure.BuildTasks.dll")
-                Path.Combine(extractDir, "tools", "purity-collector", "purity-collector.dll")
+                Path.Combine(extractDir, "tools", "fspure-collector", "fspure-collector.dll")
                 Path.Combine(extractDir, "analyzers", "dotnet", "fs", "FSharp.PureAnalyzer.dll")
                 Path.Combine(extractDir, "analyzers", "dotnet", "fs", "FSharp.PureSchema.dll")
             ]

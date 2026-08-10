@@ -1,22 +1,22 @@
-name: Bundle purity-collector
+name: Bundle fspure-collector
 
 on:
   push:
     branches: [main]
     paths:
-      - "purity-collector/**"
+      - "fspure-collector/**"
       - "schema/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
-      - ".github/workflows/bundle-purity-collector.yml"
+      - ".github/workflows/bundle-fspure-collector.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
     paths:
-      - "purity-collector/**"
+      - "fspure-collector/**"
       - "schema/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
-      - ".github/workflows/bundle-purity-collector.yml"
+      - ".github/workflows/bundle-fspure-collector.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   workflow_dispatch:
 
@@ -45,7 +45,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and bundle purity-collector in the build devcontainer
+      - name: Build and bundle fspure-collector in the build devcontainer
         uses: devcontainers/ci@v0.3
         with:
           # Shared fstarter build image (defined with PureAnalyzer; no IDE setup)
@@ -55,39 +55,39 @@ jobs:
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
-            cd purity-collector
+            cd fspure-collector
             paket install
             BINARY_PATH=$(bundlef -p | tail -n 1)
             echo "Binary: $BINARY_PATH"
             ls -lh "$BINARY_PATH"
             mkdir -p ../artifacts
-            cp "$BINARY_PATH" ../artifacts/purity-collector
-            chmod +x ../artifacts/purity-collector
-            ../artifacts/purity-collector --help
+            cp "$BINARY_PATH" ../artifacts/fspure-collector
+            chmod +x ../artifacts/fspure-collector
+            ../artifacts/fspure-collector --help
 
-      - name: Upload purity-collector artifact
+      - name: Upload fspure-collector artifact
         uses: actions/upload-artifact@v4
         with:
-          name: purity-collector-linux-x64
-          path: artifacts/purity-collector
+          name: fspure-collector-linux-x64
+          path: artifacts/fspure-collector
           if-no-files-found: error
 
       - name: Publish release asset on main
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: purity-collector-latest
-          name: purity-collector (latest standalone)
-          files: artifacts/purity-collector
+          tag_name: fspure-collector-latest
+          name: fspure-collector (latest standalone)
+          files: artifacts/fspure-collector
           prerelease: true
           generate_release_notes: false
           body: |
-            Standalone `purity-collector` linux-x64 single-file executable, built with `bundlef`
+            Standalone `fspure-collector` linux-x64 single-file executable, built with `bundlef`
             inside the project's devcontainer (ghcr.io/e-st/fstarter).
             Note: as a self-contained single-file bundle, its managed assemblies are embedded
             rather than present as loose files, so `--defaults` assembly auto-discovery does not
             apply to the bundle itself. Pass explicit `--assembly <path>...` when running it
-            standalone. The monthly List A workflow instead runs purity-collector from source via
+            standalone. The monthly List A workflow instead runs fspure-collector from source via
             `dotnet run` inside the same devcontainer, where auto-discovery works.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

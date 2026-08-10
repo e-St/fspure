@@ -12,7 +12,7 @@ module private Samples =
             PackageId = "Test.Package"
             PackageVersion = "1.2.3"
             GeneratedAt = DateTimeOffset(2026, 1, 15, 12, 0, 0, TimeSpan.Zero)
-            Generator = "fsharp-pure-analyzer/purity-collector/0.1.0"
+            Generator = "fsharp-pure-analyzer/fspure-collector/0.1.0"
             PureMethods =
                 [
                     { FullName = "MyLib.Math.Add"; Origin = Automatic }
@@ -29,7 +29,7 @@ module private Samples =
   "packageId": "Test.Package",
   "packageVersion": "1.2.3",
   "generatedAt": "2026-01-15T12:00:00.0000000+00:00",
-  "generator": "fsharp-pure-analyzer/purity-collector/0.1.0",
+  "generator": "fsharp-pure-analyzer/fspure-collector/0.1.0",
   "pureMethods": [
     { "fullName": "MyLib.Math.Add", "origin": "automatic" },
     { "fullName": "MyLib.Math.Custom", "origin": "manual", "comment": "reviewed pure" }
@@ -47,7 +47,7 @@ let ``round-trip serializes and parses a valid PureFile`` () =
         Assert.Equal(SchemaVersion.Current, file.SchemaVersion)
         Assert.Equal("Test.Package", file.PackageId)
         Assert.Equal("1.2.3", file.PackageVersion)
-        Assert.Equal("fsharp-pure-analyzer/purity-collector/0.1.0", file.Generator)
+        Assert.Equal("fsharp-pure-analyzer/fspure-collector/0.1.0", file.Generator)
         Assert.Equal(2, file.PureMethods.Length)
 
         let names = file.PureMethods |> List.map _.FullName

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>purity_collector.Tests</RootNamespace>
+    <RootNamespace>fspure_collector.Tests</RootNamespace>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

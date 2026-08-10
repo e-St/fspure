@@ -60,7 +60,7 @@ jobs:
             mkdir -p "$TMPDIR"
             # Shared PureFile schema (ProjectReference from the collector)
             dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
-            cd purity-collector
+            cd fspure-collector
             paket install
             dotnet build -c Release --nologo
 

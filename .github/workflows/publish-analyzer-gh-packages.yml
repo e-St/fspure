@@ -9,7 +9,7 @@ on:
       - "FSharp.PureAnalyzer/**"
       - "msbuild/**"
       - "schema/FSharp.PureSchema/**"
-      - "purity-collector/**"
+      - "fspure-collector/**"
       - ".github/workflows/publish-analyzer-gh-packages.yml"
   workflow_dispatch:
 

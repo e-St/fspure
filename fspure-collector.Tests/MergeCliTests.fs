@@ -1,6 +1,6 @@
 /// Tests for the collector merge semantics used by --merge-with
 /// (union of pureMethods; last file wins on fullName collisions).
-module purity_collector.Tests.MergeCliTests
+module fspure_collector.Tests.MergeCliTests
 
 open System
 open System.IO

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/e-St/fspure/schema/pure-file.schema.json",
   "title": "F# PureFile",
-  "description": "Authoritative pure-method whitelist document (.pure.json). Single source of truth for the wire format consumed by purity-collector and FSharp.PureAnalyzer.",
+  "description": "Authoritative pure-method whitelist document (.pure.json). Single source of truth for the wire format consumed by fspure-collector and FSharp.PureAnalyzer.",
   "type": "object",
   "additionalProperties": false,
   "required": [

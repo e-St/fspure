@@ -1,8 +1,8 @@
-# Publish purity-collector as a dotnet tool to nuget.org (+ GitHub Packages).
+# Publish fspure-collector as a dotnet tool to nuget.org (+ GitHub Packages).
 # Use after Phase 3+ analyzer releases so library authors can also install the tool alone.
 #
 # Requires repository secret NUGET_USER (Trusted Publishing / OIDC), same as nuget_publish.yml.
-name: Publish purity-collector tool
+name: Publish fspure-collector tool
 
 on:
   release:
@@ -37,8 +37,8 @@ jobs:
           if [ "${{ github.event_name }}" = "release" ]; then
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
-            # Optional: purity-collector-v0.1.0 style tags
-            VERSION="${VERSION#purity-collector-}"
+            # Optional: fspure-collector-v0.1.0 style tags
+            VERSION="${VERSION#fspure-collector-}"
           else
             VERSION="${{ github.event.inputs.version }}"
           fi
@@ -61,13 +61,13 @@ jobs:
             echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
           fi
 
-      - name: Pack purity-collector tool
+      - name: Pack fspure-collector tool
         run: |
           set -euo pipefail
           VERSION="${{ steps.ver.outputs.version }}"
-          cd purity-collector
+          cd fspure-collector
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
-          dotnet pack purity-collector.fsproj \
+          dotnet pack fspure-collector.fsproj \
             -c Release \
             -o ./nupkgs \
             /p:Version="$VERSION" \
@@ -77,8 +77,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: purity-collector-tool-nupkg
-          path: purity-collector/nupkgs/*.nupkg
+          name: fspure-collector-tool-nupkg
+          path: fspure-collector/nupkgs/*.nupkg
           if-no-files-found: error
 
       - name: Attach to GitHub Release
@@ -87,7 +87,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ github.ref_name }}" \
-            purity-collector/nupkgs/*.nupkg \
+            fspure-collector/nupkgs/*.nupkg \
             --clobber
 
       - name: NuGet login (OIDC)
@@ -99,16 +99,16 @@ jobs:
       - name: Publish to nuget.org
         run: |
           set -euo pipefail
-          dotnet nuget push purity-collector/nupkgs/*.nupkg \
+          dotnet nuget push fspure-collector/nupkgs/*.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
-          echo "Published purity-collector ${{ steps.ver.outputs.version }} to nuget.org"
+          echo "Published fspure-collector ${{ steps.ver.outputs.version }} to nuget.org"
 
       - name: Publish to GitHub Packages
         run: |
           set -euo pipefail
-          dotnet nuget push purity-collector/nupkgs/*.nupkg \
+          dotnet nuget push fspure-collector/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate

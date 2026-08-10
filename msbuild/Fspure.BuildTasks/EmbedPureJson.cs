@@ -6,7 +6,7 @@ namespace Fspure.BuildTasks;
 
 /// <summary>
 /// Injects (or replaces) an embedded pure.json resource into an already-built managed assembly.
-/// Used after purity-collector runs against $(TargetPath).
+/// Used after fspure-collector runs against $(TargetPath).
 /// </summary>
 public sealed class EmbedPureJson : Microsoft.Build.Utilities.Task
 {
