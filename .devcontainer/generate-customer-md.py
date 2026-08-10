@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate end-user customer.md from shared devcontainer fragments.
+"""Generate end-user docs/customer.md from shared devcontainer fragments.
 
 Keeps consumer install docs aligned with the settings we ship in
 .devcontainer/fragments/vscode-common.json.
@@ -19,7 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 VSCODE_COMMON = HERE / "fragments" / "vscode-common.json"
-OUTPUT = ROOT / "customer.md"
+OUTPUT = ROOT / "docs" / "customer.md"
 
 BANNER = (
     "<!-- GENERATED FILE — do not edit by hand.\n"
@@ -359,19 +359,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         if not OUTPUT.is_file():
             print(
-                f"ERROR: missing {OUTPUT}; run generate-customer-md.py",
+                f"ERROR: missing {OUTPUT}; run: python3 .devcontainer/generate-customer-md.py",
                 file=sys.stderr,
             )
             return 1
         actual = OUTPUT.read_text(encoding="utf-8")
         if actual != text:
             print(
-                "ERROR: customer.md is out of date.\n"
+                "ERROR: docs/customer.md is out of date.\n"
                 "Run: python3 .devcontainer/generate-customer-md.py",
                 file=sys.stderr,
             )
             return 1
-        print("OK: customer.md is up to date.")
+        print("OK: docs/customer.md is up to date.")
         return 0
 
     OUTPUT.write_text(text, encoding="utf-8")

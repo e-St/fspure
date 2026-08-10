@@ -33,7 +33,7 @@ python3 .devcontainer/generate.py --check  # fail if stale
 CI:
 
 - [`.github/workflows/generate-devcontainers.yml`](../.github/workflows/generate-devcontainers.yml) — on fragment/generator changes, regenerate and **commit + push** (same-repo). Fork PRs must run generate locally if outputs are stale.
-- [`.github/workflows/generate-customer-md.yml`](../.github/workflows/generate-customer-md.yml) — on fragment changes, regenerate end-user [customer.md](../customer.md) from `vscode-common.json` and commit.
+- [`.github/workflows/generate-customer-md.yml`](../.github/workflows/generate-customer-md.yml) — on fragment changes, regenerate end-user [customer.md](../docs/customer.md) from `vscode-common.json` and commit.
 - [`.github/workflows/devcontainer-flavours.yml`](../.github/workflows/devcontainer-flavours.yml) — **reusable** job that every workflow using `devcontainers/ci` must `needs` first; callers then apply the artifact via [`.github/actions/apply-devcontainer-flavours`](../.github/actions/apply-devcontainer-flavours/action.yml).
 
 Generated files start with `// GENERATED FILE` — do not hand-edit them.

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="fspure.png" alt="fspure logo" width="520" />
+  <img src="docs/assets/fspure.png" alt="fspure logo" width="520" />
 </p>
 
 > Typically, interactions with the outside world occur at the boundary of your application.  
@@ -11,7 +11,7 @@ This project explores how an **F# analyzer** and **VS Code extension** can help 
 
 It does that by defining a pure subset and marking everything else as impure.
 
-![pure / impure decorations in the editor](image.png)
+![pure / impure decorations in the editor](docs/assets/image.png)
 
 | Component | Role |
 |-----------|------|
@@ -22,7 +22,7 @@ It does that by defining a pure subset and marking everything else as impure.
 
 ## Repository layout
 
-Top-level folders are intentionally few:
+Only essential .NET / GitHub convention files stay at the repo root. Everything else lives under a small set of top-level directories:
 
 | Path | What lives here |
 |------|-----------------|
@@ -30,22 +30,24 @@ Top-level folders are intentionally few:
 | **`tests/`** | Unit/integration tests, fixtures, and e2e |
 | **`samples/`** | End-to-end samples (e.g. fspure-ready-lib template) |
 | **`editor/`** | VS Code extension (`fsharp-pure-decorations`) |
-| **`docs/`** | Architecture, releasing, security, site; `docs/releases/` for changelogs |
+| **`docs/`** | Guides, site, assets, `customer.md`, `releases/` changelogs |
 | **`scripts/`** | CI gates, release helpers, generation data, integrations |
 
 ```text
 fspure/
-  src/           FSharp.PureAnalyzer, FSharp.PureSchema, fspure-collector, Fspure.BuildTasks
-  tests/         *Tests projects, fixtures, e2e/
-  samples/       fspure-ready-lib/
-  editor/        vscode-extension/
-  docs/          guides + releases/
-  scripts/       automation + data/ + integrations/
+  README.md, LICENSE, Directory.Build.props, fspure.slnx, …
+  src/       product
+  tests/     verification
+  samples/   ready-lib template
+  editor/    VS Code extension
+  docs/      documentation + assets + customer guide
+  scripts/   automation
+  .github/   workflows
 ```
 
 ## Consume fspure (end users)
 
-**Start here:** [customer.md](customer.md) — install without a dev container, or what to add to **your** `devcontainer.json`.
+**Start here:** [customer.md](docs/customer.md) — install without a dev container, or what to add to **your** `devcontainer.json`.
 
 You need **both** pieces for the full IDE experience: the analyzer produces diagnostics; the extension turns them into badges.
 

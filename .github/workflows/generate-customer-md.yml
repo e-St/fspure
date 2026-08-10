@@ -1,7 +1,7 @@
 name: Generate customer.md
 
 # When shared devcontainer settings/fragments change, regenerate the end-user
-# guide (customer.md) from vscode-common.json and commit if needed.
+# guide (docs/customer.md) from vscode-common.json and commit if needed.
 #
 # Source:  .devcontainer/fragments/vscode-common.json
 # Script:  python3 .devcontainer/generate-customer-md.py
@@ -50,25 +50,25 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add customer.md
+          git add docs/customer.md
 
           if git diff --staged --quiet; then
-            echo "customer.md already up to date."
+            echo "docs/customer.md already up to date."
             exit 0
           fi
 
           if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
-            echo "::error::customer.md is stale."
+            echo "::error::docs/customer.md is stale."
             echo "Run locally: python3 .devcontainer/generate-customer-md.py"
             git --no-pager diff --cached --stat
             exit 1
           fi
 
-          git commit -m "chore(docs): regenerate customer.md from devcontainer fragments"
+          git commit -m "chore(docs): regenerate docs/customer.md from devcontainer fragments"
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             git push origin "HEAD:${{ github.head_ref }}"
           else
             git push
           fi
-          echo "Pushed regenerated customer.md."
+          echo "Pushed regenerated docs/customer.md."
