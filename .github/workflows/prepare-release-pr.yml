@@ -64,12 +64,13 @@ jobs:
 
       - name: Prepare pending release + changelog drafts
         env:
-          ANALYZER_TO: ${{ github.event.inputs.analyzer_to }}
-          COLLECTOR_TO: ${{ github.event.inputs.collector_to }}
-          EXTENSION_TO: ${{ github.event.inputs.extension_to }}
-          PUBLISH_ANALYZER: ${{ github.event.inputs.publish_analyzer }}
-          PUBLISH_COLLECTOR: ${{ github.event.inputs.publish_collector }}
-          PUBLISH_EXTENSION: ${{ github.event.inputs.publish_extension }}
+          # Use || '' so the workflow can load on push/PR (inputs only exist for workflow_dispatch).
+          ANALYZER_TO: ${{ github.event.inputs.analyzer_to || '' }}
+          COLLECTOR_TO: ${{ github.event.inputs.collector_to || '' }}
+          EXTENSION_TO: ${{ github.event.inputs.extension_to || '' }}
+          PUBLISH_ANALYZER: ${{ github.event.inputs.publish_analyzer || true }}
+          PUBLISH_COLLECTOR: ${{ github.event.inputs.publish_collector || true }}
+          PUBLISH_EXTENSION: ${{ github.event.inputs.publish_extension || false }}
           ROOT: ${{ github.workspace }}
         run: |
           set -euo pipefail
