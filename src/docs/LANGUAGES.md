@@ -17,7 +17,7 @@
 
 | Area | Language | Why |
 |------|----------|-----|
-| **VS Code host shim** | JavaScript (`extension.js`, thin `logic.js`) | Host loads JS only; **rules** live in F# (`Fspure.DecorationLogic`). Do not commit Fable emit. |
+| **VS Code host** | One file: `extension.js` | Host loads JS; **rules** live in F# (`Fspure.DecorationLogic`, xUnit). No separate `logic.js`. |
 | **Site HTML/CSS** | Scriban → `.generated/` | Never commit `index.html` / `legal.html` / `privacy.html` / `site.css` — only templates under `src/docs/templates/site/` |
 | **GitHub Actions** | YAML | Platform |
 | **Legacy / host scripts** | thin bash | e2e (code-server), release publish, Codespaces lifecycle — **no new product logic** |

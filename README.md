@@ -25,6 +25,8 @@ dotnet run --project src/Fspure.Tasks -- help
 dotnet run --project src/Fspure.Tasks -- docs preview
 dotnet run --project src/Fspure.Tasks -- security
 dotnet run --project src/Fspure.Tasks -- ready-lib-gate
+dotnet run --project src/Fspure.Tasks -- phase1
+dotnet run --project src/Fspure.Tasks -- phase5
 dotnet run --project src/DevcontainerGen
 ```
 

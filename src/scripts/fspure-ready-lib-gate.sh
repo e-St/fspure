@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Thin shim → F# (src/Fspure.Tasks ready-lib-gate). Do not add logic here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"

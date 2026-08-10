@@ -100,14 +100,8 @@ module Phase5 =
         if skipPhase1 then
             printfn "(skipped SKIP_PHASE1=1)"
         else
-            let phase1 = Path.Combine(root, "src", "tests", "e2e", "phase1", "run.sh")
-
-            if File.Exists phase1 then
-                Repo.runInherit root "bash" $"\"{phase1}\""
-                |> Repo.requireZero "phase1 e2e"
-                Repo.ok "foundational badges match expectations.json"
-            else
-                Repo.die "src/tests/e2e/phase1/run.sh missing"
+            Phase1.run root |> Repo.requireZero "phase1 e2e"
+            Repo.ok "foundational badges match expectations.json"
 
         // 2/5 ready-lib gate
         printfn ""
@@ -130,11 +124,8 @@ module Phase5 =
             Repo.findFirst (Path.Combine(sample, "src", "Fspure.ReadyLib", "obj")) "Fspure.ReadyLib.pure.json"
             |> Option.defaultWith (fun () -> Repo.die "ReadyLib pure.json not found after gate")
 
-        let golden = Path.Combine(sample, "scripts", "assert-golden-pure-methods.sh")
-
-        if File.Exists golden then
-            Repo.runInherit root "bash" $"\"{golden}\" \"{pureJson}\""
-            |> Repo.requireZero "assert-golden-pure-methods"
+        Asserts.assertGoldenPureMethods root pureJson
+        |> Repo.requireZero "assert-golden-pure-methods"
 
         File.Copy(pureJson, Path.Combine(art, "Fspure.ReadyLib.pure.json"), true)
         Repo.ok "PackageReference path + golden pure methods"

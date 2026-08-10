@@ -144,7 +144,7 @@ jobs:
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
       - name: Run e2e phase1 baseline
-        run: bash src/tests/e2e/phase1/run.sh
+        run: dotnet run --project src/Fspure.Tasks -- phase1
 
   pure-analyzer-phase2-gate:
     name: Phase 2 gate

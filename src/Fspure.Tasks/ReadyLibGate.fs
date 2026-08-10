@@ -250,36 +250,7 @@ module ReadyLibGate =
         Repo.ok "DLL embed"
 
         Repo.step "Assert embedded pure.json (nupkg)"
-        // Prefer F# AssertEmbed path for nupkg: extract and check DLL if assert-nupkg script exists
-        let assertNupkg = Path.Combine(sample, "scripts", "assert-nupkg-embed.sh")
-
-        if File.Exists assertNupkg then
-            Repo.runInherit root "bash" $"\"{assertNupkg}\" \"{libNupkg}\""
-            |> Repo.requireZero "assert-nupkg-embed"
-        else
-            // Fallback: extract lib nupkg and AssertEmbed on the library dll inside
-            let tmpLib = Path.Combine(Path.GetTempPath(), "fspure-gate-lib-" + Guid.NewGuid().ToString("N"))
-
-            try
-                extractNupkg libNupkg tmpLib
-
-                let libDll =
-                    Directory.EnumerateFiles(tmpLib, "Fspure.ReadyLib.dll", SearchOption.AllDirectories)
-                    |> Seq.tryHead
-                    |> Option.defaultWith (fun () -> Repo.die "ReadyLib.dll missing inside nupkg")
-
-                Repo.dotnet
-                    root
-                    (sprintf
-                        "run --project \"%s\" -c %s -- \"%s\" Fspure.ReadyLib.Api.add"
-                        assertEmbed
-                        cfg
-                        libDll)
-                |> Repo.requireZero "AssertEmbed nupkg dll"
-            finally
-                if Directory.Exists tmpLib then
-                    Directory.Delete(tmpLib, true)
-
+        Asserts.assertNupkgEmbed root libNupkg |> Repo.requireZero "assert-nupkg-embed"
         Repo.ok "nupkg embed"
 
         Repo.step "Restore + build consumer from local feed"

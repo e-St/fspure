@@ -1,27 +1,72 @@
 // @ts-check
 "use strict";
 
+/**
+ * VS Code host for pure/impure decorations.
+ * Badge rules must stay aligned with src/Fspure.DecorationLogic/Logic.fs
+ * (tested in Fspure.DecorationLogic.Tests). This file is the only JS host surface.
+ */
+
 const vscode = require("vscode");
-const {
-  diagnosticCode,
-  isPureAnalyzerDiagnostic,
-  badgesByLine,
-} = require("./logic");
+
+const IMPURE_CODES = new Set(["PURE001", "PURE002"]);
+const PURE_CODES = new Set(["PURE003"]);
+const BADGE_IMPURE = "impure";
+const BADGE_PURE = "pure";
+
+/** @param {unknown} code */
+function diagnosticCode(code) {
+  if (typeof code === "object" && code !== null) {
+    const value = /** @type {{ value?: unknown }} */ (code).value;
+    return String(value ?? "");
+  }
+  return String(code ?? "");
+}
+
+/** @param {{ code?: unknown, source?: unknown }} d */
+function isPureAnalyzerDiagnostic(d) {
+  const code = diagnosticCode(d.code);
+  const source = String(d.source ?? "");
+  return (
+    IMPURE_CODES.has(code) ||
+    PURE_CODES.has(code) ||
+    source.includes("Pure analyzer") ||
+    source.includes("FSharp.PureAnalyzer")
+  );
+}
+
+/**
+ * @param {Array<{ code?: unknown, source?: unknown, range?: { start?: { line?: number } } }>} diagnostics
+ * @returns {Map<number, { badge: "impure" | "pure", code: string }>}
+ */
+function badgesByLine(diagnostics) {
+  /** @type {Map<number, { impure?: string, pure?: string }>} */
+  const byLine = new Map();
+  for (const d of diagnostics) {
+    if (!isPureAnalyzerDiagnostic(d)) continue;
+    const code = diagnosticCode(d.code);
+    const line = d.range?.start?.line;
+    if (typeof line !== "number") continue;
+    let entry = byLine.get(line);
+    if (!entry) {
+      entry = {};
+      byLine.set(line, entry);
+    }
+    if (code === "PURE002") entry.impure = code;
+    else if (code === "PURE003") entry.pure = code;
+  }
+  /** @type {Map<number, { badge: "impure" | "pure", code: string }>} */
+  const result = new Map();
+  for (const [line, entry] of byLine) {
+    if (entry.impure) result.set(line, { badge: BADGE_IMPURE, code: entry.impure });
+    else if (entry.pure) result.set(line, { badge: BADGE_PURE, code: entry.pure });
+  }
+  return result;
+}
 
 /**
  * Pure/impure badges as end-of-line decorations (`after` content).
- *
- * Why decorations (not InlayHints)?
- * - Ionide's Hindley–Milner signature is **LineLens** (`// int -> int -> list<int>`),
- *   also an `after` decoration on the definition line.
- * - InlayHints paint *before* LineLens at EOL, which produced:
- *     `let add a b = pure // int -> int -> list<int>`
- * - A second decoration type registered after Ionide stacks to the *right* of LineLens:
- *     `let add a b = // int -> int -> list<int> pure`
- *
- * Pair with recommended consumer Ionide settings:
- *   FSharp.inlayHints.typeAnnotations = false  (no `a : int` on args)
- *   FSharp.lineLens.enabled = replaceCodeLens     (HM signature via // …)
+ * Stacks to the right of Ionide LineLens when registered after Ionide boots.
  */
 
 /** @type {vscode.TextEditorDecorationType | undefined} */
@@ -30,7 +75,6 @@ let impureBadge;
 let pureBadge;
 
 /**
- * Zero-width range at absolute end of line (after source text / LineLens anchor).
  * @param {vscode.TextEditor} editor
  * @param {number} lineNumber
  */
@@ -46,8 +90,6 @@ function endOfLineAnchor(editor, lineNumber) {
 function badgeDecorationOptions(contentText, color) {
   return {
     after: {
-      // Two ASCII spaces after LineLens: `// unit -> 'a -> unit  impure`
-      // (nbsp-only was easy to miss; margin alone does not put spaces in the text run).
       contentText: `  ${contentText}`,
       color,
       fontWeight: "bold",
@@ -145,10 +187,6 @@ function updateAllEditors() {
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  // Create decoration types after a short delay so Ionide's LineLens
-  // decoration types are registered first. Later decoration types stack to the
-  // *right* of earlier ones at the same EOL column:
-  //   let add a b = // int -> int -> list<int> pure
   const boot = () => {
     createDecorations();
     updateAllEditors();

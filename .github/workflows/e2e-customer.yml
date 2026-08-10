@@ -82,7 +82,7 @@ jobs:
               export PATH="$HOME/.local/bin:$PATH"
             fi
 
-            bash src/tests/e2e/phase1/run.sh
+            dotnet run --project src/Fspure.Tasks -- phase1
 
       - name: Upload Phase 1 artifacts
         if: always()

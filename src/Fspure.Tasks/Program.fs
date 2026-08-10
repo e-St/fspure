@@ -8,27 +8,22 @@ let private usage () =
     """
 fspure — monorepo task runner (F#, statically typed).
 
-Replaces bash under src/scripts/ for build, test, docs, security, and gates.
-
 Usage:
   dotnet run --project src/Fspure.Tasks -- <command> [args…]
 
 Commands:
-  info                 Environment banner
-  build [args…]        dotnet build fspure.slnx
-  test [args…]         dotnet test fspure.slnx
-  docs [args…]         DocsGenerator (preview | stable | flags)
-  devcontainer [args…] DevcontainerGen (optional --check)
-  security             NuGet vulnerable scan + npm audit
-  ready-lib-gate       Pack analyzer + ReadyLib local-feed e2e gate
-  phase5               Phase 5 regression net
-  help                 This text
-
-Examples:
-  dotnet run --project src/Fspure.Tasks -- docs preview
-  dotnet run --project src/Fspure.Tasks -- security
-  dotnet run --project src/Fspure.Tasks -- ready-lib-gate
-  dotnet run --project src/Fspure.Tasks -- test --filter FullyQualifiedName~SchemaTests
+  info
+  build [args…]
+  test [args…]
+  docs [args…]              DocsGenerator (preview | stable | …)
+  devcontainer [args…]
+  security
+  ready-lib-gate
+  phase1                    Customer-fixture analyzer baseline e2e
+  phase5                    Full phase-5 regression net
+  assert-golden <path>      ReadyLib pure-methods golden check
+  assert-nupkg <nupkg>      ReadyLib nupkg embed check
+  help
 """
 
 [<EntryPoint>]
@@ -46,50 +41,53 @@ let main argv =
         | Some "info" ->
             printfn "fspure monorepo: %s" root
             printfn "  configuration: %s" (Repo.configuration ())
-
-            let dv =
-                let r = Repo.dotnetCapture root "--version"
-                r.Stdout.Trim()
-
+            let dv = (Repo.dotnetCapture root "--version").Stdout.Trim()
             printfn "  dotnet: %s" (if dv = "" then "?" else dv)
-            printfn "  apps: build test docs devcontainer security ready-lib-gate phase5 info"
             0
 
         | Some "build" ->
             let rest = argv |> Array.skip 1 |> String.concat " "
             let cfg = Repo.configuration ()
             let args =
-                if rest = "" then
-                    $"build fspure.slnx -c {cfg} --nologo"
-                else
-                    $"build fspure.slnx -c {cfg} --nologo {rest}"
-
+                if rest = "" then $"build fspure.slnx -c {cfg} --nologo"
+                else $"build fspure.slnx -c {cfg} --nologo {rest}"
             Repo.dotnet root args
 
         | Some "test" ->
             let rest = argv |> Array.skip 1 |> String.concat " "
             let cfg = Repo.configuration ()
             let args =
-                if rest = "" then
-                    $"test fspure.slnx -c {cfg} --nologo"
-                else
-                    $"test fspure.slnx -c {cfg} --nologo {rest}"
-
+                if rest = "" then $"test fspure.slnx -c {cfg} --nologo"
+                else $"test fspure.slnx -c {cfg} --nologo {rest}"
             Repo.dotnet root args
 
         | Some "docs" ->
-            let rest = argv |> Array.skip 1 |> Array.toList
-            Repo.runProject root "src/DocsGenerator/DocsGenerator.fsproj" rest
+            Repo.runProject root "src/DocsGenerator/DocsGenerator.fsproj" (argv |> Array.skip 1 |> Array.toList)
 
         | Some "devcontainer" ->
-            let rest = argv |> Array.skip 1 |> Array.toList
-            Repo.runProject root "src/DevcontainerGen/DevcontainerGen.fsproj" rest
+            Repo.runProject root "src/DevcontainerGen/DevcontainerGen.fsproj" (argv |> Array.skip 1 |> Array.toList)
 
         | Some "security" -> Security.run root
 
         | Some ("ready-lib-gate" | "ready-lib" | "gate") -> ReadyLibGate.run root
 
+        | Some "phase1" -> Phase1.run root
+
         | Some ("phase5" | "phase5-regression") -> Phase5.run root
+
+        | Some "assert-golden" ->
+            match Array.tryItem 1 argv with
+            | None ->
+                eprintfn "usage: fspure assert-golden <pure.json|dll>"
+                2
+            | Some p -> Asserts.assertGoldenPureMethods root p
+
+        | Some "assert-nupkg" ->
+            match Array.tryItem 1 argv with
+            | None ->
+                eprintfn "usage: fspure assert-nupkg <nupkg>"
+                2
+            | Some p -> Asserts.assertNupkgEmbed root p
 
         | Some other ->
             eprintfn "Unknown command: %s" other
