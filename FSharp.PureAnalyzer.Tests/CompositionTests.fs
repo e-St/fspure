@@ -94,7 +94,8 @@ let ``different cache keys produce distinct Index instances`` () =
     Assert.True(PureSet.containsIn idx1 "A.Only")
     Assert.False(PureSet.containsIn idx1 "B.Only")
     Assert.True(PureSet.containsIn idx2 "B.Only")
-    Assert.Equal(2, PureSet.compositionCacheCount ())
+    // Cache is process-global; other test classes may insert entries concurrently.
+    Assert.True(PureSet.compositionCacheCount () >= 2)
 
 [<Fact>]
 let ``composed index preserves name normalisation for additional methods`` () =
