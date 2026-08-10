@@ -1,6 +1,8 @@
-# Commit generated Markdown to main and publish the stable static site.
-# Triggered from official-release (or manually after a stable publish).
-name: Docs stable
+# Generate stable Markdown into the repo tree (for review / emergency use).
+#
+# Does NOT publish fspure.net. The custom domain is updated only by
+# Official release (see official-release.yml → "Publish fspure.net").
+name: Docs stable (Markdown only)
 
 on:
   workflow_call:
@@ -15,21 +17,17 @@ on:
         description: "Stable version label (e.g. 0.4.0)"
         required: true
         type: string
-      commit:
-        description: "Commit generated Markdown to the current branch"
-        type: boolean
-        default: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: docs-stable
+  group: docs-stable-markdown
   cancel-in-progress: false
 
 jobs:
-  generate-and-publish:
-    name: Generate stable docs
+  generate-markdown:
+    name: Generate stable Markdown (no fspure.net publish)
     runs-on: ubuntu-latest
     if: github.repository == 'e-St/fspure'
     steps:
@@ -44,17 +42,15 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Generate (write repo files)
+      - name: Generate (write repo files only)
         run: |
           set -euo pipefail
           VER="${{ inputs.version }}"
           chmod +x scripts/docs-generate.sh
+          # Generate site artifacts locally but we do NOT push them to Pages here.
           bash scripts/docs-generate.sh stable "$VER"
 
-      - name: Commit Markdown to branch
-        if: >-
-          github.event_name == 'workflow_call' ||
-          github.event_name == 'workflow_dispatch'
+      - name: Commit Markdown to current branch
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -66,14 +62,5 @@ jobs:
           fi
           git commit -m "docs: regenerate Markdown for ${{ inputs.version }} (Scriban)
 
-          Stable channel only — templates in docs/templates/, generator in src/DocsGenerator."
+          Markdown only — fspure.net is updated solely by Official release."
           git push
-
-      - name: Publish stable site to gh-pages root
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          # Keep preview/* from other runs; overwrite root stable files.
-          keep_files: true
-          commit_message: "docs(stable): ${{ inputs.version }}"

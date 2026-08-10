@@ -1,13 +1,14 @@
-# Generate docs with F# + Scriban and publish a preview site under
-# https://fspure.net/preview/<ref>/  (gh-pages, keep existing paths).
+# Preview docs for branches / PRs / beta tags.
 #
-# Does NOT rewrite README.md / docs/*.md on main — that only happens on
-# official stable release (docs-stable job / official-release.yml).
+# Published ONLY under the default GitHub Pages host:
+#   https://e-st.github.io/fspure/preview/<ref>/
+#
+# Never updates fspure.net (custom domain). That happens only in Official release.
 name: Docs preview
 
 on:
   push:
-    branches-ignore: [gh-pages]
+    branches-ignore: [gh-pages, main]
     tags:
       - "*-beta*"
       - "*-rc*"
@@ -24,8 +25,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: docs-preview-${{ github.ref }}
@@ -33,7 +32,7 @@ concurrency:
 
 jobs:
   generate:
-    name: Generate preview docs
+    name: Generate + publish preview (github.io only)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -52,28 +51,34 @@ jobs:
             LABEL="${{ github.event.inputs.ref_label }}"
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             LABEL="pr-${{ github.event.pull_request.number }}"
-          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            LABEL="${{ github.ref_name }}"
           else
             LABEL="${{ github.ref_name }}"
           fi
           SAFE="$(echo "$LABEL" | tr '/ ' '--' | tr -cd 'A-Za-z0-9._-')"
           echo "label=$LABEL" >> "$GITHUB_OUTPUT"
           echo "safe=$SAFE" >> "$GITHUB_OUTPUT"
-          echo "Preview label: $LABEL → $SAFE"
+          echo "url=https://e-st.github.io/fspure/preview/${SAFE}/" >> "$GITHUB_OUTPUT"
+          echo "Preview: $LABEL → https://e-st.github.io/fspure/preview/${SAFE}/"
 
       - name: Generate
+        env:
+          GH_PAGES_BASE: https://e-st.github.io/fspure
         run: |
           set -euo pipefail
           chmod +x scripts/docs-generate.sh
           bash scripts/docs-generate.sh preview "${{ steps.ref.outputs.label }}"
-          # Flatten into _site/preview/<safe> already; also write a tiny pointer page
-          mkdir -p "_site/preview"
-          cat > "_site/preview/index.html" <<EOF
-          <!DOCTYPE html><html><head><meta charset="utf-8"><title>fspure previews</title></head>
-          <body><h1>fspure docs previews</h1>
-          <p>Latest this run: <a href="./${{ steps.ref.outputs.safe }}/">./${{ steps.ref.outputs.safe }}/</a></p>
-          <p>Stable site: <a href="https://fspure.net/">fspure.net</a></p>
+          # Index of previews (github.io only — no CNAME)
+          mkdir -p _site/preview
+          cat > _site/preview/index.html <<EOF
+          <!DOCTYPE html>
+          <html lang="en"><head><meta charset="utf-8"><title>fspure doc previews</title></head>
+          <body>
+            <h1>fspure documentation previews</h1>
+            <p>These pages are on <strong>GitHub Pages (github.io)</strong> only.</p>
+            <p>Stable product site (updated only on official release):
+              <a href="https://fspure.net/">https://fspure.net/</a></p>
+            <p>This run:
+              <a href="./${{ steps.ref.outputs.safe }}/">./${{ steps.ref.outputs.safe }}/</a></p>
           </body></html>
           EOF
 
@@ -81,16 +86,27 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: docs-preview-${{ steps.ref.outputs.safe }}
-          path: _site
+          path: _site/preview
           if-no-files-found: error
 
-      - name: Publish to gh-pages (preview path)
+      # PRs: artifact only (no publish). Pushes/tags/dispatch: publish under preview/ on gh-pages.
+      - name: Publish preview path to gh-pages (no custom domain)
         if: github.event_name != 'pull_request' && github.repository == 'e-St/fspure'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          destination_dir: .
+          # Publish only the preview tree — never touch site root / CNAME / fspure.net content.
+          publish_dir: ./_site/preview
+          destination_dir: preview
           keep_files: true
           allow_empty_commit: true
-          commit_message: "docs(preview): ${{ steps.ref.outputs.safe }}"
+          # Explicitly do not set cname — previews must not claim fspure.net.
+          commit_message: "docs(preview): ${{ steps.ref.outputs.safe }} → e-st.github.io only"
+
+      - name: Summary
+        run: |
+          echo "### Docs preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**github.io (use this):** ${{ steps.ref.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "fspure.net is **not** updated by this workflow." >> "$GITHUB_STEP_SUMMARY"

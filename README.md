@@ -3,7 +3,7 @@
   Template: docs/templates/README.md.scriban
   Generator: src/DocsGenerator (F# + Scriban)
   Channel: stable | Ref: v0.4.0 | Version: 0.4.0
-  Generated: 2026-08-10T18:37:25Z
+  Generated: 2026-08-10T18:48:04Z
   Snippets are pulled from real source via <docs-snippet id="…"> markers.
   Main-branch Markdown is only committed on stable releases.
 -->
@@ -218,22 +218,17 @@ scripts/   CI / release helpers
 
 | Channel | When | Where |
 |---------|------|--------|
-| **Stable** | Official release only | This README on `main` + [fspure.net](https://fspure.net) |
-| **Preview** | Every branch / PR / beta | `https://fspure.net/preview/<branch>/` |
+| **Stable** | **Official release only** | This README on `main` + **[fspure.net](https://fspure.net)** |
+| **Preview** | Feature branches / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
 
-Templates: `docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban).
+Templates: `docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban). Policy: [docs/DOCS.md](docs/DOCS.md).
 
 ```bash
-# Preview (does not rewrite main-branch Markdown)
-dotnet run --project src/DocsGenerator -- \
-  --channel preview --ref "$(git branch --show-current)" \
-  --site-out "_site/preview/$(git branch --show-current)" \
-  --base-url "https://fspure.net/preview/$(git branch --show-current)"
+# Preview → github.io (does not rewrite main Markdown, does not touch fspure.net)
+bash scripts/docs-generate.sh preview
 
-# Stable (release pipeline only)
-dotnet run --project src/DocsGenerator -- \
-  --channel stable --ref v0.4.0 --version 0.4.0 \
-  --write-repo-files --site-out _site --base-url https://fspure.net
+# Stable → used by Official release only (main Markdown + fspure.net)
+bash scripts/docs-generate.sh stable 0.4.0
 ```
 
 ---

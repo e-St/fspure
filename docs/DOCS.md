@@ -1,32 +1,74 @@
 # Documentation generation (F# + Scriban)
 
-## Goals
+## Publishing policy (important)
 
-1. **All public Markdown** (README, customer guide, architecture, …) is **generated**.
-2. **Code samples** are cut from **real tests/source** via `<docs-snippet id="…">` markers — they cannot rot in the README.
-3. **`main` Markdown is only rewritten on stable releases** (not on every PR).
-4. **Every branch / beta** gets a **preview site** under `https://fspure.net/preview/<ref>/`.
+| Surface | When it updates | URL |
+|---------|-----------------|-----|
+| **fspure.net** | **Only** when **Official release** finishes successfully | https://fspure.net/ |
+| **GitHub Pages (github.io)** previews | Branch pushes (not `main`), beta/RC tags, manual “Docs preview” | https://e-st.github.io/fspure/preview/&lt;ref&gt;/ |
+| **GitHub `main` README / docs/*.md** | Official release (and optional “Docs stable (Markdown only)”) | https://github.com/e-St/fspure |
+
+Everyday commits and PRs **must not** change fspure.net.
+
+## One-time GitHub setup
+
+1. **Settings → Pages**
+   - **Source:** Deploy from a branch  
+   - **Branch:** `gh-pages`  
+   - **Folder:** `/ (root)`  
+   - **Custom domain:** `fspure.net` (HTTPS on)
+
+2. **Do not** use “Deploy from branch `main` /docs” for the product site.  
+   That would republish the custom domain on every docs change on `main`.
+
+3. DNS for `fspure.net` stays pointed at GitHub Pages (unchanged if already working).
+
+After the first **Official release** (or a one-time manual publish of `_site` with `cname: fspure.net`), the apex domain is the stable site only.
+
+## Channels
+
+### Preview (github.io only)
+
+```bash
+bash scripts/docs-generate.sh preview          # local → _site/preview/<branch>/
+# CI: Docs preview → gh-pages under /preview/<ref>/
+```
+
+Open:
+
+```text
+https://e-st.github.io/fspure/preview/<sanitized-ref>/
+```
+
+Examples:
+
+- branch `feature/foo` → `…/preview/feature-foo/`
+- tag `v0.5.0-beta.1` → `…/preview/v0.5.0-beta.1/`
+- PR `#12` → artifact only (no Pages publish from forks/PRs)
+
+PRs always get a downloadable **Actions artifact**; non-PR pushes publish to github.io.
+
+### Stable (fspure.net + main Markdown)
+
+Runs inside **Official release** after packages publish:
+
+1. Generate Markdown → commit to `main` (GitHub README)  
+2. Publish `_site/` to **gh-pages root** with **`cname: fspure.net`**
+
+Manual Markdown-only regen (does **not** touch fspure.net): workflow **Docs stable (Markdown only)**.
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `docs/templates/*.scriban` | Scriban sources (edit these) |
-| `src/DocsGenerator/` | F# tool (`fspure-docs`) |
-| `scripts/docs-generate.sh` | Thin CLI wrapper |
-| `.github/workflows/docs-preview.yml` | PR/branch/beta → gh-pages preview |
-| `.github/workflows/docs-stable.yml` | Stable → commit Markdown + site root |
-
-Generated outputs (do not hand-edit):
-
-- `README.md`
-- `docs/customer.md`
-- `docs/ARCHITECTURE.md`
-- Static site files under `_site/` (gitignored) → published to **gh-pages**
+| `docs/templates/*.scriban` | Edit these (source of truth) |
+| `src/DocsGenerator/` | F# + Scriban generator |
+| `scripts/docs-generate.sh` | CLI wrapper |
+| `.github/workflows/docs-preview.yml` | github.io previews |
+| `.github/workflows/official-release.yml` | **only** job that updates fspure.net |
+| `.github/workflows/docs-stable.yml` | Markdown commit only (no domain publish) |
 
 ## Snippet markers
-
-In F# / any `//` file:
 
 ```fsharp
 // <docs-snippet id="my-sample">
@@ -34,49 +76,10 @@ let add a b = a + b
 // </docs-snippet>
 ```
 
-In XML / fsproj:
-
-```xml
-<!-- <docs-snippet id="package-ref"> -->
-<PackageReference Include="FSharp.PureAnalyzer" … />
-<!-- </docs-snippet> -->
-```
-
-Templates call:
-
-```
+```scriban
 {{ snip "my-sample" }}
 ```
 
-## Local commands
-
-```bash
-# Branch / PR preview (does not touch committed Markdown)
-bash scripts/docs-generate.sh preview
-
-# Stable (release only) — rewrites README.md + docs/*.md
-bash scripts/docs-generate.sh stable 0.4.0
-```
-
-## Domains
-
-| URL | Content |
-|-----|---------|
-| [fspure.net](https://fspure.net) | Stable site (updated on official release) |
-| `https://fspure.net/preview/<branch>/` | Per-branch / beta / PR previews |
-
-DNS: point `fspure.net` at GitHub Pages for the **gh-pages** branch (or keep serving `docs/` from main for the landing page and publish previews to gh-pages — both are supported by the workflows; prefer **gh-pages** for multi-version paths).
-
-Optional later: map `preview.fspure.net` → same Pages site with a host-based redirect to `/preview/`.
-
-## Policy
-
-| Event | Generate? | Commit Markdown to `main`? | Publish site |
-|-------|-----------|----------------------------|--------------|
-| PR / feature branch | yes (preview) | **no** | `preview/<ref>/` |
-| Beta / RC tag | yes (preview) | **no** | `preview/<tag>/` |
-| Official release | yes (stable) | **yes** | site root + `main` files |
-
 ## ELI20 voice
 
-Stable README style: short sentences, “npm install” energy, no marketing fluff. Templates live under `docs/templates/README.md.scriban`.
+Stable README: short install path, no fluff. Template: `docs/templates/README.md.scriban`.
