@@ -78,9 +78,12 @@ if [[ ! -f "$SARIF_PATH" ]]; then
   exit 1
 fi
 
+echo "==> Phase 1: build AssertDefinitionBadges (F#)"
+dotnet build "$ROOT/e2e/phase1/AssertDefinitionBadges/AssertDefinitionBadges.fsproj" -c Release --nologo -v q
+
 if [[ "${UPDATE_BASELINE:-0}" == "1" ]]; then
   echo "==> Phase 1: UPDATE_BASELINE=1 — rewriting $BASELINE from SARIF"
-  python3 "$ROOT/e2e/phase1/assert-definition-badges.py" \
+  dotnet run --project "$ROOT/e2e/phase1/AssertDefinitionBadges/AssertDefinitionBadges.fsproj" -c Release --no-build -- \
     --sarif "$SARIF_PATH" \
     --expectations "$BASELINE" \
     --write-baseline "$BASELINE"
@@ -89,7 +92,7 @@ if [[ "${UPDATE_BASELINE:-0}" == "1" ]]; then
 fi
 
 echo "==> Phase 1: compare against baseline expectations.json"
-python3 "$ROOT/e2e/phase1/assert-definition-badges.py" \
+dotnet run --project "$ROOT/e2e/phase1/AssertDefinitionBadges/AssertDefinitionBadges.fsproj" -c Release --no-build -- \
   --sarif "$SARIF_PATH" \
   --expectations "$BASELINE" \
   --write-report "$REPORT_DIR/badge-report.txt"

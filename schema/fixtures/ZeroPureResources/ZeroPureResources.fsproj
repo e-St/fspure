@@ -1,10 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <AssemblyName>ZeroPureResources</AssemblyName>
     <RootNamespace>ZeroPureResources</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Library.fs" />
+  </ItemGroup>
 </Project>

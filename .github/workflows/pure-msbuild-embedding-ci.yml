@@ -54,7 +54,7 @@ jobs:
           fi
 
       - name: Build Fspure.BuildTasks
-        run: dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c ${{ env.CONFIGURATION }} --nologo
+        run: dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.fsproj -c ${{ env.CONFIGURATION }} --nologo
 
       - name: Restore and publish fspure-collector
         working-directory: fspure-collector

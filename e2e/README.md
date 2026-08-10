@@ -97,7 +97,7 @@ e2e/
     .vscode/settings.json     # Ionide + decorations settings for Phase 2
   phase1/
     run.sh
-    assert-definition-badges.py
+    AssertDefinitionBadges/
   phase2/
     .devcontainer/            # Image with code-server + Playwright deps
     prepare-workspace.sh

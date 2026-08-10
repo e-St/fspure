@@ -1,15 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <AssemblyName>Fspure.BuildTasks</AssemblyName>
     <RootNamespace>Fspure.BuildTasks</RootNamespace>
     <!-- MSBuild tasks run on the .NET host that loads MSBuild (net10 here). -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="EmbedPureJson.fs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.28" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.14.28" PrivateAssets="all" />

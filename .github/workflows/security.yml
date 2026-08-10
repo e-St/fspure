@@ -86,7 +86,7 @@ jobs:
           dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
           dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj -c Release --nologo
           dotnet build fspure-collector/fspure-collector.fsproj -c Release --nologo
-          dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c Release --nologo
+          dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.fsproj -c Release --nologo
 
       - name: Autobuild (JavaScript)
         if: matrix.language == 'javascript'

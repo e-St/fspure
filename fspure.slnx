@@ -1,9 +1,9 @@
 <Solution>
   <Project Path="schema/FSharp.PureSchema/FSharp.PureSchema.fsproj" />
   <Project Path="schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" />
-  <Project Path="schema/fixtures/ZeroPureResources/ZeroPureResources.csproj" />
-  <Project Path="schema/fixtures/SinglePureResource/SinglePureResource.csproj" />
-  <Project Path="schema/fixtures/MultiPureResources/MultiPureResources.csproj" />
+  <Project Path="schema/fixtures/ZeroPureResources/ZeroPureResources.fsproj" />
+  <Project Path="schema/fixtures/SinglePureResource/SinglePureResource.fsproj" />
+  <Project Path="schema/fixtures/MultiPureResources/MultiPureResources.fsproj" />
   <Project Path="fspure-collector/fspure-collector.fsproj" />
   <Project Path="fspure-collector.Tests/fspure-collector.Tests.fsproj" />
   <Project Path="FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
@@ -11,7 +11,7 @@
   <Project Path="FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/integration/ConsumerProjectRef/ConsumerProjectRef.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/integration/ConsumerPackageRef/ConsumerPackageRef.fsproj" />
-  <Project Path="msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj" />
+  <Project Path="msbuild/Fspure.BuildTasks/Fspure.BuildTasks.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedLib/EmbedLib.fsproj" />
   <Project Path="FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedConsumer/EmbedConsumer.fsproj" />
 </Solution>

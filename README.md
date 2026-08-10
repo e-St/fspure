@@ -259,6 +259,7 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - Security (Dependabot, CodeQL, audits): [docs/SECURITY.md](docs/SECURITY.md)
 - Releasing (Release PR, beta, pins): [docs/RELEASING.md](docs/RELEASING.md) · [releases/](releases/)
+- Language policy (F# first): [docs/LANGUAGES.md](docs/LANGUAGES.md)
 
 ```bash
 # Analyzer

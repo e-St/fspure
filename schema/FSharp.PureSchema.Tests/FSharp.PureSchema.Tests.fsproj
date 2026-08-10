@@ -18,9 +18,9 @@
   <ItemGroup>
     <ProjectReference Include="..\FSharp.PureSchema\FSharp.PureSchema.fsproj" />
     <!-- Synthetic net10.0 fixture assemblies for PureResourceReader tests -->
-    <ProjectReference Include="..\fixtures\ZeroPureResources\ZeroPureResources.csproj" />
-    <ProjectReference Include="..\fixtures\SinglePureResource\SinglePureResource.csproj" />
-    <ProjectReference Include="..\fixtures\MultiPureResources\MultiPureResources.csproj" />
+    <ProjectReference Include="..\fixtures\ZeroPureResources\ZeroPureResources.fsproj" />
+    <ProjectReference Include="..\fixtures\SinglePureResource\SinglePureResource.fsproj" />
+    <ProjectReference Include="..\fixtures\MultiPureResources\MultiPureResources.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
