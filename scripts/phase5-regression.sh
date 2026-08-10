@@ -5,7 +5,7 @@
 #   - tests/e2e/customer-fixture          → foundational-only badges
 #   - samples/fspure-ready-lib      → library embed (PackageReference + ProjectReference)
 #   - existing unit tests           → missing / zero / corrupt pure.json fallback
-#   - decorations.logic.test.js     → VS Code badge mapping contract (no IDE launch)
+#   - Fspure.DecorationLogic.Tests  → VS Code badge mapping contract (F#, no IDE)
 #
 # Usage (from fspure monorepo root):
 #   bash scripts/phase5-regression.sh
@@ -228,12 +228,12 @@ fi
 # ---------------------------------------------------------------------------
 step "5/5  VS Code decoration contract (minimal, no IDE)"
 # ---------------------------------------------------------------------------
-if command -v node >/dev/null 2>&1 \
-  && [[ -f "$ROOT/editor/vscode-extension/test/decorations.logic.test.js" ]]; then
-  node "$ROOT/editor/vscode-extension/test/decorations.logic.test.js"
-  ok "decoration PURE002/PURE003 → pure/impure labels"
+if [[ -f "$ROOT/src/Fspure.DecorationLogic.Tests/Fspure.DecorationLogic.Tests.fsproj" ]]; then
+  dotnet test "$ROOT/src/Fspure.DecorationLogic.Tests/Fspure.DecorationLogic.Tests.fsproj" \
+    -c Release --nologo -v q
+  ok "decoration PURE002/PURE003 → pure/impure labels (F#)"
 else
-  echo "(skipped: node or decorations.logic.test.js missing)"
+  echo "(skipped: DecorationLogic tests project missing)"
 fi
 
 echo ""

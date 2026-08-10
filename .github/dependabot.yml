@@ -32,29 +32,4 @@ updates:
       - dependency-type: "all"
 
   # --- E2E Playwright (npm) ---
-  - package-ecosystem: npm
-    directory: "/tests/e2e/phase2/playwright"
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - e2e
-    commit-message:
-      prefix: "chore(deps)"
-
-  # --- NuGet (PackageReference projects: schema, tests, fixtures, samples, BuildTasks) ---
-  # Paket-managed FSharp.PureAnalyzer / fspure-collector are audited in CI
-  # (dotnet list package --vulnerable); Dependabot NuGet does not update paket.dependencies.
-  - package-ecosystem: nuget
-    directory: "/"
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-      - nuget
-    commit-message:
-      prefix: "chore(deps)"
+  

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pure decoration rules (F#). Tested with xUnit on .NET.
+  Fable compiles the same Logic.fs into editor/vscode-extension/src/logic.js.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Fspure.DecorationLogic</AssemblyName>
+    <RootNamespace>Fspure.DecorationLogic</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+    <NoWarn>$(NoWarn);FS3261;FS3264</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Logic.fs" />
+  </ItemGroup>
+</Project>

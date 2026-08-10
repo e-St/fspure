@@ -87,6 +87,8 @@ scan_nuget_project "tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fs
 scan_nuget_project "src/fspure-collector/fspure-collector.fsproj"
 scan_nuget_project "tests/fspure-collector.Tests/fspure-collector.Tests.fsproj"
 scan_nuget_project "src/Fspure.Embed/Fspure.Embed.fsproj"
+scan_nuget_project "src/Fspure.DecorationLogic/Fspure.DecorationLogic.fsproj"
+scan_nuget_project "tests/e2e/phase2/ScreenshotCapture/ScreenshotCapture.fsproj"
 # (C# by necessity for MSBuild task hosting — see docs/LANGUAGES.md)
 scan_nuget_project "src/DocsGenerator/DocsGenerator.fsproj"
 scan_nuget_project "samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj"
@@ -110,26 +112,6 @@ if [[ -f editor/vscode-extension/package.json ]]; then
     )
   else
     log "npm not installed — skip vscode-extension audit"
-  fi
-fi
-
-section "npm audit (tests/e2e/phase2/playwright)"
-if [[ -f tests/e2e/phase2/playwright/package.json ]]; then
-  if command -v npm >/dev/null 2>&1; then
-    (
-      cd tests/e2e/phase2/playwright
-      if [[ -f package-lock.json ]]; then
-        npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
-      else
-        npm install --ignore-scripts 2>/dev/null || true
-      fi
-      LEVEL="${NPM_AUDIT_LEVEL:-high}"
-      if ! npm audit --audit-level="$LEVEL"; then
-        die_soft "npm audit failed (level=$LEVEL) in tests/e2e/phase2/playwright"
-      fi
-    ) || die_soft "playwright npm audit setup failed"
-  else
-    log "npm not installed — skip playwright audit"
   fi
 fi
 

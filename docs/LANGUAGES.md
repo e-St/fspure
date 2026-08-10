@@ -1,43 +1,34 @@
 # Languages in this repository
 
-**Defaults: F# and Nix.** Prefer F# for product code, tests, and tools. Prefer Nix for reproducible dev shells.
+**Defaults: F# and Nix.** Prefer F# for product code, tests, tools, and e2e.
 
 ## Allowed exceptions
 
 | Area | Language | Why |
 |------|----------|-----|
-| **VS Code extension** (`editor/vscode-extension/`) | JavaScript | VS Code extension host is JS/TS |
-| **Playwright e2e** (`tests/e2e/phase2/playwright/`) | JavaScript | Playwright’s Node tooling surface |
+| **VS Code host shim** (`editor/vscode-extension/src/extension.js`) | JavaScript | VS Code loads JS/TS; decoration *rules* are F# (`src/Fspure.DecorationLogic`) |
 | **YAML / shell** | YAML, bash | GitHub Actions and thin orchestration |
 | **JSON / props / Scriban** | data / templates | Not application logic |
 
-## F# product & tools
+## F#
 
 | Area | Notes |
 |------|--------|
 | `src/FSharp.PureAnalyzer/` | Analyzer |
-| `src/fspure-collector/` | pure.json collector (dotnet tool) |
-| `src/FSharp.PureSchema/` | PureFile schema + PE reader |
-| `src/Fspure.Embed/` | Embed pure.json into DLLs (`dotnet exec`, used from MSBuild) |
-| `src/DocsGenerator/` | Markdown / site (Scriban) |
-| `src/DevcontainerGen/` | Merge devcontainer fragments (replaces former Python) |
-| `tests/`, `samples/` | Tests and ready-lib sample |
+| `src/fspure-collector/` | pure.json collector |
+| `src/FSharp.PureSchema/` | Schema + PE reader |
+| `src/Fspure.Embed/` | Embed pure.json (`dotnet exec`) |
+| `src/Fspure.DecorationLogic/` | Pure/impure badge rules (extension + tests) |
+| `src/DocsGenerator/`, `src/DevcontainerGen/` | Docs + devcontainer merge |
+| `tests/e2e/phase2/ScreenshotCapture/` | Visual e2e (**Playwright.NET**, F#) |
 
 ## Nix
 
-| File | Role |
-|------|------|
-| `flake.nix` | Dev shell: .NET SDK, Node, jq, git |
-
-```bash
-nix develop          # enter shell
-```
-
-Dev Containers use published images (`ghcr.io/e-st/fstarter`) plus **shell** post-create scripts — **no Dockerfiles in this repo**.
+`flake.nix` — `nix develop` for SDK / Node (packaging only) / jq.
 
 ## Rule of thumb
 
 1. Logic → **F#**  
-2. Reproducible toolchain → **Nix**  
-3. Editor host / Playwright → **JS** only when required  
-4. Avoid new Python, C#, or Dockerfiles in-tree  
+2. Toolchain → **Nix**  
+3. VS Code host edge → minimal JS only  
+4. No new Python, C#, Dockerfiles, or Node app logic  

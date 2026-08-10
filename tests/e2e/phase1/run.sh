@@ -98,9 +98,10 @@ dotnet run --project "$ROOT/tests/e2e/phase1/AssertDefinitionBadges/AssertDefini
   --write-report "$REPORT_DIR/badge-report.txt"
 
 # Lightweight decoration-code contract (not a visual test — see Phase 2)
-if command -v node >/dev/null 2>&1 && [[ -f "$ROOT/editor/vscode-extension/test/decorations.logic.test.js" ]]; then
-  echo "==> Phase 1: decoration code→label unit contract"
-  node "$ROOT/editor/vscode-extension/test/decorations.logic.test.js"
+if [[ -f "$ROOT/src/Fspure.DecorationLogic.Tests/Fspure.DecorationLogic.Tests.fsproj" ]]; then
+  echo "==> Phase 1: decoration logic unit contract (F#)"
+  dotnet test "$ROOT/src/Fspure.DecorationLogic.Tests/Fspure.DecorationLogic.Tests.fsproj" \
+    -c Release --nologo -v q
 fi
 
 echo ""
