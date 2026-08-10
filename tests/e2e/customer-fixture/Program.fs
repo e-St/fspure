@@ -31,6 +31,7 @@ let getRandomImpure () =
     logSideEffect (sprintf "Generated random %d" r)
     r
 
+// <docs-snippet id="customer-pure-impure">
 // ---------------------------------------------------------------------------
 // Misnamed helpers that look clean but call side effects — expect PURE002
 // ---------------------------------------------------------------------------
@@ -70,6 +71,7 @@ let double x = x * 2
 
 let purePipeline (x: int) =
     x |> double |> fun n -> add n 0 |> List.sum
+// </docs-snippet>
 
 // ---------------------------------------------------------------------------
 // Entry

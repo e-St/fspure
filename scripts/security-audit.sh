@@ -88,6 +88,7 @@ scan_nuget_project "src/fspure-collector/fspure-collector.fsproj"
 scan_nuget_project "tests/fspure-collector.Tests/fspure-collector.Tests.fsproj"
 scan_nuget_project "src/Fspure.BuildTasks/Fspure.BuildTasks.csproj"
 # (C# by necessity for MSBuild task hosting — see docs/LANGUAGES.md)
+scan_nuget_project "src/DocsGenerator/DocsGenerator.fsproj"
 scan_nuget_project "samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj"
 
 # --- npm audit ---

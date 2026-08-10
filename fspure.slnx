@@ -12,6 +12,7 @@
   <Project Path="tests/FSharp.PureAnalyzer.Tests/integration/ConsumerProjectRef/ConsumerProjectRef.fsproj" />
   <Project Path="tests/FSharp.PureAnalyzer.Tests/integration/ConsumerPackageRef/ConsumerPackageRef.fsproj" />
   <Project Path="src/Fspure.BuildTasks/Fspure.BuildTasks.csproj" />
+  <Project Path="src/DocsGenerator/DocsGenerator.fsproj" />
   <Project Path="tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedLib/EmbedLib.fsproj" />
   <Project Path="tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedConsumer/EmbedConsumer.fsproj" />
 </Solution>

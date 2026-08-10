@@ -22,3 +22,4 @@ tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
 # Python bytecode from .devcontainer/generate*.py
 **/__pycache__/
 *.py[cod]
+_site/

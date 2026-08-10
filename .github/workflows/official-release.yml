@@ -139,3 +139,34 @@ jobs:
           # Best-effort: workflows must exist and allow workflow_dispatch
           gh workflow run "Sync fspure-ready-lib" --ref main || true
           gh workflow run "PR fspure updates to fstarter" --ref main || true
+
+      - name: Regenerate stable docs (Scriban → main + fspure.net)
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Prefer pending 'to' if still present; else lastOfficial after publish pins.
+          VER="$(python3 - <<'PY'
+import json
+m = json.load(open("docs/releases/manifest.json"))
+p = m.get("pending") or {}
+comps = (p.get("components") or {})
+a = comps.get("FSharp.PureAnalyzer") or {}
+print(a.get("to") or m["lastOfficial"]["FSharp.PureAnalyzer"])
+PY
+)"
+          echo "Docs stable version=$VER"
+          # Inline generate + commit (reliable; Docs stable workflow can also be dispatched manually).
+          chmod +x scripts/docs-generate.sh
+          bash scripts/docs-generate.sh stable "$VER"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs/*.md || true
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: regenerate Markdown for ${VER} (Scriban)"
+            git pull --rebase origin main || true
+            git push origin "HEAD:main" || git push
+          else
+            echo "No Markdown changes"
+          fi

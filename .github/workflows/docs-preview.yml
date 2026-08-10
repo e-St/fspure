@@ -1,0 +1,96 @@
+# Generate docs with F# + Scriban and publish a preview site under
+# https://fspure.net/preview/<ref>/  (gh-pages, keep existing paths).
+#
+# Does NOT rewrite README.md / docs/*.md on main — that only happens on
+# official stable release (docs-stable job / official-release.yml).
+name: Docs preview
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+    tags:
+      - "*-beta*"
+      - "*-rc*"
+      - "*-preview*"
+      - "v*-beta*"
+      - "v*-rc*"
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ref_label:
+        description: "Preview path label (default: branch/tag name)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate preview docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve preview label
+        id: ref
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ github.event.inputs.ref_label }}" ]]; then
+            LABEL="${{ github.event.inputs.ref_label }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            LABEL="pr-${{ github.event.pull_request.number }}"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            LABEL="${{ github.ref_name }}"
+          else
+            LABEL="${{ github.ref_name }}"
+          fi
+          SAFE="$(echo "$LABEL" | tr '/ ' '--' | tr -cd 'A-Za-z0-9._-')"
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+          echo "safe=$SAFE" >> "$GITHUB_OUTPUT"
+          echo "Preview label: $LABEL → $SAFE"
+
+      - name: Generate
+        run: |
+          set -euo pipefail
+          chmod +x scripts/docs-generate.sh
+          bash scripts/docs-generate.sh preview "${{ steps.ref.outputs.label }}"
+          # Flatten into _site/preview/<safe> already; also write a tiny pointer page
+          mkdir -p "_site/preview"
+          cat > "_site/preview/index.html" <<EOF
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>fspure previews</title></head>
+          <body><h1>fspure docs previews</h1>
+          <p>Latest this run: <a href="./${{ steps.ref.outputs.safe }}/">./${{ steps.ref.outputs.safe }}/</a></p>
+          <p>Stable site: <a href="https://fspure.net/">fspure.net</a></p>
+          </body></html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-preview-${{ steps.ref.outputs.safe }}
+          path: _site
+          if-no-files-found: error
+
+      - name: Publish to gh-pages (preview path)
+        if: github.event_name != 'pull_request' && github.repository == 'e-St/fspure'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          destination_dir: .
+          keep_files: true
+          allow_empty_commit: true
+          commit_message: "docs(preview): ${{ steps.ref.outputs.safe }}"

@@ -21,6 +21,7 @@
 | `src/fspure-collector/` | dotnet tool (F#) |
 | `src/FSharp.PureSchema/` | PureFile schema + PE reader (F#) |
 | `src/Fspure.BuildTasks/` | MSBuild task **EmbedPureJson** (C# + Mono.Cecil — see exceptions) |
+| `src/DocsGenerator/` | Markdown / site generator (**F# + Scriban**) |
 | `tests/e2e/phase1/AssertDefinitionBadges/` | SARIF baseline assert (F#) |
 | `tests/fixtures/*` | PE resource fixture assemblies (F#) |
 | `samples/fspure-ready-lib/` | Sample library (F#) |
