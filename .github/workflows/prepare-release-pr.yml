@@ -3,6 +3,13 @@
 name: Prepare release PR
 
 on:
+  # Validate YAML on edits (avoids GitHub's empty "failure" when only workflow_dispatch is present).
+  push:
+    paths:
+      - ".github/workflows/prepare-release-pr.yml"
+  pull_request:
+    paths:
+      - ".github/workflows/prepare-release-pr.yml"
   workflow_dispatch:
     inputs:
       analyzer_to:
@@ -37,10 +44,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    name: Workflow file OK
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    steps:
+      - name: No-op (dispatch-only workflow kept loadable)
+        run: echo "prepare-release-pr.yml is valid"
+
   prepare:
     name: Create Release PR
     runs-on: ubuntu-latest
-    if: github.repository == 'e-St/fspure'
+    if: github.repository == 'e-St/fspure' && github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
