@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get started · fspure{{ if Channel != "stable" }} — {{ RefName }}{{ end }}</title>
+  <meta name="description" content="Add pure/impure labels to your F# project in a few minutes." />
+  <link rel="icon" href="fspure.png" type="image/png" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <article class="legal get-started">
+    <a class="back" href="index.html">← fspure</a>
+    <header>
+      <h1>Get started</h1>
+      <p class="lead">
+        You already write F#. You want <strong>pure</strong> / <strong>impure</strong> labels on your functions
+        in the editor — nothing else.
+      </p>
+    </header>
+
+{{ if Channel != "stable" }}
+    <p class="note">
+      Preview docs for <strong>{{ RefName }}</strong>.
+      Stable guide: <a href="https://fspure.net/get-started.html">fspure.net/get-started.html</a>
+    </p>
+{{ end }}
+
+    <p>
+      You need two small pieces plus Ionide (the usual F# language support for VS Code):
+    </p>
+    <ol>
+      <li><strong>Analyzer</strong> — decides pure vs impure</li>
+      <li><strong>Extension</strong> — draws the badges at end of line</li>
+    </ol>
+
+    <h2>1. Add the analyzer to your project</h2>
+    <pre><code>dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}</code></pre>
+    <p>Or with Paket:</p>
+    <pre><code>nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}</code></pre>
+    <p>
+      Copy the package’s <code>analyzers/dotnet/fs/</code> folder into a workspace folder named
+      <code>analyzers</code> (next to your solution). Ionide needs a real path — not <code>~</code>
+      and not VS Code variables.
+    </p>
+
+    <h2>2. Install the editor pieces</h2>
+    <ul>
+      <li><strong>Ionide for F#</strong> — if you don’t already use it</li>
+      <li><strong>F# Pure Analyzer Decorations</strong> (<code>e-st.fsharp-pure-decorations</code>) from
+        <a href="https://open-vsx.org/extension/e-st/fsharp-pure-decorations">Open VSX</a>
+        (or the <code>.vsix</code> from
+        <a href="https://github.com/e-St/fspure/releases">GitHub Releases</a>)</li>
+    </ul>
+
+    <h2>3. Turn on analyzers in the workspace</h2>
+    <p>Create or edit <code>.vscode/settings.json</code>:</p>
+    <pre><code>{{ MinimalSettingsJson }}</code></pre>
+
+    <h2>4. Open a file and wait a moment</h2>
+    <p>
+      Open your solution, open any <code>.fs</code> file, wait for Ionide to load.
+      Definitions should show end-of-line badges:
+    </p>
+    <ul>
+      <li><strong>pure</strong> — only pure callees (safe subset)</li>
+      <li><strong>impure</strong> — touches I/O, mutation, randomness, or other impurity</li>
+    </ul>
+    <p>
+      That is the default experience. You do not need the collector, ready-lib, or monorepo tooling
+      for everyday app code.
+    </p>
+
+    <h2>If nothing shows up</h2>
+    <ul>
+      <li>Is Ionide running? (F# language features work?)</li>
+      <li>Is <code>FSharp.enableAnalyzers</code> true?</li>
+      <li>Does <code>analyzers/</code> (or your <code>FSharp.analyzersPath</code>) exist and contain the DLL?</li>
+      <li>Reload the window after installing the extension</li>
+    </ul>
+
+    <h2>Optional: empty project that already has fspure</h2>
+    <p>
+      Prefer a ready-made Codespace / dev container instead of wiring a package yourself?
+      Try <a href="https://github.com/e-St/fstarter">e-St/fstarter</a> — open it and write F#.
+    </p>
+
+    <p style="margin-top: 2rem">
+      <a href="https://github.com/e-St/fspure">GitHub</a>
+      ·
+      <a href="https://github.com/e-St/fspure/releases">Releases</a>
+      ·
+      <a href="index.html">Home</a>
+    </p>
+  </article>
+
+  <footer class="legal-footer" style="text-align: center; padding-bottom: 2rem">
+    <nav aria-label="Site">
+      <a href="index.html">Home</a>
+      <a href="legal.html">Legal</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
+  </footer>
+</body>
+</html>

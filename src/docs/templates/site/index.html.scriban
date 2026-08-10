@@ -23,7 +23,7 @@
 {{ end }}
     <nav class="links" aria-label="Project links">
       <a href="https://github.com/e-St/fspure">GitHub</a>
-      <a href="README.md">Get started</a>
+      <a href="get-started.html">Get started</a>
       <a href="https://github.com/e-St/fspure/releases">Releases</a>
     </nav>
     <div class="starter-banner" role="note">
