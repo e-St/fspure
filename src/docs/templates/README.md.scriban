@@ -137,12 +137,13 @@ src/scripts/   CI / release helpers
 
 Templates: `src/docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban). Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
 
-```bash
+```text
 # Preview → github.io (does not rewrite main Markdown, does not touch fspure.net)
-bash src/scripts/docs-generate.sh preview
+nix run .#docs -- preview
+# or:  dotnet run --project src/DocsGenerator -- preview
 
-# Stable → used by Official release only (main Markdown + fspure.net)
-bash src/scripts/docs-generate.sh stable {{ AnalyzerVersion }}
+# Stable → used by Official release only (.generated/ + fspure.net publish)
+nix run .#docs -- stable {{ AnalyzerVersion }}
 ```
 
 ---

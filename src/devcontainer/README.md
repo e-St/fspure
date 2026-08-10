@@ -14,9 +14,10 @@ Platform materializations (also written by the generator):
 
 ## Regenerate
 
-```bash
-dotnet run --project src/DevcontainerGen          # write
-dotnet run --project src/DevcontainerGen --check  # fail if .generated copies stale
+```text
+nix run .#devcontainer                 # write
+nix run .#devcontainer -- --check      # fail if .generated copies stale
+# or:  fspure-devcontainer /  dotnet run --project src/DevcontainerGen
 ```
 
 ## CI

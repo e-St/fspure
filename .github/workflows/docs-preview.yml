@@ -65,8 +65,7 @@ jobs:
           GH_PAGES_BASE: https://e-st.github.io/fspure
         run: |
           set -euo pipefail
-          chmod +x src/scripts/docs-generate.sh
-          bash src/scripts/docs-generate.sh preview "${{ steps.ref.outputs.label }}"
+          dotnet run --project src/DocsGenerator -- preview "${{ steps.ref.outputs.label }}"
           # Index of previews (github.io only — no CNAME)
           mkdir -p .generated/site/preview
           cat > .generated/site/preview/index.html <<EOF

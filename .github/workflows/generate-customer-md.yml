@@ -10,14 +10,14 @@ on:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
       - "src/devcontainer/fragments/**"
-      - "src/scripts/docs-generate.sh"
+      - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
   pull_request:
     paths:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
       - "src/devcontainer/fragments/**"
-      - "src/scripts/docs-generate.sh"
+      - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
   workflow_dispatch:
 
@@ -36,8 +36,7 @@ jobs:
       - name: Generate preview into .generated/site (ephemeral)
         run: |
           set -euo pipefail
-          chmod +x src/scripts/docs-generate.sh
-          bash src/scripts/docs-generate.sh preview "ci-check"
+          dotnet run --project src/DocsGenerator -- preview "ci-check"
           test -f .generated/site/preview/ci-check/README.md
           test -f .generated/site/preview/ci-check/customer.md
           echo "OK: docs generator rendered preview artifacts under .generated/"

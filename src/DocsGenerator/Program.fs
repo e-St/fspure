@@ -1,7 +1,10 @@
 module Fspure.DocsGenerator.Program
 
 open System
+open System.Diagnostics
 open System.IO
+open System.Text.Json
+open System.Text.RegularExpressions
 open Fspure.DocsGenerator
 
 type private Args =
@@ -19,37 +22,153 @@ type private Args =
 
 let private usage () =
     """
-fspure-docs — generate Markdown (and optional static site) from Scriban templates.
+fspure-docs — generate Markdown / static site from Scriban templates (F#).
 
-Usage:
-  fspure-docs --root <repo> [options]
+High-level (preferred — no shell orchestration):
+  fspure-docs preview [ref]              → .generated/site/preview/<ref>/  (github.io)
+  fspure-docs stable [version]           → .generated/docs + .generated/site  (fspure.net)
 
-Options:
-  --root PATH              Monorepo root (default: cwd)
-  --channel stable|preview (default: preview)
-  --ref NAME               Branch / tag / sha label (default: unknown)
-  --version VER            Docs version label (default: lastOfficial analyzer)
-  --base-url URL           Public base URL for this docs set
-  --write-markdown         Write Markdown under --markdown-out (default: .generated/docs)
-  --write-repo-files       Alias for --write-markdown (stable releases)
-  --markdown-out PATH      Markdown output root (default: <root>/.generated/docs)
-  --site-out PATH          Write static site files (HTML + assets) here
-                           (default when omitted with --write-markdown: <root>/.generated/site)
-  --templates PATH         Templates directory (default: <root>/src/docs/templates)
+Low-level flags (also accepted after preview|stable):
+  --root PATH              Monorepo root (default: walk to fspure.slnx / cwd)
+  --channel stable|preview
+  --ref NAME
+  --version VER
+  --base-url URL
+  --write-markdown         Write Markdown under --markdown-out
+  --markdown-out PATH      default: <root>/.generated/docs
+  --site-out PATH
+  --templates PATH         default: <root>/src/docs/templates
 
-Examples:
-  # PR / branch preview site (github.io only)
-  fspure-docs --channel preview --ref feat-x \\
-    --site-out .generated/site/preview/feat-x \\
-    --base-url https://e-st.github.io/fspure/preview/feat-x
-
-  # Official release: Markdown + site under .generated/ (not committed)
-  fspure-docs --channel stable --ref v0.4.0 --version 0.4.0 --write-markdown \\
-    --base-url https://fspure.net --site-out .generated/site
+Env (high-level modes):
+  GH_PAGES_BASE   default https://e-st.github.io/fspure
+  STABLE_BASE     default https://fspure.net
+  CONFIGURATION   default Release (informational only when already built)
 """
 
-let private parseArgs (argv: string[]) : Args =
-    let mutable root = Directory.GetCurrentDirectory()
+let private findRepoRoot (start: string) : string =
+    let rec walk d n =
+        if n > 10 then start
+        elif File.Exists(Path.Combine(d, "fspure.slnx")) then d
+        else
+            match Directory.GetParent d with
+            | null -> start
+            | p -> walk p.FullName (n + 1)
+
+    walk (Path.GetFullPath start) 0
+
+let private envOr (name: string) (fallback: string) =
+    match Environment.GetEnvironmentVariable name with
+    | null
+    | "" -> fallback
+    | v -> v
+
+let private sanitizeRef (refName: string) : string =
+    let s = refName.Replace('/', '-').Replace(' ', '-')
+    Regex.Replace(s, @"[^A-Za-z0-9._-]", "")
+
+let private tryGitBranch () : string option =
+    try
+        let psi =
+            ProcessStartInfo(
+                FileName = "git",
+                Arguments = "rev-parse --abbrev-ref HEAD",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            )
+
+        match Process.Start psi with
+        | null -> None
+        | p ->
+            use _ = p
+            let o = p.StandardOutput.ReadToEnd().Trim()
+            p.WaitForExit(5_000) |> ignore
+
+            if p.ExitCode = 0 && o <> "" && o <> "HEAD" then Some o else None
+    with _ ->
+        None
+
+let private lastOfficialAnalyzer (root: string) : string =
+    let path = Path.Combine(root, "src", "docs", "releases", "manifest.json")
+
+    if not (File.Exists path) then
+        "0.0.0"
+    else
+        try
+            use doc = JsonDocument.Parse(File.ReadAllText path)
+
+            doc.RootElement
+                .GetProperty("lastOfficial")
+                .GetProperty("FSharp.PureAnalyzer")
+                .GetString()
+            |> Option.ofObj
+            |> Option.defaultValue "0.0.0"
+        with _ ->
+            "0.0.0"
+
+/// Expand high-level `preview` / `stable` into full Args (logic formerly in docs-generate.sh).
+let private expandHighLevel (root: string) (mode: string) (arg: string option) : Args =
+    let ghBase = envOr "GH_PAGES_BASE" "https://e-st.github.io/fspure"
+    let stableBase = envOr "STABLE_BASE" "https://fspure.net"
+
+    match mode with
+    | "preview" ->
+        let refName =
+            match arg with
+            | Some r when r <> "" -> r
+            | _ -> defaultArg (tryGitBranch ()) "local"
+
+        let safe = sanitizeRef refName
+        let site = Path.Combine(root, ".generated", "site", "preview", safe)
+        let baseUrl = $"{ghBase.TrimEnd('/')}/preview/{safe}"
+
+        printfn "==> preview docs for ref=%s → %s" refName site
+        printfn "    public URL (github.io only): %s" baseUrl
+
+        {
+            Root = root
+            Channel = "preview"
+            RefName = refName
+            Version = ""
+            BaseUrl = baseUrl
+            WriteMarkdown = false
+            SiteOut = Some site
+            MarkdownOut = Path.Combine(root, ".generated", "docs")
+            Templates = Path.Combine(root, "src", "docs", "templates")
+        }
+
+    | "stable" ->
+        let ver =
+            match arg with
+            | Some v when v <> "" -> v
+            | _ -> lastOfficialAnalyzer root
+
+        let site = Path.Combine(root, ".generated", "site")
+        let md = Path.Combine(root, ".generated", "docs")
+
+        printfn "==> stable docs version=%s → .generated/docs + .generated/site" ver
+        printfn "    public URL (custom domain): %s" stableBase
+
+        {
+            Root = root
+            Channel = "stable"
+            RefName = $"v{ver}"
+            Version = ver
+            BaseUrl = stableBase
+            WriteMarkdown = true
+            SiteOut = Some site
+            MarkdownOut = md
+            Templates = Path.Combine(root, "src", "docs", "templates")
+        }
+
+    | other ->
+        eprintfn "Unknown mode: %s (use preview | stable | or low-level flags)" other
+        eprintf "%s" (usage ())
+        exit 2
+
+let private parseLowLevel (argv: string[]) (start: int) (root0: string) : Args =
+    let mutable root = root0
     let mutable channel = "preview"
     let mutable refName = "unknown"
     let mutable version = ""
@@ -103,7 +222,9 @@ let private parseArgs (argv: string[]) : Args =
                 eprintf "%s" (usage ())
                 exit 2
 
-    loop 0
+    loop start
+
+    root <- findRepoRoot root
 
     if String.IsNullOrWhiteSpace templates then
         templates <- Path.Combine(root, "src", "docs", "templates")
@@ -111,7 +232,6 @@ let private parseArgs (argv: string[]) : Args =
     if String.IsNullOrWhiteSpace markdownOut then
         markdownOut <- Path.Combine(root, ".generated", "docs")
 
-    // Stable markdown runs also get a default site tree unless the caller set --site-out.
     if writeMarkdown && not siteOutExplicit && siteOut.IsNone then
         siteOut <- Some(Path.Combine(root, ".generated", "site"))
 
@@ -127,15 +247,39 @@ let private parseArgs (argv: string[]) : Args =
         Templates = templates
     }
 
-[<EntryPoint>]
-let main argv =
-    try
-        let args = parseArgs argv
+let private parseArgs (argv: string[]) : Args =
+    let root0 = findRepoRoot (Directory.GetCurrentDirectory())
 
-        if args.WriteMarkdown && args.Channel <> "stable" then
-            eprintfn "ERROR: --write-markdown requires --channel stable."
-            exit 1
+    if argv.Length = 0 then
+        expandHighLevel root0 "preview" None
+    else
+        match argv[0] with
+        | "--help"
+        | "-h" ->
+            printf "%s" (usage ())
+            exit 0
+        | "preview"
+        | "stable" as mode ->
+            let arg =
+                if argv.Length > 1 && not (argv[1].StartsWith("-", StringComparison.Ordinal)) then
+                    Some argv[1]
+                else
+                    None
 
+            // Allow extra flags after high-level mode; currently high-level wins.
+            // (Low-level overrides can be added later if needed.)
+            expandHighLevel root0 mode arg
+        | _ when argv[0].StartsWith("-", StringComparison.Ordinal) -> parseLowLevel argv 0 root0
+        | other ->
+            eprintfn "Unknown command: %s" other
+            eprintf "%s" (usage ())
+            exit 2
+
+let private run (args: Args) : int =
+    if args.WriteMarkdown && args.Channel <> "stable" then
+        eprintfn "ERROR: --write-markdown requires --channel stable."
+        1
+    else
         printfn "fspure-docs"
         printfn "  root         = %s" args.Root
         printfn "  channel      = %s" args.Channel
@@ -156,15 +300,14 @@ let main argv =
         let outputs = Render.renderAll args.Templates model
         printfn "  templates = %d" outputs.Length
 
-        Render.writeOutputs
-            args.Root
-            args.MarkdownOut
-            args.SiteOut
-            args.WriteMarkdown
-            outputs
-
+        Render.writeOutputs args.Root args.MarkdownOut args.SiteOut args.WriteMarkdown outputs
         printfn "OK"
         0
+
+[<EntryPoint>]
+let main argv =
+    try
+        run (parseArgs argv)
     with ex ->
         eprintfn "ERROR: %s" ex.Message
 

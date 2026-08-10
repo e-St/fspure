@@ -42,8 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           VER="${{ inputs.version }}"
-          chmod +x src/scripts/docs-generate.sh
-          bash src/scripts/docs-generate.sh stable "$VER"
+          dotnet run --project src/DocsGenerator -- stable "$VER"
           test -f .generated/docs/README.md
           test -d .generated/site
 

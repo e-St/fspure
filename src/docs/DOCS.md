@@ -31,8 +31,10 @@ After the first **Official release** (or a one-time manual publish of `.generate
 
 ### Preview (github.io only)
 
-```bash
-bash src/scripts/docs-generate.sh preview          # local → .generated/site/preview/<branch>/
+```text
+nix run .#docs -- preview                          # or: fspure-docs preview
+dotnet run --project src/DocsGenerator -- preview  # CI / no Nix
+# → .generated/site/preview/<branch>/
 # CI: Docs preview → gh-pages under /preview/<ref>/
 ```
 
@@ -57,8 +59,9 @@ Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (ge
 |------|------|
 | `src/docs/templates/*.scriban` | Edit these (source of truth) |
 | `src/docs/**` (hand docs, assets, releases) | Edit these |
-| `src/DocsGenerator/` | F# + Scriban generator |
-| `src/scripts/docs-generate.sh` | CLI wrapper |
+| `src/DocsGenerator/` | F# + Scriban generator (**preview/stable** modes) |
+| `flake.nix` apps `docs` | `nix run .#docs -- preview\|stable` |
+| `src/scripts/docs-generate.sh` | Deprecated thin shim → F# |
 | `.generated/docs/` | Generated Markdown (gitignored) |
 | `.generated/site/` | Generated static site (gitignored) |
 | `.github/workflows/docs-preview.yml` | github.io previews |

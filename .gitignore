@@ -3,6 +3,11 @@
 **/bin/
 .fake
 
+# direnv / Nix local state
+.direnv/
+result
+result-*
+
 # Generated outputs (docs site, markdown, devcontainer flavours, etc.)
 .generated/*
 !.generated/.gitignore
@@ -41,4 +46,4 @@ src/tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
 # Bytecode leftovers
 **/__pycache__/
 *.py[cod]
-result/
+
