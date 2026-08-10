@@ -1,15 +1,15 @@
 name: Publish Pure Analyzer to nuget.org
 
-# Packs FSharp.PureAnalyzer and publishes via Trusted Publishing (OIDC):
-#   - always → nuget.org (short-lived API key from NuGet/login@v1)
-#   - always → GitHub Packages (advanced / same consumer path as today)
-#   - on GitHub Release events → attaches nupkg to the release
+# Packs and publishes (Trusted Publishing / OIDC — workflow file MUST be nuget_publish.yml):
+#   - FSharp.PureAnalyzer  → nuget.org + GitHub Packages
+#   - fspure-collector     → nuget.org + GitHub Packages (same OIDC policy)
 #
-# No devcontainer: pack only needs .NET SDK + paket.
+# nuget.org Trusted Publishing policy must list:
+#   Workflow File: nuget_publish.yml
+#   Environment: (empty)
+#   NUGET_USER = policy *creator* username (profile name)
 #
-# Requires repository secret NUGET_USER = nuget.org username (profile name, not email).
-# Do not use a long-lived NUGET_API_KEY. Do not pin this job to a GitHub Environment
-# (Trusted Publishing policy Environment must stay empty).
+# Do not use a long-lived NUGET_API_KEY. Do not pin this job to a GitHub Environment.
 
 on:
   release:
@@ -17,16 +17,25 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to pack (e.g. 0.1.0)"
+        description: "FSharp.PureAnalyzer version (e.g. 0.4.0)"
+        required: false
+        default: "0.4.0"
+      collector_version:
+        description: "fspure-collector tool version (e.g. 0.1.0). Empty = skip collector."
         required: false
         default: "0.1.0"
+      publish_collector:
+        description: "Also pack/publish fspure-collector"
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       id-token: write # NuGet Trusted Publishing (OIDC → short-lived API key)
-      contents: write # attach nupkg to GitHub Release
+      contents: write # attach nupkgs to GitHub Release
       packages: write # push to GitHub Packages
 
     steps:
@@ -38,17 +47,26 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Resolve version
+      - name: Resolve versions
         id: ver
         run: |
+          set -euo pipefail
           if [ "${{ github.event_name }}" = "release" ]; then
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
+            # On release, also publish collector at the same version unless disabled.
+            COLLECTOR_VERSION="$VERSION"
+            PUBLISH_COLLECTOR=true
           else
             VERSION="${{ github.event.inputs.version }}"
+            COLLECTOR_VERSION="${{ github.event.inputs.collector_version }}"
+            PUBLISH_COLLECTOR="${{ github.event.inputs.publish_collector }}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "collector_version=$COLLECTOR_VERSION" >> "$GITHUB_OUTPUT"
+          echo "publish_collector=$PUBLISH_COLLECTOR" >> "$GITHUB_OUTPUT"
           echo "nupkg=FSharp.PureAnalyzer.${VERSION}.nupkg" >> "$GITHUB_OUTPUT"
+          echo "Analyzer=$VERSION collector=$COLLECTOR_VERSION publish_collector=$PUBLISH_COLLECTOR"
 
       - name: Require NUGET_USER for nuget.org
         env:
@@ -57,8 +75,8 @@ jobs:
           set -euo pipefail
           if [[ -z "${NUGET_USER:-}" ]]; then
             echo "::error::NUGET_USER secret is not configured."
-            echo "Set repository secret NUGET_USER to your nuget.org username (profile name, not email)."
-            echo "Also configure a Trusted Publishing policy on nuget.org for workflow nuget_publish.yml (Environment empty)."
+            echo "Set repository secret NUGET_USER to the nuget.org username of the Trusted Publishing policy *creator* (profile name, not email)."
+            echo "Policy must allow workflow file: nuget_publish.yml (Environment empty)."
             exit 1
           fi
 
@@ -71,22 +89,42 @@ jobs:
           VERSION="${{ steps.ver.outputs.version }}"
           cd FSharp.PureAnalyzer
           paket restore
-          dotnet build -c Release /p:Version="$VERSION"
+          # PrepareFspurePackageTools runs on pack (fspure-collector + BuildTasks).
           dotnet pack FSharp.PureAnalyzer.fsproj \
             -c Release \
             -o ./nupkgs \
             /p:Version="$VERSION" \
-            --no-build
+            /p:PackageVersion="$VERSION"
+          ls -la ./nupkgs
+          # Prove Phase 3 layout before publish.
+          unzip -l "./nupkgs/FSharp.PureAnalyzer.${VERSION}.nupkg" | tee /tmp/analyzer-nupkg.list
+          grep -q 'build/FSharp.PureAnalyzer.targets' /tmp/analyzer-nupkg.list
+          grep -qE 'tools/(fspure-collector|purity-collector)/' /tmp/analyzer-nupkg.list
+
+      - name: Pack fspure-collector tool
+        if: ${{ steps.ver.outputs.publish_collector == 'true' && steps.ver.outputs.collector_version != '' }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.collector_version }}"
+          cd fspure-collector
+          paket restore
+          dotnet pack fspure-collector.fsproj \
+            -c Release \
+            -o ./nupkgs \
+            /p:Version="$VERSION" \
+            /p:PackageVersion="$VERSION"
           ls -la ./nupkgs
 
-      - name: Upload nupkg artifact
+      - name: Upload nupkg artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pure-analyzer-nupkg-nuget-org
-          path: FSharp.PureAnalyzer/nupkgs/*.nupkg
+          name: fspure-nupkgs-nuget-org
+          path: |
+            FSharp.PureAnalyzer/nupkgs/*.nupkg
+            fspure-collector/nupkgs/*.nupkg
           if-no-files-found: error
 
-      - name: Attach nupkg to GitHub Release
+      - name: Attach nupkgs to GitHub Release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,15 +133,20 @@ jobs:
           gh release upload "${{ github.ref_name }}" \
             FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --clobber
+          if [[ -d fspure-collector/nupkgs ]]; then
+            gh release upload "${{ github.ref_name }}" \
+              fspure-collector/nupkgs/*.nupkg \
+              --clobber || true
+          fi
 
       - name: NuGet login (OIDC → temp API key)
         id: login
         uses: NuGet/login@v1
         with:
-          # nuget.org username / profile name — not an email and not a long-lived API key
+          # Must be the Trusted Publishing policy *creator* username (not owner email).
           user: ${{ secrets.NUGET_USER }}
 
-      - name: Publish to nuget.org
+      - name: Publish FSharp.PureAnalyzer to nuget.org
         run: |
           set -euo pipefail
           dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
@@ -112,11 +155,28 @@ jobs:
             --skip-duplicate
           echo "Published to nuget.org: FSharp.PureAnalyzer ${{ steps.ver.outputs.version }}"
 
+      - name: Publish fspure-collector to nuget.org
+        if: ${{ steps.ver.outputs.publish_collector == 'true' && steps.ver.outputs.collector_version != '' }}
+        run: |
+          set -euo pipefail
+          dotnet nuget push fspure-collector/nupkgs/*.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "Published to nuget.org: fspure-collector ${{ steps.ver.outputs.collector_version }}"
+
       - name: Publish to GitHub Packages
         run: |
           set -euo pipefail
+          SRC="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
           dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
-            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --source "$SRC" \
             --skip-duplicate
+          if [[ -d fspure-collector/nupkgs ]]; then
+            dotnet nuget push fspure-collector/nupkgs/*.nupkg \
+              --api-key "${{ secrets.GITHUB_TOKEN }}" \
+              --source "$SRC" \
+              --skip-duplicate
+          fi
           echo "Published to GitHub Packages"

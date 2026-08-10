@@ -25,52 +25,60 @@ Both distribution channels stay active:
 
 Do **not** use a long-lived `NUGET_API_KEY`. Publishing uses [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
 
-1. Create a [nuget.org](https://www.nuget.org/) account that will own `FSharp.PureAnalyzer`.
-2. Add repository secret **`NUGET_USER`** = your nuget.org **username / profile name** (not an email, not an API key).
-3. On nuget.org → your username → **Trusted Publishing**, create a policy:
+1. Create a [nuget.org](https://www.nuget.org/) account that will own `FSharp.PureAnalyzer` and `fspure-collector`.
+2. Add repository secret **`NUGET_USER`** = the nuget.org **username of the policy creator** (profile name — not an email, not an API key, not necessarily the “owner” display if different).
+3. On nuget.org → your username → **Trusted Publishing**, create **one** policy:
    - **Repository Owner:** `e-St`
    - **Repository:** `fspure`
    - **Workflow File:** `nuget_publish.yml` (file name only — no `.github/workflows/` path)
    - **Environment:** leave empty (this repo does not use a GitHub Actions `environment:`)
-4. Ensure the package id `FSharp.PureAnalyzer` is reserved under your account (first successful push claims it if free).
+4. First successful push claims free package ids under your account.
+
+**Important:** NuGet matches the **exact workflow file name**.  
+A policy for `nuget_publish.yml` will **not** authorize `publish-fspure-collector.yml` (HTTP 401 “Workflow mismatch”).  
+That is why **both** packages publish from **`nuget_publish.yml` only**.
 
 ### GitHub (already wired)
 
-- Extension: workflow packages a VSIX and uploads to GitHub Releases (`vscode-extension-v*` and floating `vscode-extension-latest`).
-- Analyzer: workflows pack a nupkg and push to **GitHub Packages** (`nuget.pkg.github.com`).
-
-GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Actions).
+- Extension: workflow packages a VSIX and uploads to GitHub Releases.
+- Analyzer CI prereleases: `Publish analyzer to GitHub Packages (CI)` on main.
+- Collector-only to GitHub Packages: `Publish fspure-collector tool (GitHub Packages)` (no nuget.org).
 
 ## Workflows
 
 | Workflow | Triggers | Publishes |
 |----------|----------|-----------|
-| `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release always; Open VSX (`OVSX_PAT` required) |
-| `.github/workflows/release-pure-analyzer.yml` | GitHub Release published or manual version input | GitHub Packages + Release assets |
-| `.github/workflows/nuget_publish.yml` | GitHub Release published or manual version input | **FSharp.PureAnalyzer** → nuget.org via OIDC (`NUGET_USER`); also GitHub Packages |
-| `.github/workflows/publish-fspure-collector.yml` | GitHub Release published or manual version input | **fspure-collector** tool → nuget.org + GitHub Packages |
+| `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release; Open VSX (`OVSX_PAT`) |
+| `.github/workflows/release-pure-analyzer.yml` | Release / manual | Analyzer → GitHub Packages + Release assets |
+| **`.github/workflows/nuget_publish.yml`** | Release / manual | **FSharp.PureAnalyzer + fspure-collector** → **nuget.org** (OIDC) + GitHub Packages |
+| `.github/workflows/publish-fspure-collector.yml` | Manual | fspure-collector → **GitHub Packages only** |
 
-### Phase 3 analyzer on nuget.org
+### How to publish to nuget.org (use this)
 
-Library embed targets require a package that includes `build/` + `tools/fspure-collector/`.  
-Ship that layout with `nuget_publish.yml` (not the older analyzer-only 0.3.2 layout). After publish, satellite `fspure-ready-lib` main CI can pin the new stable version instead of GitHub Packages `-ci.*` builds.
+**Actions → Publish Pure Analyzer to nuget.org → Run workflow**
+
+| Input | Example | Meaning |
+|-------|---------|---------|
+| `version` | `0.4.0` | FSharp.PureAnalyzer (must include Phase 3 `build/` + `tools/fspure-collector/`) |
+| `collector_version` | `0.1.0` | fspure-collector tool |
+| `publish_collector` | true | Pack/push the tool as well |
 
 ```bash
-# Consumers
-dotnet add package FSharp.PureAnalyzer --version <version>
-
-# Optional: tool only
-dotnet tool install -g fspure-collector --version <version>
+# After a successful run
+dotnet add package FSharp.PureAnalyzer --version 0.4.0
+dotnet tool install -g fspure-collector --version 0.1.0
 ```
 
-`publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
+Library embed targets require a package that includes `build/` + `tools/fspure-collector/` (not nuget.org `0.3.2`, which is analyzer-only).
 
-`nuget_publish.yml` uses `actions/setup-dotnet` + global `paket` on `ubuntu-latest` (no devcontainer). Analyzer pack/build workflows that do use a container pin `FSharp.PureAnalyzer/.devcontainer/devcontainer.json` (not the interactive IDE container).
+`publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing.  
+`nuget_publish.yml` **fails** if `NUGET_USER` is missing or the Trusted Publishing policy workflow name does not match.
 
 ## Versioning
 
-- **Extension:** bump `vscode-extension/package.json` → `version` before merge (Open VSX rejects reusing a version).
-- **Analyzer:** pass version via release tag or `workflow_dispatch` input; do not re-use published nuget.org versions.
+- **Extension:** bump `vscode-extension/package.json` → `version` before merge.
+- **Analyzer / collector:** do not re-use published nuget.org versions.
+- Analyzer and collector versions are independent (`0.4.0` vs `0.1.0` is fine).
 
 ## Local dry-runs
 
@@ -79,8 +87,14 @@ dotnet tool install -g fspure-collector --version <version>
 cd vscode-extension
 npx --yes @vscode/vsce package
 
-# Analyzer nupkg
+# Analyzer nupkg (Phase 3 layout)
 cd FSharp.PureAnalyzer
-paket restore && dotnet build -c Release
+paket restore
+dotnet pack -c Release -o ./nupkgs /p:Version=0.0.0-local
+unzip -l ./nupkgs/*.nupkg | grep -E 'build/|tools/fspure-collector'
+
+# Collector tool nupkg
+cd ../fspure-collector
+paket restore
 dotnet pack -c Release -o ./nupkgs /p:Version=0.0.0-local
 ```
