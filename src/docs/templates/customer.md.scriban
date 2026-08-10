@@ -38,7 +38,7 @@ dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}
 
 Paket:
 
-```
+```paket
 nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}
 ```
 

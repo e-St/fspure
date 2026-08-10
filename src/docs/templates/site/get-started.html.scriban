@@ -35,9 +35,15 @@
     </ol>
 
     <h2>1. Add the analyzer to your project</h2>
-    <pre><code>dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}</code></pre>
+    <figure class="codebox" data-lang="shell">
+      <figcaption>Terminal · .NET CLI</figcaption>
+      <pre><code>dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}</code></pre>
+    </figure>
     <p>Or with Paket:</p>
-    <pre><code>nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}</code></pre>
+    <figure class="codebox" data-lang="shell">
+      <figcaption>paket.dependencies</figcaption>
+      <pre><code>nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}</code></pre>
+    </figure>
     <p>
       Copy the package’s <code>analyzers/dotnet/fs/</code> folder into a workspace folder named
       <code>analyzers</code> (next to your solution). Ionide needs a real path — not <code>~</code>
@@ -55,7 +61,10 @@
 
     <h2>3. Turn on analyzers in the workspace</h2>
     <p>Create or edit <code>.vscode/settings.json</code>:</p>
-    <pre><code>{{ MinimalSettingsJson }}</code></pre>
+    <figure class="codebox" data-lang="json">
+      <figcaption>.vscode/settings.json</figcaption>
+      <pre><code>{{ MinimalSettingsJson }}</code></pre>
+    </figure>
 
     <h2>4. Open a file and wait a moment</h2>
     <p>

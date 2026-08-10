@@ -26,7 +26,7 @@ dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}
 
 Paket:
 
-```
+```paket
 nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}
 ```
 
@@ -37,8 +37,7 @@ Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named
 Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [Open VSX](https://open-vsx.org/extension/e-st/fsharp-pure-decorations), **and** [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp).
 
 ```bash
-# Open VSX / VSCodium / many code-server setups:
-# Extensions UI → search “F# Pure Analyzer Decorations”
+# Extensions UI → search “F# Pure Analyzer Decorations” (Open VSX / VSCodium / code-server)
 ```
 
 ### 3. Workspace settings
