@@ -1,0 +1,141 @@
+# Runs when a Release PR (edits under releases/) is merged to main.
+# Publishes selected components, applies pins, triggers satellite syncs.
+name: Official release
+
+on:
+  pull_request:
+    types: [closed]
+    paths:
+      - "releases/**"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type publish to run from current main manifest pending (dangerous)"
+        required: true
+        default: ""
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: official-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish from releases/manifest.json pending
+    runs-on: ubuntu-latest
+    if: |
+      github.repository == 'e-St/fspure' && (
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'publish')
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Guard — require pending release
+        id: guard
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, sys
+          m = json.load(open("releases/manifest.json"))
+          if not m.get("pending"):
+              print("No pending release in manifest — nothing to publish.")
+              sys.exit(0)
+          print("pending=true")
+          for n, c in m["pending"]["components"].items():
+              print(n, c)
+          PY
+          if ! python3 -c "import json; m=json.load(open('releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET 10
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Node
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install paket
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Require NUGET_USER
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          NUGET_USER: ${{ secrets.NUGET_USER }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${NUGET_USER:-}" ]]; then
+            echo "::error::NUGET_USER required for official nuget.org publish"
+            exit 1
+          fi
+
+      - name: NuGet login (OIDC)
+        if: steps.guard.outputs.skip != 'true'
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish official packages
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/release/*.sh
+          bash scripts/release/publish-official.sh
+
+      - name: Commit pin updates to main
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No pin updates to commit"
+            exit 0
+          fi
+          git commit -m "chore(release): apply official version pins after publish
+
+          Automated by Official release workflow."
+          git pull --rebase origin main || true
+          git push origin "HEAD:${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}"
+
+      - name: Trigger ready-lib sync + fstarter PR
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Best-effort: workflows must exist and allow workflow_dispatch
+          gh workflow run "Sync fspure-ready-lib" --ref main || true
+          gh workflow run "PR fspure updates to fstarter" --ref main || true

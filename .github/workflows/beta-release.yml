@@ -1,0 +1,62 @@
+# Prerelease packages to GitHub Packages only (as often as you want).
+# Does not touch nuget.org or official GitHub Release "Latest".
+name: Beta release (GitHub Packages)
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "Prerelease kind suffix"
+        type: choice
+        options:
+          - beta
+          - ci
+        default: beta
+  # Optional: after Phase 5 is green on main
+  workflow_run:
+    workflows: ["Phase 5 Regression"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: beta-release
+  cancel-in-progress: true
+
+jobs:
+  publish-beta:
+    name: Pack and push prereleases
+    runs-on: ubuntu-latest
+    if: |
+      github.repository == 'e-St/fspure' && (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Publish beta to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          BETA_KIND: ${{ github.event.inputs.kind || 'ci' }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/release/*.sh
+          bash scripts/release/publish-beta.sh

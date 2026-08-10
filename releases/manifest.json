@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "description": "Source of truth for last official versions. A Release PR sets pending; merge runs the official publish.",
+  "lastOfficial": {
+    "FSharp.PureAnalyzer": "0.4.0",
+    "fspure-collector": "0.1.0",
+    "fsharp-pure-decorations": "0.2.5"
+  },
+  "pending": null
+}

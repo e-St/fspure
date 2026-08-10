@@ -1,0 +1,140 @@
+# Opens a Release PR with editable version numbers + changelog drafts.
+# Merge that PR to run official-release.yml.
+name: Prepare release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      analyzer_to:
+        description: "FSharp.PureAnalyzer next version (empty = patch bump)"
+        required: false
+        default: ""
+      collector_to:
+        description: "fspure-collector next version (empty = patch bump)"
+        required: false
+        default: ""
+      extension_to:
+        description: "fsharp-pure-decorations next version (empty = patch bump)"
+        required: false
+        default: ""
+      publish_analyzer:
+        type: boolean
+        default: true
+      publish_collector:
+        type: boolean
+        default: true
+      publish_extension:
+        type: boolean
+        default: false
+        description: "Also publish VS Code extension (Open VSX needs OVSX_PAT)"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: prepare-release-pr
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Create Release PR
+    runs-on: ubuntu-latest
+    if: github.repository == 'e-St/fspure'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare pending release + changelog drafts
+        env:
+          ANALYZER_TO: ${{ github.event.inputs.analyzer_to }}
+          COLLECTOR_TO: ${{ github.event.inputs.collector_to }}
+          EXTENSION_TO: ${{ github.event.inputs.extension_to }}
+          PUBLISH_ANALYZER: ${{ github.event.inputs.publish_analyzer }}
+          PUBLISH_COLLECTOR: ${{ github.event.inputs.publish_collector }}
+          PUBLISH_EXTENSION: ${{ github.event.inputs.publish_extension }}
+          ROOT: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/release/*.sh
+          bash scripts/release/prepare-release-pr.sh
+
+      - name: Create branch and PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          DATE="$(date -u +%Y%m%d)"
+          BRANCH="release/prepare-${DATE}"
+          git checkout -B "$BRANCH"
+          git add releases/
+          if git diff --staged --quiet; then
+            echo "No release file changes"
+            exit 0
+          fi
+
+          # Extract summary for PR body
+          BODY="$(python3 - <<'PY'
+import json
+m = json.load(open("releases/manifest.json"))
+p = m["pending"]
+lines = [
+  "## Release PR",
+  "",
+  "Edit **versions** and **\`publish\` flags** in \`releases/manifest.json\`, and rewrite each **Unreleased** section in the changelogs before merge.",
+  "",
+  "### Proposed",
+  "",
+  "| Component | From | To | Publish |",
+  "|-----------|------|----|---------|",
+]
+for name, c in p["components"].items():
+    lines.append(f"| `{name}` | {c['from']} | **{c['to']}** | {c['publish']} |")
+lines += [
+  "",
+  "### Changelogs",
+  "",
+  "- [CHANGELOG.FSharp.PureAnalyzer.md](releases/CHANGELOG.FSharp.PureAnalyzer.md)",
+  "- [CHANGELOG.fspure-collector.md](releases/CHANGELOG.fspure-collector.md)",
+  "- [CHANGELOG.fsharp-pure-decorations.md](releases/CHANGELOG.fsharp-pure-decorations.md)",
+  "",
+  "### After merge",
+  "",
+  "The **Official release** workflow will:",
+  "1. Publish selected packages (nuget.org + GitHub Releases)",
+  "2. Update version pins in the monorepo (README, sample, fstarter pack)",
+  "3. Trigger ready-lib sync and fstarter PR workflows",
+  "",
+  "Docs: [docs/RELEASING.md](docs/RELEASING.md)",
+]
+print("\n".join(lines))
+PY
+)"
+
+          git commit -m "chore(release): prepare official release PR
+
+Editable versions and changelogs under releases/. Merge to publish."
+
+          git push -u origin "HEAD:${BRANCH}" --force
+
+          EXISTING="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
+          TITLE="chore(release): prepare official release"
+          if [[ -n "$EXISTING" ]]; then
+            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+            gh pr edit "$EXISTING" --add-label "release" 2>/dev/null || true
+            echo "Updated PR #$EXISTING"
+          else
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY" || true
+            # label if exists
+            NUM="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
+            if [[ -n "$NUM" ]]; then
+              gh pr edit "$NUM" --add-label "release" 2>/dev/null || \
+                gh label create release --description "Official release PR" --color "0E8A16" 2>/dev/null || true
+              gh pr edit "$NUM" --add-label "release" 2>/dev/null || true
+            fi
+          fi

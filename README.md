@@ -258,6 +258,7 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 - fstarter integration pack + PR sync: [integrations/fstarter](integrations/fstarter/) · [docs/SYNC-FSTARTER.md](docs/SYNC-FSTARTER.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - Security (Dependabot, CodeQL, audits): [docs/SECURITY.md](docs/SECURITY.md)
+- Releasing (Release PR, beta, pins): [docs/RELEASING.md](docs/RELEASING.md) · [releases/](releases/)
 
 ```bash
 # Analyzer
