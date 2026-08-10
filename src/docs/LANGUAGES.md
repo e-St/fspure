@@ -1,46 +1,57 @@
 # Languages in this repository
 
-**Defaults: F# and Nix.** Prefer F# for product code, tests, tools, and e2e. Prefer flakes + direnv + Nushell for the developer environment.
+**Default: F#** for product code, tests, tooling, and monorepo tasks (Hindley–Milner / F# type inference, static checking).  
+**Nix flakes** only for the optional SDK shell (`flake.nix`).  
+**No new bash.** Remaining `.sh` files are thin `exec` shims or legacy (e2e / release / devcontainer host).
+
+## Preferred stack
+
+| Layer | Language | Role |
+|-------|----------|------|
+| Product + tools | **F#** | Analyzer, collector, embed, docs, gates, security audit |
+| Monorepo tasks | **F#** (`src/Fspure.Tasks`) | `build`, `test`, `docs`, `security`, `ready-lib-gate`, `phase5` |
+| Optional env | Nix flake | `dotnet` SDK on PATH via `nix develop` / direnv |
+| CI orchestration | YAML | Calls `dotnet run --project …` (not bash logic) |
 
 ## Allowed exceptions
 
 | Area | Language | Why |
 |------|----------|-----|
-| **VS Code host shim** (`src/editor/vscode-extension/src/extension.js`) | JavaScript | VS Code loads JS/TS; decoration *rules* are F# (`src/Fspure.DecorationLogic`) |
-| **GitHub Actions** | YAML | CI platform |
-| **Nix `writeShellApplication`** | tiny `/bin/sh` | Only packaging glue: find repo root + `exec` F# tool — **no product logic** |
-| **Legacy `src/scripts/*.sh`** | bash | Being retired; do not add new ones |
+| **VS Code host shim** | JavaScript (`extension.js`, thin `logic.js`) | Host loads JS only; **rules** live in F# (`Fspure.DecorationLogic`). Do not commit Fable emit. |
+| **Site HTML/CSS** | Scriban → `.generated/` | Never commit `index.html` / `legal.html` / `privacy.html` / `site.css` — only templates under `src/docs/templates/site/` |
+| **GitHub Actions** | YAML | Platform |
+| **Legacy / host scripts** | thin bash | e2e (code-server), release publish, Codespaces lifecycle — **no new product logic** |
 | **JSON / props / Scriban** | data / templates | Not application logic |
 
-## F#
+## F# tool map
 
-| Area | Notes |
-|------|--------|
-| `src/FSharp.PureAnalyzer/` | Analyzer |
-| `src/fspure-collector/` | pure.json collector |
-| `src/FSharp.PureSchema/` | Schema + PE reader |
-| `src/Fspure.Embed/` | Embed pure.json (`dotnet exec`) |
-| `src/Fspure.DecorationLogic/` | Pure/impure badge rules (extension + tests) |
-| `src/DocsGenerator/` | Docs + site generation (**includes** preview/stable orchestration) |
-| `src/DevcontainerGen/` | Devcontainer fragment merge |
-| `src/tests/e2e/phase2/ScreenshotCapture/` | Visual e2e (**Playwright.NET**, F#) |
+| Project | Replaces / role |
+|---------|-----------------|
+| `src/Fspure.Tasks` | Monorepo CLI (was large scripts under `src/scripts/`) |
+| `src/DocsGenerator` | Docs preview/stable (was `docs-generate.sh` body) |
+| `src/DevcontainerGen` | Fragment merge |
+| `src/FSharp.PureAnalyzer` | Analyzer |
+| `src/fspure-collector` | pure.json collector |
+| `src/Fspure.Embed` | Embed pure.json |
+| `src/Fspure.DecorationLogic` | Badge rules |
 
-## Nix + interactive shell
+## How to run tasks (F#)
 
-| Piece | Notes |
-|-------|--------|
-| `flake.nix` | Flakes: `packages`, `apps`, `devShells` |
-| `.envrc` | direnv + nix-direnv → `use flake` |
-| `nushell` | Preferred interactive shell in the devShell (on PATH, not forced as `$SHELL`) |
-| `src/scripts/fspure.nu` | Thin interactive helpers |
+```text
+dotnet run --project src/Fspure.Tasks -- help
+dotnet run --project src/Fspure.Tasks -- docs preview
+dotnet run --project src/Fspure.Tasks -- security
+dotnet run --project src/Fspure.Tasks -- ready-lib-gate
+dotnet run --project src/Fspure.Tasks -- phase5
+dotnet run --project src/Fspure.Tasks -- build
+dotnet run --project src/Fspure.Tasks -- test
+```
 
-Full guide: [NIX.md](NIX.md).
+`src/scripts/*.sh` for those commands are **5-line shims** that only `exec` the F# tool (kept so old CI paths keep working).
 
 ## Rule of thumb
 
 1. Logic → **F#**  
-2. Toolchain / env → **Nix flakes** (+ direnv)  
-3. Interactive glue → **Nushell**  
-4. VS Code host edge → minimal JS only  
-5. **No new bash scripts** (only accidental leftovers inside `writeShellApplication`)  
-6. No new Python, C#, or Dockerfiles for monorepo tooling  
+2. Optional toolchain pin → **Nix flake** (SDK only)  
+3. No new shell scripts with branching / parsing / product rules  
+4. No new Python, C#, or Dockerfiles for monorepo tooling  

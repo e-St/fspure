@@ -62,8 +62,7 @@ jobs:
       - name: Run fspure-ready-lib gate
         run: |
           set -euo pipefail
-          chmod +x src/scripts/fspure-ready-lib-gate.sh src/tests/e2e/ready-lib/run.sh src/samples/fspure-ready-lib/src/scripts/*.sh
-          bash src/scripts/fspure-ready-lib-gate.sh
+          dotnet run --project src/Fspure.Tasks -- ready-lib-gate
 
       - name: Upload gate artifacts
         if: always()

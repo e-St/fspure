@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Monorepo e2e for the library-embed story (Phase 4).
-# Thin wrapper: same gate as CI (local feed only).
+# Thin shim → F# ready-lib-gate.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-exec bash "$ROOT/src/scripts/fspure-ready-lib-gate.sh"
+cd "$ROOT"
+exec dotnet run --project src/Fspure.Tasks/Fspure.Tasks.fsproj -c "${CONFIGURATION:-Release}" -- ready-lib-gate "$@"

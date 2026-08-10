@@ -75,8 +75,8 @@ jobs:
       - name: Run Phase 5 regression
         run: |
           set -euo pipefail
-          chmod +x src/scripts/*.sh src/tests/e2e/phase1/run.sh src/tests/e2e/ready-lib/run.sh src/samples/fspure-ready-lib/src/scripts/*.sh
-          bash src/scripts/phase5-regression.sh
+          chmod +x src/tests/e2e/phase1/run.sh src/samples/fspure-ready-lib/scripts/*.sh 2>/dev/null || true
+          dotnet run --project src/Fspure.Tasks -- phase5
 
       - name: Upload artifacts
         if: always()

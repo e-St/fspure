@@ -2,7 +2,7 @@
 #
 # - CodeQL (C# / JavaScript)
 # - Dependency review on pull requests (public repos: free GitHub Advanced Security features)
-# - NuGet + npm audits via src/scripts/security-audit.sh
+# - NuGet + npm audits via src/Fspure.Tasks (F#)
 name: Security
 
 on:
@@ -100,8 +100,7 @@ jobs:
           NPM_AUDIT_LEVEL: high
         run: |
           set -euo pipefail
-          chmod +x src/scripts/security-audit.sh
-          bash src/scripts/security-audit.sh
+          dotnet run --project src/Fspure.Tasks -- security
 
   gitleaks:
     name: Secret scan (gitleaks)

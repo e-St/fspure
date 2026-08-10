@@ -15,6 +15,19 @@ result-*
 # Legacy site output path (prefer .generated/site)
 _site/
 
+# Never commit generated site pages (source is src/docs/templates/site/*.scriban)
+src/docs/index.html
+src/docs/legal.html
+src/docs/privacy.html
+src/docs/site.css
+src/docs/fspure.png
+
+# Fable emit debris (logic host is hand-maintained CommonJS; F# is source of truth)
+src/editor/vscode-extension/src/fable_modules/
+src/editor/vscode-extension/src/Fspure.DecorationLogic/
+src/editor/vscode-extension/src/Exports.js
+src/editor/vscode-extension/src/**/Logic.js
+
 # Nested platform materializations of DevcontainerGen (regenerate in CI / locally).
 # Root .devcontainer/devcontainer.json is the Codespaces entry and may be committed.
 src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json

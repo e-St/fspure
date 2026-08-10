@@ -1,5 +1,5 @@
 {
-  description = "fspure — F# purity tooling monorepo (flakes + direnv + Nushell; logic in F#)";
+  description = "fspure — F# purity tooling monorepo (logic in F#; flake only for .NET SDK + thin wrappers)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -17,24 +17,16 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        # Prefer .NET 10 when present in nixpkgs; fall back gracefully.
         dotnet =
           pkgs.dotnetCorePackages.sdk_10_0 or pkgs.dotnetCorePackages.sdk_9_0 or pkgs.dotnet-sdk;
 
-        # ------------------------------------------------------------------
-        # Thin writeShellApplication wrappers only.
-        # All real logic lives in F# tools under src/ (DocsGenerator, DevcontainerGen, …).
-        # These wrappers exist so `nix run` / apps work without a hand-written bash script
-        # tree. Keep the `text` blocks tiny — no branching product logic here.
-        # ------------------------------------------------------------------
-
-        # Locate monorepo root (git or walk) then exec a F# project with `dotnet run`.
-        # $1… are forwarded to the tool. First argument after derivation build is unused.
+        # Absolute minimum shell: find monorepo root, exec F# via dotnet run.
         mkDotnetTool =
           {
             name,
-            project, # path relative to monorepo root
+            project,
             description ? "",
+            extraArgs ? "",
           }:
           pkgs.writeShellApplication {
             inherit name;
@@ -43,7 +35,6 @@
               pkgs.git
             ];
             text = ''
-              # shellcheck disable=SC2164
               root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
               if [ -z "$root" ]; then
                 d="$PWD"
@@ -60,7 +51,7 @@
               export DOTNET_ROOT="${dotnet}"
               export DOTNET_CLI_TELEMETRY_OPTOUT=1
               export DOTNET_NOLOGO=1
-              exec ${dotnet}/bin/dotnet run --project "${project}" -c "''${CONFIGURATION:-Release}" -- "$@"
+              exec ${dotnet}/bin/dotnet run --project "${project}" -c "''${CONFIGURATION:-Release}" -- ${extraArgs} "$@"
             '';
             meta = {
               inherit description;
@@ -68,69 +59,77 @@
             };
           };
 
+        tasks = "src/Fspure.Tasks/Fspure.Tasks.fsproj";
+
+        fspure = mkDotnetTool {
+          name = "fspure";
+          project = tasks;
+          description = "F# monorepo task runner (build/test/docs/security/gates)";
+        };
+
         fspure-docs = mkDotnetTool {
           name = "fspure-docs";
           project = "src/DocsGenerator/DocsGenerator.fsproj";
-          description = "Generate docs site / Markdown into .generated/ (F# + Scriban)";
+          description = "Docs site / Markdown → .generated/ (F# + Scriban)";
         };
 
         fspure-devcontainer = mkDotnetTool {
           name = "fspure-devcontainer";
           project = "src/DevcontainerGen/DevcontainerGen.fsproj";
-          description = "Merge src/devcontainer/fragments → .generated/devcontainer/";
+          description = "Merge devcontainer fragments (F#)";
         };
 
-        # One-shot environment banner (opt-in). Not run from shellHook so direnv stays quiet.
-        fspure-info = pkgs.writeShellApplication {
-          name = "fspure-info";
-          runtimeInputs = [
-            dotnet
-            pkgs.nodejs_22
-          ];
-          text = ''
-            echo "fspure nix env"
-            echo "  dotnet: $(${dotnet}/bin/dotnet --version 2>/dev/null || echo '?')"
-            echo "  node:   $(${pkgs.nodejs_22}/bin/node --version 2>/dev/null || echo '?')"
-            echo "  apps:   nix run .#docs -- preview"
-            echo "          nix run .#devcontainer"
-            echo "          nix run .#info"
-            echo "  nu:     nu  # then: use src/scripts/fspure.nu"
-          '';
+        fspure-security = mkDotnetTool {
+          name = "fspure-security";
+          project = tasks;
+          extraArgs = "security";
+          description = "NuGet vulnerable + npm audit (F#)";
         };
+
+        fspure-ready-lib-gate = mkDotnetTool {
+          name = "fspure-ready-lib-gate";
+          project = tasks;
+          extraArgs = "ready-lib-gate";
+          description = "ReadyLib local-feed e2e gate (F#)";
+        };
+
+        fspure-phase5 = mkDotnetTool {
+          name = "fspure-phase5";
+          project = tasks;
+          extraArgs = "phase5";
+          description = "Phase 5 regression net (F#)";
+        };
+
+        app =
+          pkg: bin: {
+            type = "app";
+            program = "${pkg}/bin/${bin}";
+          };
 
       in
       {
         formatter = pkgs.nixfmt-rfc-style;
 
         packages = {
-          default = fspure-docs;
+          default = fspure;
+          fspure = fspure;
           docs = fspure-docs;
           devcontainer = fspure-devcontainer;
-          info = fspure-info;
+          security = fspure-security;
+          ready-lib-gate = fspure-ready-lib-gate;
+          phase5 = fspure-phase5;
         };
 
         apps = {
-          default = {
-            type = "app";
-            program = "${fspure-docs}/bin/fspure-docs";
-          };
-          docs = {
-            type = "app";
-            program = "${fspure-docs}/bin/fspure-docs";
-          };
-          devcontainer = {
-            type = "app";
-            program = "${fspure-devcontainer}/bin/fspure-devcontainer";
-          };
-          info = {
-            type = "app";
-            program = "${fspure-info}/bin/fspure-info";
-          };
+          default = app fspure "fspure";
+          fspure = app fspure "fspure";
+          docs = app fspure-docs "fspure-docs";
+          devcontainer = app fspure-devcontainer "fspure-devcontainer";
+          security = app fspure-security "fspure-security";
+          ready-lib-gate = app fspure-ready-lib-gate "fspure-ready-lib-gate";
+          phase5 = app fspure-phase5 "fspure-phase5";
         };
 
-        # direnv + nix-direnv load this automatically via `use flake` in .envrc.
-        # Interactive shell preference: Nushell (available on PATH; not forced as $SHELL
-        # so CI / non-interactive callers keep working).
         devShells.default = pkgs.mkShell {
           name = "fspure";
           packages = with pkgs; [
@@ -140,25 +139,25 @@
             jq
             curl
             cacert
-            nushell
+            unzip
             direnv
             nix-direnv
             nixfmt-rfc-style
-            # Exposed as commands inside the shell (same thin wrappers as apps).
+            fspure
             fspure-docs
             fspure-devcontainer
-            fspure-info
+            fspure-security
+            fspure-ready-lib-gate
+            fspure-phase5
           ];
 
-          # Keep shellHook to pure env exports — no echo spam (direnv reloads often).
           shellHook = ''
             export DOTNET_ROOT="${dotnet}"
             export DOTNET_CLI_TELEMETRY_OPTOUT=1
             export DOTNET_NOLOGO=1
             export PATH="$HOME/.dotnet/tools:$PATH"
-            # Hint for interactive shells only (skip under direnv reload noise when possible).
             if [ -n "''${PS1-}" ] && [ -z "''${FSPURE_QUIET-}" ]; then
-              echo "fspure: fspure-docs | fspure-devcontainer | fspure-info | nu"
+              echo "fspure: fspure | fspure-docs | fspure-security | fspure-ready-lib-gate | fspure-phase5"
             fi
           '';
         };

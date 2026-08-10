@@ -14,6 +14,7 @@
   <Project Path="src/Fspure.Embed/Fspure.Embed.fsproj" />
   <Project Path="src/DevcontainerGen/DevcontainerGen.fsproj" />
   <Project Path="src/DocsGenerator/DocsGenerator.fsproj" />
+  <Project Path="src/Fspure.Tasks/Fspure.Tasks.fsproj" />
   <Project Path="src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedLib/EmbedLib.fsproj" />
   <Project Path="src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedConsumer/EmbedConsumer.fsproj" />
   <Project Path="src/Fspure.DecorationLogic/Fspure.DecorationLogic.fsproj" />

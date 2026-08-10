@@ -118,14 +118,12 @@ module Render =
         | Some siteRoot ->
             let docsSrc = Path.Combine(repoRoot, "src", "docs")
 
+            // Binary / non-template assets only. HTML+CSS come from templates/site/*.scriban.
             let staticPairs =
                 [
                     Path.Combine(docsSrc, "assets", "fspure.png"), "fspure.png"
                     Path.Combine(docsSrc, "assets", "fspure.png"), Path.Combine("assets", "fspure.png")
                     Path.Combine(docsSrc, "assets", "image.png"), Path.Combine("assets", "image.png")
-                    Path.Combine(docsSrc, "site.css"), "site.css"
-                    Path.Combine(docsSrc, "legal.html"), "legal.html"
-                    Path.Combine(docsSrc, "privacy.html"), "privacy.html"
                     Path.Combine(docsSrc, ".nojekyll"), ".nojekyll"
                 ]
 

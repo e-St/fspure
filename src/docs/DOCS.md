@@ -33,7 +33,7 @@ After the first **Official release** (or a one-time manual publish of `.generate
 
 ```text
 nix run .#docs -- preview                          # or: fspure-docs preview
-dotnet run --project src/DocsGenerator -- preview  # CI / no Nix
+dotnet run --project src/Fspure.Tasks -- docs preview  # CI / no Nix
 # → .generated/site/preview/<branch>/
 # CI: Docs preview → gh-pages under /preview/<ref>/
 ```
@@ -57,11 +57,12 @@ Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (ge
 
 | Path | Role |
 |------|------|
-| `src/docs/templates/*.scriban` | Edit these (source of truth) |
-| `src/docs/**` (hand docs, assets, releases) | Edit these |
+| `src/docs/templates/*.scriban` | Edit these (source of truth for Markdown **and** site HTML/CSS) |
+| `src/docs/templates/site/` | `index.html`, `legal.html`, `privacy.html`, `site.css` templates only |
+| `src/docs/**` (hand Markdown, assets, releases) | Edit these — **not** generated site pages |
 | `src/DocsGenerator/` | F# + Scriban generator (**preview/stable** modes) |
-| `flake.nix` apps `docs` | `nix run .#docs -- preview\|stable` |
-| `src/scripts/docs-generate.sh` | Deprecated thin shim → F# |
+| `src/Fspure.Tasks` | Monorepo CLI: `docs`, `security`, gates |
+| `src/scripts/docs-generate.sh` | Thin shim → Fspure.Tasks |
 | `.generated/docs/` | Generated Markdown (gitignored) |
 | `.generated/site/` | Generated static site (gitignored) |
 | `.github/workflows/docs-preview.yml` | github.io previews |
