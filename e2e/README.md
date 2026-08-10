@@ -63,6 +63,12 @@ devcontainer exec --workspace-folder . --config e2e/phase2/.devcontainer/devcont
 
 Or run `e2e/phase2/run.sh` on any host that has .NET 10, Node 20, code-server, and Playwright deps.
 
+## Library embed (Phase 4)
+
+**Script:** `bash e2e/ready-lib/run.sh` (same as `bash scripts/fspure-ready-lib-gate.sh`)
+
+Local NuGet feed only: pack monorepo analyzer → pack `samples/fspure-ready-lib` → consumer + hard PURE002/PURE003 asserts. See [ready-lib/README.md](ready-lib/README.md). CI: `.github/workflows/fspure-ready-lib-gate.yml`.
+
 ## Layout
 
 ```
@@ -82,6 +88,9 @@ e2e/
     playwright/
       package.json
       screenshot.mjs
+  ready-lib/
+    run.sh                    # Phase 4 library-embed gate (local feed)
+    README.md
   README.md
 ```
 

@@ -1,0 +1,72 @@
+# Phase 4 gate (KISS): monorepo local-feed pack → embed → consumer diagnostics.
+# No nuget.org analyzer, no GitHub Packages, no satellite repo.
+name: Fspure Ready Lib Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "samples/fspure-ready-lib/**"
+      - "FSharp.PureAnalyzer/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "scripts/fspure-ready-lib-gate.sh"
+      - "e2e/ready-lib/**"
+      - ".github/workflows/fspure-ready-lib-gate.yml"
+  pull_request:
+    paths:
+      - "samples/fspure-ready-lib/**"
+      - "FSharp.PureAnalyzer/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "scripts/fspure-ready-lib-gate.sh"
+      - "e2e/ready-lib/**"
+      - ".github/workflows/fspure-ready-lib-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  ready-lib-gate:
+    name: Local-feed pack + consumer PURE00x
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Run fspure-ready-lib gate
+        run: |
+          set -euo pipefail
+          chmod +x scripts/fspure-ready-lib-gate.sh e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
+          bash scripts/fspure-ready-lib-gate.sh
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fspure-ready-lib-gate
+          path: |
+            artifacts/local-feed/
+            artifacts/fspure-ready-lib-gate/
+          if-no-files-found: warn

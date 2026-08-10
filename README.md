@@ -209,12 +209,35 @@ System.Text.Json.Serialization
 
 ---
 
+## How to make your library fspure-ready
+
+One line on a **net10.0** library (use a `FSharp.PureAnalyzer` package that ships MSBuild embed targets):
+
+```xml
+<PackageReference Include="FSharp.PureAnalyzer" Version="VERSION" PrivateAssets="all" />
+```
+
+That embeds `{AssemblyName}.pure.json` into your DLL. Vanilla fspure consumers then get pure/impure labels for your API automatically.
+
+- Template + badges table: [samples/fspure-ready-lib](samples/fspure-ready-lib/)
+- Monorepo proof (local NuGet feed, no publish required):
+
+```bash
+bash scripts/fspure-ready-lib-gate.sh
+# or: bash e2e/ready-lib/run.sh
+```
+
+Publishing your library to nuget.org is optional; CI proves the path with a local feed.
+
+---
+
 ## Develop this repository
 
 - **Interactive IDE:** open the repo in Codespaces or “Reopen in Container” → root [`.devcontainer/`](.devcontainer/) (“fspure IDE”)
 - **CI pack/build:** [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) (not the IDE container)
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `purity-collector`)
 - Customer e2e (separate container): [e2e/README.md](e2e/README.md)
+- Library-embed gate: [e2e/ready-lib/README.md](e2e/ready-lib/README.md) · workflow `fspure-ready-lib-gate.yml`
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 
 ```bash
@@ -226,6 +249,9 @@ node vscode-extension/test/decorations.logic.test.js
 
 # Phase 1 e2e (analyzer baseline; in CI runs inside e2e/phase2/.devcontainer)
 bash e2e/phase1/run.sh
+
+# Phase 4 library-embed gate (local feed)
+bash scripts/fspure-ready-lib-gate.sh
 ```
 
 ## License
