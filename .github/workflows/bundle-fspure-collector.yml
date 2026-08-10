@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
