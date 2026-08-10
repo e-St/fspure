@@ -4,6 +4,7 @@ open System
 open System.IO
 open FSharp.PureAnalyzer
 open FSharp.PureAnalyzer.Tests.TestProcess
+open FSharp.PureSchema
 open Xunit
 
 module private Env =
@@ -65,6 +66,61 @@ let ``findNonPure marks wrapper pure only with library manifest`` () =
     let isKnown = PureSet.containsIn loaded.Index
     let withManifest = Analysis.findNonPure isKnown callGraph nonLocal
     Assert.False(Set.contains wrapper withManifest)
+
+[<Fact>]
+let ``missing assembly path falls back to foundational only`` () =
+    let missing =
+        Path.Combine(Path.GetTempPath(), "fspure-no-such-" + Guid.NewGuid().ToString("N") + ".dll")
+
+    Assert.False(File.Exists missing)
+    let loaded = PureManifestLoader.loadFromPaths [ missing ]
+    Assert.Equal(0, loaded.ManifestsLoaded)
+    Assert.True(PureSet.containsIn loaded.Index "Microsoft.FSharp.Core.Operators.op_PipeRight")
+
+[<Fact>]
+let ``assembly with zero pure.json resources falls back to foundational only`` () =
+    let root = repoRoot ()
+
+    let fixtureProj =
+        Path.Combine(root, "schema", "fixtures", "ZeroPureResources", "ZeroPureResources.csproj")
+
+    let code, o, e = runDotnet root (sprintf "build \"%s\" -c Release --nologo -v q" fixtureProj) 120_000
+    assertExitZero "build ZeroPureResources" code o e
+
+    let dll =
+        Path.Combine(
+            root,
+            "schema",
+            "fixtures",
+            "ZeroPureResources",
+            "bin",
+            "Release",
+            "net10.0",
+            "ZeroPureResources.dll"
+        )
+
+    Assert.True(File.Exists dll, dll)
+    let loaded = PureManifestLoader.loadFromPaths [ dll ]
+    Assert.Equal(0, loaded.ManifestsLoaded)
+    Assert.True(PureSet.containsIn loaded.Index "Microsoft.FSharp.Core.Operators.op_PipeRight")
+    // Library-only names stay unknown
+    Assert.False(PureSet.containsIn loaded.Index "Fspure.Phase2.PureLib.Api.libraryPureAdd")
+
+[<Fact>]
+let ``corrupt pure.json content is skipped and foundational still works`` () =
+    // Corrupt document rejected by schema; compose path only uses successful parses.
+    match PureFileIO.parse """{"schemaVersion":"999.0","pureMethods":[]}""" with
+    | Ok _ -> Assert.Fail("expected unsupported schema version")
+    | Error _ -> ()
+
+    match PureFileIO.parse """{ not json""" with
+    | Ok _ -> Assert.Fail("expected invalid json")
+    | Error _ -> ()
+
+    // Empty compose = foundational
+    let loaded = PureManifestLoader.loadFromPaths []
+    Assert.Equal(0, loaded.ManifestsLoaded)
+    Assert.True(PureSet.containsIn loaded.Index "Microsoft.FSharp.Collections.ListModule.Map")
 
 [<Fact>]
 let ``CLI analyser emits PURE003 for library-backed pure wrapper (ProjectReference)`` () =

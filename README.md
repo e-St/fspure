@@ -252,6 +252,9 @@ bash e2e/phase1/run.sh
 
 # Phase 4 library-embed gate (local feed)
 bash scripts/fspure-ready-lib-gate.sh
+
+# Phase 5 permanent regression (foundational + ReadyLib PackageRef/ProjectRef + golden + fallbacks)
+bash scripts/phase5-regression.sh
 ```
 
 ## License

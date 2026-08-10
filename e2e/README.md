@@ -69,6 +69,24 @@ Or run `e2e/phase2/run.sh` on any host that has .NET 10, Node 20, code-server, a
 
 Local NuGet feed only: pack monorepo analyzer → pack `samples/fspure-ready-lib` → consumer + hard PURE002/PURE003 asserts. See [ready-lib/README.md](ready-lib/README.md). CI: `.github/workflows/fspure-ready-lib-gate.yml`.
 
+## Phase 5 permanent regression
+
+**Script:** `bash scripts/phase5-regression.sh`  
+**CI:** `.github/workflows/phase5-regression.yml`
+
+No extra library projects. Matrix covered with existing trees only:
+
+| Slice | How |
+|-------|-----|
+| Foundational only | `e2e/phase1` + `customer-fixture` |
+| Foundational + ReadyLib (PackageReference) | `fspure-ready-lib-gate` + hard PURE00x |
+| ProjectReference | same `Consumer` flag + analyse `ReadyLib` project for impureLog |
+| Golden pure methods | `samples/fspure-ready-lib/tests/golden/` |
+| Missing / zero / corrupt pure.json | unit tests (fallback clean) |
+| VS Code badges (minimal) | `decorations.logic.test.js` (no IDE) |
+
+`Consumer` impure wrappers are gated hard on **PackageReference** (realistic NuGet path). On **ProjectReference**, FCS may not wire cross-project callees; impure library surface is asserted by analysing `Fspure.ReadyLib.fsproj` directly.
+
 ## Layout
 
 ```

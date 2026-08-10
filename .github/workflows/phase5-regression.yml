@@ -1,0 +1,87 @@
+# Phase 5 permanent regression net for the purity / library-embed story.
+# No extra library projects — customer-fixture + fspure-ready-lib only.
+name: Phase 5 Regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "e2e/**"
+      - "samples/fspure-ready-lib/**"
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "vscode-extension/test/**"
+      - "scripts/fspure-ready-lib-gate.sh"
+      - "scripts/phase5-regression.sh"
+      - ".github/workflows/phase5-regression.yml"
+      - ".github/workflows/fspure-ready-lib-gate.yml"
+  pull_request:
+    paths:
+      - "e2e/**"
+      - "samples/fspure-ready-lib/**"
+      - "FSharp.PureAnalyzer/**"
+      - "FSharp.PureAnalyzer.Tests/**"
+      - "msbuild/**"
+      - "purity-collector/**"
+      - "schema/**"
+      - "vscode-extension/test/**"
+      - "scripts/fspure-ready-lib-gate.sh"
+      - "scripts/phase5-regression.sh"
+      - ".github/workflows/phase5-regression.yml"
+      - ".github/workflows/fspure-ready-lib-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  phase5:
+    name: Permanent purity regression
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Node (decoration contract)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Run Phase 5 regression
+        run: |
+          set -euo pipefail
+          chmod +x scripts/*.sh e2e/phase1/run.sh e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
+          bash scripts/phase5-regression.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase5-regression
+          path: |
+            artifacts/phase5/
+            artifacts/local-feed/
+            artifacts/fspure-ready-lib-gate/
+            e2e/.artifacts/phase1/
+          if-no-files-found: warn
