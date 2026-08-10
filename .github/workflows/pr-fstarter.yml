@@ -1,0 +1,199 @@
+# Open a pull request on e-St/fstarter with the fspure integration pack
+# (devcontainer overlay + pinned FSharp.PureAnalyzer version).
+#
+# Secret: FSPURE_FSTARTER_TOKEN — fine-grained PAT on e-St/fstarter with:
+#   Contents: Read and write
+#   Pull requests: Read and write
+#
+# Docs: docs/SYNC-FSTARTER.md
+name: PR fspure updates to fstarter
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main]
+    paths:
+      - "integrations/fstarter/**"
+      - "scripts/prepare-fstarter-update.sh"
+      - ".github/workflows/pr-fstarter.yml"
+      - "docs/SYNC-FSTARTER.md"
+  workflow_dispatch:
+    inputs:
+      analyzer_version:
+        description: "FSharp.PureAnalyzer version to pin (empty = versions.env or nuget.org latest stable)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Prepare branch commit but do not push or open PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-fstarter
+  cancel-in-progress: false
+
+jobs:
+  open-pr:
+    name: Apply pack and open PR on fstarter
+    runs-on: ubuntu-latest
+    if: github.repository == 'e-St/fspure'
+    steps:
+      - name: Checkout fspure
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Require FSPURE_FSTARTER_TOKEN
+        env:
+          FSPURE_FSTARTER_TOKEN: ${{ secrets.FSPURE_FSTARTER_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${FSPURE_FSTARTER_TOKEN:-}" ]]; then
+            echo "::error::Secret FSPURE_FSTARTER_TOKEN is not set on e-St/fspure."
+            echo "Create a fine-grained PAT with Contents + Pull requests write on e-St/fstarter."
+            echo "See docs/SYNC-FSTARTER.md"
+            exit 1
+          fi
+
+      - name: Resolve analyzer version
+        id: ver
+        run: |
+          set -euo pipefail
+          chmod +x scripts/prepare-fstarter-update.sh integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
+
+          # Priority: workflow input → release tag → versions.env → nuget.org latest stable
+          INPUT="${{ github.event.inputs.analyzer_version }}"
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.ref_name }}"
+            TAG="${TAG#v}"
+            # Ignore collector-only style tags
+            if [[ "$TAG" != fspure-collector-* ]]; then
+              INPUT="${INPUT:-$TAG}"
+            fi
+          fi
+
+          if [[ -n "${INPUT}" ]]; then
+            VER="$INPUT"
+            echo "Using explicit/release version: $VER"
+          else
+            # shellcheck disable=SC1091
+            source integrations/fstarter/versions.env
+            VER="${FSPURE_ANALYZER_VERSION:-}"
+            if [[ -z "$VER" || "$VER" == "latest" ]]; then
+              VER="$(
+                curl -fsSL "https://api.nuget.org/v3-flatcontainer/fsharp.pureanalyzer/index.json" \
+                  | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+vers = [v for v in data.get("versions") or [] if "-" not in v]
+print(sorted(vers, key=lambda s: tuple(int(x) for x in s.split(".")))[-1])
+'
+              )"
+            fi
+            echo "Using versions.env / nuget.org: $VER"
+          fi
+
+          # Keep monorepo versions.env in sync for the next local edit (committed only if changed via separate PR path — write for apply script)
+          echo "FSPURE_ANALYZER_VERSION=${VER}" > integrations/fstarter/versions.env
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Clone fstarter
+        env:
+          FSPURE_FSTARTER_TOKEN: ${{ secrets.FSPURE_FSTARTER_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            "https://x-access-token:${FSPURE_FSTARTER_TOKEN}@github.com/e-St/fstarter.git" \
+            "$RUNNER_TEMP/fstarter"
+
+      - name: Apply integration pack
+        env:
+          FSPURE_ANALYZER_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-fstarter-update.sh \
+            "$RUNNER_TEMP/fstarter" \
+            "${{ steps.ver.outputs.version }}"
+
+      - name: Create branch, commit, push, open PR
+        env:
+          FSPURE_FSTARTER_TOKEN: ${{ secrets.FSPURE_FSTARTER_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          ANALYZER_VERSION: ${{ steps.ver.outputs.version }}
+          GH_TOKEN: ${{ secrets.FSPURE_FSTARTER_TOKEN }}
+        working-directory: ${{ runner.temp }}/fstarter
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          BRANCH="fspure/sync-${ANALYZER_VERSION}-${SHORT_SHA}"
+
+          git checkout -B "$BRANCH"
+          git add -A
+
+          if git diff --staged --quiet; then
+            echo "No file changes in fstarter vs current main — nothing to PR."
+            # Still report success; optional comment for visibility
+            exit 0
+          fi
+
+          MSG="chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})
+
+          Source: e-St/fspure@${SHORT_SHA}
+          Path: integrations/fstarter
+          Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
+
+          Updates:
+          - .devcontainer/setup-fspure.sh
+          - .devcontainer/devcontainer.json (fspure Ionide / decorations settings)
+          - .devcontainer/fspure-versions.env (FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION})
+          "
+
+          git commit -m "$MSG"
+
+          if [[ "${DRY_RUN}" == "true" ]]; then
+            echo "Dry run: not pushing. Commit:"
+            git log -1 --stat
+            exit 0
+          fi
+
+          git push -u origin "HEAD:${BRANCH}" --force
+
+          # Open or update PR
+          EXISTING="$(gh pr list --repo e-St/fstarter --head "$BRANCH" --json number --jq '.[0].number // empty')"
+          BODY="## fspure → fstarter sync
+
+          Automated update from [e-St/fspure](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}) (\`${SHORT_SHA}\`).
+
+          | | |
+          |--|--|
+          | **FSharp.PureAnalyzer** | \`${ANALYZER_VERSION}\` (nuget.org) |
+          | **Source path** | \`integrations/fstarter/\` |
+          | **Workflow** | [run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |
+
+          ### Files
+          - \`.devcontainer/setup-fspure.sh\` — install pin + mirror for Ionide
+          - \`.devcontainer/devcontainer.json\` — analyzers path, pure decorations, LineLens
+          - \`.devcontainer/fspure-versions.env\` — \`FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION}\`
+
+          Does **not** overwrite \`Dockerfile\`, \`newf.sh\`, or other fstarter-owned tooling.
+
+          After merge: open a Codespace / rebuild container so \`setup-fspure.sh\` picks up the new pin.
+          "
+
+          if [[ -n "$EXISTING" ]]; then
+            gh pr edit "$EXISTING" --repo e-St/fstarter --title "chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})" --body "$BODY"
+            echo "Updated existing PR #$EXISTING"
+          else
+            gh pr create --repo e-St/fstarter \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})" \
+              --body "$BODY"
+          fi

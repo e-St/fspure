@@ -53,6 +53,11 @@ That is why **both** packages publish from **`nuget_publish.yml` only**.
 | **`.github/workflows/nuget_publish.yml`** | Release / manual | **FSharp.PureAnalyzer + fspure-collector** → **nuget.org** (OIDC) + GitHub Packages |
 | `.github/workflows/publish-fspure-collector.yml` | Manual | fspure-collector → **GitHub Packages only** |
 
+### After a nuget.org release → update fstarter
+
+Workflow **PR fspure updates to fstarter** opens a PR on [e-St/fstarter](https://github.com/e-St/fstarter) with the integration pack and analyzer pin.  
+Secret: **`FSPURE_FSTARTER_TOKEN`**. See [SYNC-FSTARTER.md](SYNC-FSTARTER.md).
+
 ### How to publish to nuget.org (use this)
 
 **Actions → Publish Pure Analyzer to nuget.org → Run workflow**
