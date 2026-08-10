@@ -1,4 +1,4 @@
-# Runs when a Release PR (edits under releases/) is merged to main.
+# Runs when a Release PR (edits under docs/releases/) is merged to main.
 # Publishes selected components, applies pins, triggers satellite syncs.
 name: Official release
 
@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - "releases/**"
+      - "docs/releases/**"
   workflow_dispatch:
     inputs:
       confirm:
@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish from releases/manifest.json pending
+    name: Publish from docs/releases/manifest.json pending
     runs-on: ubuntu-latest
     if: |
       github.repository == 'e-St/fspure' && (
@@ -35,7 +35,7 @@ jobs:
       )
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json, sys
-          m = json.load(open("releases/manifest.json"))
+          m = json.load(open("docs/releases/manifest.json"))
           if not m.get("pending"):
               print("No pending release in manifest — nothing to publish.")
               sys.exit(0)
@@ -54,7 +54,7 @@ jobs:
           for n, c in m["pending"]["components"].items():
               print(n, c)
           PY
-          if ! python3 -c "import json; m=json.load(open('releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
+          if ! python3 -c "import json; m=json.load(open('docs/releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -62,13 +62,13 @@ jobs:
 
       - name: Setup .NET 10
         if: steps.guard.outputs.skip != 'true'
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - name: Setup Node
         if: steps.guard.outputs.skip != 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "20"
 

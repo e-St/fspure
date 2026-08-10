@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+    <!-- Local feed is injected via NuGet.Config next to this project. -->
+    <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)../local-feed</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fspure.Phase2.PureLib" Version="1.0.0" />
+    <PackageReference Include="FSharp.Core" Version="10.1.302" />
+  </ItemGroup>
+</Project>

@@ -4,16 +4,20 @@ on:
   push:
     branches: [main]
     paths:
-      - "fspure-collector/**"
-      - "schema/**"
+      - "src/fspure-collector/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/bundle-fspure-collector.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
     paths:
-      - "fspure-collector/**"
-      - "schema/**"
+      - "src/fspure-collector/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/bundle-fspure-collector.yml"
@@ -33,13 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -49,13 +53,13 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           # Shared fstarter build image (defined with PureAnalyzer; no IDE setup)
-          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+          configFile: src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
-            cd fspure-collector
+            cd src/fspure-collector
             paket install
             BINARY_PATH=$(bundlef -p | tail -n 1)
             echo "Binary: $BINARY_PATH"
@@ -66,7 +70,7 @@ jobs:
             ../artifacts/fspure-collector --help
 
       - name: Upload fspure-collector artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-linux-x64
           path: artifacts/fspure-collector
@@ -74,7 +78,7 @@ jobs:
 
       - name: Publish release asset on main
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: fspure-collector-latest
           name: fspure-collector (latest standalone)

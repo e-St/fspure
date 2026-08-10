@@ -55,7 +55,7 @@ Place **`fspure.overrides.json`** next to the `.fsproj` (or set `FSPURE_OVERRIDE
 }
 ```
 
-JSON Schema: `schema/FSharp.PureSchema/fspure.overrides.schema.json`.
+JSON Schema: `src/FSharp.PureSchema/fspure.overrides.schema.json`.
 
 Invalid override files are ignored (analysis never fails because of them).
 

@@ -5,8 +5,8 @@ There are **three** flavors. They share one config base via **fragments** (not D
 | Flavor | Generated file | Who uses it | Purpose |
 |--------|----------------|-------------|---------|
 | **IDE** (default) | [`.devcontainer/devcontainer.json`](./devcontainer.json) | Codespaces, “Reopen in Container” | Interactive VS Code + pure/impure labels |
-| **build** | [`FSharp.PureAnalyzer/.devcontainer/devcontainer.json`](../FSharp.PureAnalyzer/.devcontainer/devcontainer.json) | Pack/build CI | Headless `dotnet` / `paket` / `bundlef` |
-| **e2e** | [`e2e/phase2/.devcontainer/devcontainer.json`](../e2e/phase2/.devcontainer/devcontainer.json) | `e2e-customer.yml` | code-server + Playwright screenshots |
+| **build** | [`src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json`](../src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json) | Pack/build CI | Headless `dotnet` / `paket` / `bundlef` |
+| **e2e** | [`tests/e2e/phase2/.devcontainer/devcontainer.json`](../tests/e2e/phase2/.devcontainer/devcontainer.json) | `e2e-customer.yml` | code-server + Playwright screenshots |
 
 ## Shared base (source of truth)
 
@@ -45,7 +45,7 @@ Generated files start with `// GENERATED FILE` — do not hand-edit them.
 | IDE, build | `image`: `ghcr.io/e-st/fstarter:latest` |
 | e2e | `Dockerfile` with `FROM ghcr.io/e-st/fstarter:latest`, then only code-server + Playwright deps + `fsharp-analyzers` |
 
-So tooling (`.NET` / Paket / Node from **fstarter**) is maintained once; e2e only maintains its extra layers in `e2e/phase2/.devcontainer/Dockerfile`.
+So tooling (`.NET` / Paket / Node from **fstarter**) is maintained once; e2e only maintains its extra layers in `tests/e2e/phase2/.devcontainer/Dockerfile`.
 
 ## fspure IDE (default)
 
@@ -54,29 +54,29 @@ So tooling (`.NET` / Paket / Node from **fstarter**) is maintained once; e2e onl
 - Optional: `SKIP_FSPURE_IDE_SETUP=1`.
 
 ```bash
-bash FSharp.PureAnalyzer/update-analyzer.sh
-bash vscode-extension/update-extension.sh   # optional
+bash src/FSharp.PureAnalyzer/update-analyzer.sh
+bash editor/vscode-extension/update-extension.sh   # optional
 # Developer: Reload Window
 ```
 
 ## PureAnalyzer build
 
 ```yaml
-configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+configFile: src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
 ```
 
 ```bash
-devcontainer up --workspace-folder . --config FSharp.PureAnalyzer/.devcontainer/devcontainer.json
-devcontainer exec --workspace-folder . --config FSharp.PureAnalyzer/.devcontainer/devcontainer.json \
+devcontainer up --workspace-folder . --config src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+devcontainer exec --workspace-folder . --config src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json \
   bash -lc 'cd FSharp.PureAnalyzer && paket restore && dotnet build -c Release'
 ```
 
 ## e2e
 
-See [e2e/README.md](../e2e/README.md). Pins:
+See [tests/e2e/README.md](../tests/e2e/README.md). Pins:
 
 ```text
-e2e/phase2/.devcontainer/devcontainer.json
+tests/e2e/phase2/.devcontainer/devcontainer.json
 ```
 
 Needs pull access to `ghcr.io/e-st/fstarter` (GHCR login in CI).

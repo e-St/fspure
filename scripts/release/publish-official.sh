@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish official packages from releases/manifest.json pending block.
+# Publish official packages from docs/releases/manifest.json pending block.
 # Requires: NUGET_API_KEY or NuGet/login already done via env NUGET_API_KEY;
 #            GH_TOKEN for GitHub Release; optional OVSX_PAT for extension.
 set -euo pipefail
@@ -14,9 +14,9 @@ cd "$ROOT"
 
 python3 - <<'PY'
 import json, pathlib, sys
-m = json.loads(pathlib.Path("releases/manifest.json").read_text())
+m = json.loads(pathlib.Path("docs/releases/manifest.json").read_text())
 if not m.get("pending"):
-    print("ERROR: releases/manifest.json has no pending release", file=sys.stderr)
+    print("ERROR: docs/releases/manifest.json has no pending release", file=sys.stderr)
     sys.exit(1)
 comps = m["pending"]["components"]
 for name, c in comps.items():
@@ -32,7 +32,7 @@ publish_analyzer() {
   local ver="$1"
   echo "==> Pack FSharp.PureAnalyzer $ver"
   (
-    cd FSharp.PureAnalyzer
+    cd src/FSharp.PureAnalyzer
     if command -v paket >/dev/null 2>&1; then paket restore
     elif [[ -x "$HOME/.dotnet/tools/paket" ]]; then "$HOME/.dotnet/tools/paket" restore
     fi
@@ -43,7 +43,7 @@ publish_analyzer() {
       "/p:PackageVersion=$ver" \
       --nologo
   )
-  local nupkg="FSharp.PureAnalyzer/nupkgs/FSharp.PureAnalyzer.${ver}.nupkg"
+  local nupkg="src/FSharp.PureAnalyzer/nupkgs/FSharp.PureAnalyzer.${ver}.nupkg"
   [[ -f "$nupkg" ]] || die "missing $nupkg"
   if [[ -n "${NUGET_API_KEY:-}" ]]; then
     dotnet nuget push "$nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
@@ -72,7 +72,7 @@ publish_collector() {
   local ver="$1"
   echo "==> Pack fspure-collector $ver"
   (
-    cd fspure-collector
+    cd src/fspure-collector
     if command -v paket >/dev/null 2>&1; then paket restore
     elif [[ -x "$HOME/.dotnet/tools/paket" ]]; then "$HOME/.dotnet/tools/paket" restore
     fi
@@ -83,7 +83,7 @@ publish_collector() {
       "/p:PackageVersion=$ver" \
       --nologo
   )
-  local nupkg="fspure-collector/nupkgs/fspure-collector.${ver}.nupkg"
+  local nupkg="src/fspure-collector/nupkgs/fspure-collector.${ver}.nupkg"
   [[ -f "$nupkg" ]] || die "missing $nupkg"
   if [[ -n "${NUGET_API_KEY:-}" ]]; then
     dotnet nuget push "$nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
@@ -108,7 +108,7 @@ publish_extension() {
   local ver="$1"
   echo "==> Package vscode-extension $ver"
   (
-    cd vscode-extension
+    cd editor/vscode-extension
     python3 - <<PY
 import json, pathlib
 p = pathlib.Path("package.json")
@@ -118,7 +118,7 @@ p.write_text(json.dumps(d, indent=2) + "\n")
 PY
     npx --yes @vscode/vsce package --allow-missing-repository -o "fsharp-pure-decorations-${ver}.vsix"
   )
-  local vsix="vscode-extension/fsharp-pure-decorations-${ver}.vsix"
+  local vsix="editor/vscode-extension/fsharp-pure-decorations-${ver}.vsix"
   [[ -f "$vsix" ]] || die "missing $vsix"
   if [[ -n "${GH_TOKEN:-}" ]]; then
     local tag="vscode-extension-v${ver}"
@@ -164,7 +164,7 @@ PY
 
 mapfile -t LINES < <(python3 - <<'PY'
 import json
-m = json.load(open("releases/manifest.json"))
+m = json.load(open("docs/releases/manifest.json"))
 for name, c in m["pending"]["components"].items():
     pub = "1" if c.get("publish") else "0"
     print(f"{name}|{c['to']}|{pub}|{c['changelog']}")
@@ -201,7 +201,7 @@ done
 # Promote pending → lastOfficial, clear pending
 python3 - <<'PY'
 import json, pathlib
-path = pathlib.Path("releases/manifest.json")
+path = pathlib.Path("docs/releases/manifest.json")
 m = json.loads(path.read_text())
 pending = m["pending"]
 for name, c in pending["components"].items():

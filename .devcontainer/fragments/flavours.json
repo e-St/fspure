@@ -8,12 +8,12 @@
     "build": {
       "description": "CI pack/build (paket/dotnet/bundlef) — no IDE lifecycle",
       "fragments": ["base.json", "flavours/build.json"],
-      "output": "../FSharp.PureAnalyzer/.devcontainer/devcontainer.json"
+      "output": "../src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json"
     },
     "e2e": {
       "description": "Customer e2e (code-server + Playwright)",
       "fragments": ["base.json", "vscode-common.json", "flavours/e2e.json"],
-      "output": "../e2e/phase2/.devcontainer/devcontainer.json"
+      "output": "../tests/e2e/phase2/.devcontainer/devcontainer.json"
     }
   }
 }

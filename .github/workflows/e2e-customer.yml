@@ -2,10 +2,10 @@ name: Customer E2E (pure/impure labels)
 
 # Two-phase consumer check (analyzer baseline + visual pure/impure decorations):
 #
-#   Phase 1 — Analyzer baseline on e2e/customer-fixture/Program.fs
+#   Phase 1 — Analyzer baseline on tests/e2e/customer-fixture/Program.fs
 #   Phase 2 — VS Code (code-server) opens Program.fs and screenshots pure/impure labels
 #
-# Both phases use e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
+# Both phases use tests/e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
 # root IDE or FSharp.PureAnalyzer build containers — so those changes cannot
 # break CI e2e.
 
@@ -13,18 +13,18 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "FSharp.PureAnalyzer/**"
-      - "vscode-extension/**"
-      - "e2e/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "editor/vscode-extension/**"
+      - "tests/e2e/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/e2e-customer.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
     paths:
-      - "FSharp.PureAnalyzer/**"
-      - "vscode-extension/**"
-      - "e2e/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "editor/vscode-extension/**"
+      - "tests/e2e/**"
       - ".devcontainer/fragments/**"
       - ".devcontainer/generate.py"
       - ".github/workflows/e2e-customer.yml"
@@ -48,13 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (shared fstarter base image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -63,7 +63,7 @@ jobs:
       - name: Run Phase 1 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          configFile: e2e/phase2/.devcontainer/devcontainer.json
+          configFile: tests/e2e/phase2/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
@@ -82,16 +82,16 @@ jobs:
               export PATH="$HOME/.local/bin:$PATH"
             fi
 
-            bash e2e/phase1/run.sh
+            bash tests/e2e/phase1/run.sh
 
       - name: Upload Phase 1 artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phase1-analyzer
           path: |
-            e2e/.artifacts/phase1/**
-            e2e/.artifacts/analyzer-drop/**
+            tests/e2e/.artifacts/phase1/**
+            tests/e2e/.artifacts/analyzer-drop/**
           if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
@@ -104,13 +104,13 @@ jobs:
     # Screenshots are always uploaded; job fails if labels never appear.
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (shared fstarter base image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -119,7 +119,7 @@ jobs:
       - name: Run Phase 2 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          configFile: e2e/phase2/.devcontainer/devcontainer.json
+          configFile: tests/e2e/phase2/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
@@ -128,16 +128,16 @@ jobs:
             export CODE_SERVER_HOST=127.0.0.1
             export CODE_SERVER_PORT=8080
             export WAIT_MS=180000
-            bash e2e/phase2/run.sh
+            bash tests/e2e/phase2/run.sh
 
       - name: Upload Phase 2 screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phase2-visual-screenshots
           path: |
-            e2e/.artifacts/phase2/**/*.png
-            e2e/.artifacts/phase2/**/*.json
-            e2e/.artifacts/phase2/**/*.log
-            e2e/.artifacts/phase2/**/*.vsix
+            tests/e2e/.artifacts/phase2/**/*.png
+            tests/e2e/.artifacts/phase2/**/*.json
+            tests/e2e/.artifacts/phase2/**/*.log
+            tests/e2e/.artifacts/phase2/**/*.vsix
           if-no-files-found: ignore

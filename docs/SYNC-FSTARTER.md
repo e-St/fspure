@@ -3,7 +3,7 @@
 The **source of truth** for how fstarter enables fspure is:
 
 ```text
-e-St/fspure  →  integrations/fstarter/
+e-St/fspure  →  scripts/integrations/fstarter/
 ```
 
 Target:
@@ -16,7 +16,7 @@ Unlike `fspure-ready-lib` (force-push satellite), **fstarter** receives a **pull
 
 ```mermaid
 flowchart LR
-  A[Edit integrations/fstarter or publish release] --> B[PR fspure updates to fstarter]
+  A[Edit scripts/integrations/fstarter or publish release] --> B[PR fspure updates to fstarter]
   B --> C[Branch on fstarter]
   C --> D[Open or update PR]
   D --> E[Human merges PR]
@@ -26,7 +26,7 @@ flowchart LR
 
 | Path in fstarter | Source |
 |------------------|--------|
-| `.devcontainer/setup-fspure.sh` | `integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
+| `.devcontainer/setup-fspure.sh` | `scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
 | `.devcontainer/devcontainer.json` | overlay (fspure Ionide / decorations settings) |
 | `.devcontainer/fspure-versions.env` | generated pin (`FSPURE_ANALYZER_VERSION=…`) |
 | `Directory.Build.props` | strict compiler rules (FS0025, TreatWarningsAsErrors, Nullable) |
@@ -43,7 +43,7 @@ Priority when resolving the pin:
 
 1. Workflow input `analyzer_version` (manual dispatch)
 2. GitHub Release tag (e.g. `v0.4.0` → `0.4.0`)
-3. `integrations/fstarter/versions.env` in fspure
+3. `scripts/integrations/fstarter/versions.env` in fspure
 4. Latest stable version on nuget.org
 
 ## One-time setup
@@ -68,13 +68,13 @@ Priority when resolving the pin:
 
 | Trigger | Workflow |
 |---------|----------|
-| Push to `main` changing `integrations/fstarter/**` | **PR fspure updates to fstarter** |
+| Push to `main` changing `scripts/integrations/fstarter/**` | **PR fspure updates to fstarter** |
 | GitHub Release published | same (pins from release tag when possible) |
 | Manual **Actions → PR fspure updates to fstarter** | same (`analyzer_version`, `dry_run`) |
 
 ## Day-to-day
 
-1. Edit **`integrations/fstarter/`** in fspure (overlay scripts/settings, `versions.env`).
+1. Edit **`scripts/integrations/fstarter/`** in fspure (overlay scripts/settings, `versions.env`).
 2. Merge to **main** (or publish a release / run the workflow manually with a version).
 3. Workflow opens (or updates) a PR on **fstarter**.
 4. Review and merge the PR on fstarter.
@@ -91,7 +91,7 @@ cd /tmp/fstarter && git status && git diff
 
 After **Publish Pure Analyzer to nuget.org** ships a new `FSharp.PureAnalyzer` version:
 
-1. Bump `integrations/fstarter/versions.env` (or pass `analyzer_version` on dispatch).
+1. Bump `scripts/integrations/fstarter/versions.env` (or pass `analyzer_version` on dispatch).
 2. Run **PR fspure updates to fstarter** (or push the versions.env change to main).
 
 Optional: chain from release only — the release event already triggers this workflow.

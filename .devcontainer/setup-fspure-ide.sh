@@ -9,8 +9,8 @@
 #
 # Extension: package in-repo VSIX (same packaging path as e2e phase2), else Open VSX.
 #
-# Not used by CI: analyzer pack/build uses FSharp.PureAnalyzer/.devcontainer/;
-# e2e uses e2e/phase2/.devcontainer/ (see .devcontainer/README.md).
+# Not used by CI: analyzer pack/build uses src/FSharp.PureAnalyzer/.devcontainer/;
+# e2e uses tests/e2e/phase2/.devcontainer/ (see .devcontainer/README.md).
 # Optional escape hatch: SKIP_FSPURE_IDE_SETUP=1.
 set -euo pipefail
 

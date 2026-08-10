@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build releases/manifest.json pending block + draft Unreleased changelog sections.
+# Build docs/releases/manifest.json pending block + draft Unreleased changelog sections.
 # Used by workflow "Prepare release PR" (does not publish).
 set -euo pipefail
 
@@ -73,22 +73,22 @@ pending = {
             "from": last["FSharp.PureAnalyzer"],
             "to": env_or("ANALYZER_TO", bump(last["FSharp.PureAnalyzer"])),
             "publish": os.environ.get("PUBLISH_ANALYZER", "true").lower() == "true",
-            "paths": ["FSharp.PureAnalyzer/", "schema/FSharp.PureSchema/", "msbuild/"],
-            "changelog": "releases/CHANGELOG.FSharp.PureAnalyzer.md",
+            "paths": ["src/FSharp.PureAnalyzer/", "src/FSharp.PureSchema/", "src/Fspure.BuildTasks/"],
+            "changelog": "docs/releases/CHANGELOG.FSharp.PureAnalyzer.md",
         },
         "fspure-collector": {
             "from": last["fspure-collector"],
             "to": env_or("COLLECTOR_TO", bump(last["fspure-collector"])),
             "publish": os.environ.get("PUBLISH_COLLECTOR", "true").lower() == "true",
-            "paths": ["fspure-collector/", "schema/FSharp.PureSchema/"],
-            "changelog": "releases/CHANGELOG.fspure-collector.md",
+            "paths": ["src/fspure-collector/", "src/FSharp.PureSchema/"],
+            "changelog": "docs/releases/CHANGELOG.fspure-collector.md",
         },
         "fsharp-pure-decorations": {
             "from": last["fsharp-pure-decorations"],
             "to": env_or("EXTENSION_TO", bump(last["fsharp-pure-decorations"])),
             "publish": os.environ.get("PUBLISH_EXTENSION", "false").lower() == "true",
-            "paths": ["vscode-extension/"],
-            "changelog": "releases/CHANGELOG.fsharp-pure-decorations.md",
+            "paths": ["editor/vscode-extension/"],
+            "changelog": "docs/releases/CHANGELOG.fsharp-pure-decorations.md",
         },
     },
 }
@@ -99,9 +99,9 @@ print("Wrote pending release to", manifest_path)
 
 # Refresh Unreleased sections in changelogs with git log drafts
 path_map = {
-    "FSharp.PureAnalyzer": ("releases/CHANGELOG.FSharp.PureAnalyzer.md", "FSharp.PureAnalyzer/", last["FSharp.PureAnalyzer"]),
-    "fspure-collector": ("releases/CHANGELOG.fspure-collector.md", "fspure-collector/", last["fspure-collector"]),
-    "fsharp-pure-decorations": ("releases/CHANGELOG.fsharp-pure-decorations.md", "vscode-extension/", last["fsharp-pure-decorations"]),
+    "FSharp.PureAnalyzer": ("docs/releases/CHANGELOG.FSharp.PureAnalyzer.md", "src/FSharp.PureAnalyzer/", last["FSharp.PureAnalyzer"]),
+    "fspure-collector": ("docs/releases/CHANGELOG.fspure-collector.md", "src/fspure-collector/", last["fspure-collector"]),
+    "fsharp-pure-decorations": ("docs/releases/CHANGELOG.fsharp-pure-decorations.md", "editor/vscode-extension/", last["fsharp-pure-decorations"]),
 }
 
 for name, (clog, path, from_ver) in path_map.items():
@@ -127,5 +127,5 @@ for name, (clog, path, from_ver) in path_map.items():
 PY
 
 echo ""
-echo "Pending release prepared. Review releases/manifest.json and CHANGELOG.*.md"
+echo "Pending release prepared. Review docs/releases/manifest.json and CHANGELOG.*.md"
 python3 -m json.tool "$MANIFEST" | head -80

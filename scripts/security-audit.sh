@@ -72,30 +72,30 @@ scan_nuget_project() {
 # Prefer paket restore for paket projects when available
 if command -v paket >/dev/null 2>&1 || [[ -x "$HOME/.dotnet/tools/paket" ]]; then
   PAKET_BIN="$(command -v paket || echo "$HOME/.dotnet/tools/paket")"
-  if [[ -f FSharp.PureAnalyzer/paket.dependencies ]]; then
-    (cd FSharp.PureAnalyzer && "$PAKET_BIN" restore) || die_soft "paket restore FSharp.PureAnalyzer"
+  if [[ -f src/FSharp.PureAnalyzer/paket.dependencies ]]; then
+    (cd src/FSharp.PureAnalyzer && "$PAKET_BIN" restore) || die_soft "paket restore FSharp.PureAnalyzer"
   fi
-  if [[ -f fspure-collector/paket.dependencies ]]; then
-    (cd fspure-collector && "$PAKET_BIN" restore) || die_soft "paket restore fspure-collector"
+  if [[ -f src/fspure-collector/paket.dependencies ]]; then
+    (cd src/fspure-collector && "$PAKET_BIN" restore) || die_soft "paket restore fspure-collector"
   fi
 fi
 
-scan_nuget_project "schema/FSharp.PureSchema/FSharp.PureSchema.fsproj"
-scan_nuget_project "schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj"
-scan_nuget_project "FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj"
-scan_nuget_project "FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj"
-scan_nuget_project "fspure-collector/fspure-collector.fsproj"
-scan_nuget_project "fspure-collector.Tests/fspure-collector.Tests.fsproj"
-scan_nuget_project "msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj"
+scan_nuget_project "src/FSharp.PureSchema/FSharp.PureSchema.fsproj"
+scan_nuget_project "tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj"
+scan_nuget_project "src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj"
+scan_nuget_project "tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj"
+scan_nuget_project "src/fspure-collector/fspure-collector.fsproj"
+scan_nuget_project "tests/fspure-collector.Tests/fspure-collector.Tests.fsproj"
+scan_nuget_project "src/Fspure.BuildTasks/Fspure.BuildTasks.csproj"
 # (C# by necessity for MSBuild task hosting — see docs/LANGUAGES.md)
 scan_nuget_project "samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj"
 
 # --- npm audit ---
 section "npm audit (vscode-extension)"
-if [[ -f vscode-extension/package.json ]]; then
+if [[ -f editor/vscode-extension/package.json ]]; then
   if command -v npm >/dev/null 2>&1; then
     (
-      cd vscode-extension
+      cd editor/vscode-extension
       if [[ -f package-lock.json ]]; then
         npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
       else
@@ -112,11 +112,11 @@ if [[ -f vscode-extension/package.json ]]; then
   fi
 fi
 
-section "npm audit (e2e/phase2/playwright)"
-if [[ -f e2e/phase2/playwright/package.json ]]; then
+section "npm audit (tests/e2e/phase2/playwright)"
+if [[ -f tests/e2e/phase2/playwright/package.json ]]; then
   if command -v npm >/dev/null 2>&1; then
     (
-      cd e2e/phase2/playwright
+      cd tests/e2e/phase2/playwright
       if [[ -f package-lock.json ]]; then
         npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
       else
@@ -124,7 +124,7 @@ if [[ -f e2e/phase2/playwright/package.json ]]; then
       fi
       LEVEL="${NPM_AUDIT_LEVEL:-high}"
       if ! npm audit --audit-level="$LEVEL"; then
-        die_soft "npm audit failed (level=$LEVEL) in e2e/phase2/playwright"
+        die_soft "npm audit failed (level=$LEVEL) in tests/e2e/phase2/playwright"
       fi
     ) || die_soft "playwright npm audit setup failed"
   else

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "data/list-a/list-a.pure.json"
+      - "scripts/data/list-a/list-a.pure.json"
   workflow_dispatch:
 
 permissions:
@@ -15,19 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.PURE_BOT_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Generate List B dummy proposal
         run: |
           set -euo pipefail
-          mkdir -p data/list-b
+          mkdir -p scripts/data/list-b
           python3 - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          with open("data/list-a/list-a.pure.json", "r") as f:
+          with open("scripts/data/list-a/list-a.pure.json", "r") as f:
               list_a = json.load(f)
 
           list_b = {
@@ -44,21 +44,21 @@ jobs:
               ]
           }
 
-          with open("data/list-b/list-b.pure.json", "w") as f:
+          with open("scripts/data/list-b/list-b.pure.json", "w") as f:
               json.dump(list_b, f, indent=2)
           PY
 
       - name: Merge foundational pure set
         run: |
           set -euo pipefail
-          mkdir -p data/foundational
+          mkdir -p scripts/data/foundational
           python3 - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          with open("data/list-a/list-a.pure.json", "r") as f:
+          with open("scripts/data/list-a/list-a.pure.json", "r") as f:
               list_a = json.load(f)
-          with open("data/list-b/list-b.pure.json", "r") as f:
+          with open("scripts/data/list-b/list-b.pure.json", "r") as f:
               list_b = json.load(f)
 
           # Deterministic merge: accept all of List A, then accept List B entries
@@ -80,7 +80,7 @@ jobs:
               "pureMethods": pure_methods
           }
 
-          with open("data/foundational/foundational.pure.json", "w") as f:
+          with open("scripts/data/foundational/foundational.pure.json", "w") as f:
               json.dump(foundational, f, indent=2)
           PY
 
@@ -89,9 +89,9 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json
-          a = json.load(open("data/list-a/list-a.pure.json"))
-          b = json.load(open("data/list-b/list-b.pure.json"))
-          f = json.load(open("data/foundational/foundational.pure.json"))
+          a = json.load(open("scripts/data/list-a/list-a.pure.json"))
+          b = json.load(open("scripts/data/list-b/list-b.pure.json"))
+          f = json.load(open("scripts/data/foundational/foundational.pure.json"))
           print(f"List A entries: {len(a['pureMethods'])}")
           print(f"List B entries: {len(b['pureMethods'])}")
           print(f"Merged entries: {len(f['pureMethods'])}")
@@ -104,7 +104,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/list-b/list-b.pure.json data/foundational/foundational.pure.json
+          git add scripts/data/list-b/list-b.pure.json scripts/data/foundational/foundational.pure.json
           if git diff --staged --quiet; then
             echo "No List B / foundational changes to commit."
           else

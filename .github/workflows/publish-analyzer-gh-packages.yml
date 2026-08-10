@@ -6,10 +6,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "FSharp.PureAnalyzer/**"
-      - "msbuild/**"
-      - "schema/FSharp.PureSchema/**"
-      - "fspure-collector/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "src/Fspure.BuildTasks/**"
+      - "src/FSharp.PureSchema/**"
+      - "src/fspure-collector/**"
       - ".github/workflows/publish-analyzer-gh-packages.yml"
   workflow_dispatch:
 
@@ -33,10 +33,10 @@ jobs:
     if: github.repository == 'e-St/fspure'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -66,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.ver.outputs.version }}"
-          cd FSharp.PureAnalyzer
+          cd src/FSharp.PureAnalyzer
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
           # PrepareFspurePackageTools runs during pack (collector + build tasks).
           dotnet pack FSharp.PureAnalyzer.fsproj \
@@ -80,17 +80,17 @@ jobs:
       - name: Push to GitHub Packages
         run: |
           set -euo pipefail
-          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+          dotnet nuget push src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate
           echo "Published FSharp.PureAnalyzer ${{ steps.ver.outputs.version }} to GitHub Packages"
 
       - name: Upload nupkg artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: FSharp.PureAnalyzer-ci-nupkg
-          path: FSharp.PureAnalyzer/nupkgs/*.nupkg
+          path: src/FSharp.PureAnalyzer/nupkgs/*.nupkg
 
       # Ready-lib@dev often races the pack+push above when both are triggered by
       # the same monorepo commit. Re-fire satellite CI once the -ci package exists.

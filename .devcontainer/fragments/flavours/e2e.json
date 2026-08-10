@@ -18,7 +18,7 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "dotnet.defaultSolution": "e2e/customer-fixture/customer-fixture.slnx",
+        "dotnet.defaultSolution": "tests/e2e/customer-fixture/customer-fixture.slnx",
         "FSharp.workspaceModePeekDeepLevel": 1,
         "FSharp.showExplorerOnStartup": true,
         "FSharp.pipelineHints.enabled": true,

@@ -6,16 +6,20 @@ on:
   push:
     branches: [main]
     paths:
-      - "fspure-collector/**"
-      - "fspure-collector.Tests/**"
-      - "schema/**"
+      - "src/fspure-collector/**"
+      - "tests/fspure-collector.Tests/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - "fspure.slnx"
       - ".github/workflows/fspure-collector-ci.yml"
   pull_request:
     paths:
-      - "fspure-collector/**"
-      - "fspure-collector.Tests/**"
-      - "schema/**"
+      - "src/fspure-collector/**"
+      - "tests/fspure-collector.Tests/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - "fspure.slnx"
       - ".github/workflows/fspure-collector-ci.yml"
   workflow_dispatch:
@@ -34,19 +38,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - name: Restore schema test project
-        run: dotnet restore schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+        run: dotnet restore tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
 
       - name: Test PureFile schema (round-trip, version reject, required fields)
         run: >
-          dotnet test schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          dotnet test tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --no-restore
           --verbosity normal
@@ -57,10 +61,10 @@ jobs:
     needs: pure-schema-tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -69,7 +73,7 @@ jobs:
         # Prefer repo local tools if present; fall back to a user tool install.
 
       - name: Restore fspure-collector (paket)
-        working-directory: fspure-collector
+        working-directory: src/fspure-collector
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then
@@ -82,13 +86,13 @@ jobs:
           fi
 
       - name: Build fspure-collector
-        run: dotnet build fspure-collector/fspure-collector.fsproj -c ${{ env.CONFIGURATION }} --nologo
+        run: dotnet build src/fspure-collector/fspure-collector.fsproj -c ${{ env.CONFIGURATION }} --nologo
 
       - name: Test collector merge + schema smoke
         env:
-          FSPURE_COLLECTOR_DLL: ${{ github.workspace }}/fspure-collector/bin/${{ env.CONFIGURATION }}/net10.0/fspure-collector.dll
+          FSPURE_COLLECTOR_DLL: ${{ github.workspace }}/src/fspure-collector/bin/${{ env.CONFIGURATION }}/net10.0/fspure-collector.dll
         run: >
-          dotnet test fspure-collector.Tests/fspure-collector.Tests.fsproj
+          dotnet test tests/fspure-collector.Tests/fspure-collector.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
 
@@ -96,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/local-feed
-          dotnet pack fspure-collector/fspure-collector.fsproj \
+          dotnet pack src/fspure-collector/fspure-collector.fsproj \
             -c ${{ env.CONFIGURATION }} \
             --no-build \
             -o artifacts/local-feed \
@@ -104,7 +108,7 @@ jobs:
           ls -lh artifacts/local-feed
 
       - name: Upload tool nupkg (local feed artifact)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-tool-nupkg
           path: artifacts/local-feed/*.nupkg
@@ -116,15 +120,15 @@ jobs:
     needs: fspure-collector-build-and-tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - name: Download tool nupkg
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fspure-collector-tool-nupkg
           path: artifacts/local-feed
@@ -248,7 +252,7 @@ jobs:
           echo "missing-assembly exit code: $code (expected non-zero)"
 
       - name: Upload smoke artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-smoke-output
           path: artifacts/smoke/

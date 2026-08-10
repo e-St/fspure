@@ -14,7 +14,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "integrations/fstarter/**"
+      - "scripts/integrations/fstarter/**"
       - "scripts/prepare-fstarter-update.sh"
       - ".github/workflows/pr-fstarter.yml"
       - "docs/SYNC-FSTARTER.md"
@@ -43,7 +43,7 @@ jobs:
     if: github.repository == 'e-St/fspure'
     steps:
       - name: Checkout fspure
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -63,7 +63,7 @@ jobs:
         id: ver
         run: |
           set -euo pipefail
-          chmod +x scripts/prepare-fstarter-update.sh integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
+          chmod +x scripts/prepare-fstarter-update.sh scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
 
           # Priority: workflow input → release tag → versions.env → nuget.org latest stable
           INPUT="${{ github.event.inputs.analyzer_version }}"
@@ -81,7 +81,7 @@ jobs:
             echo "Using explicit/release version: $VER"
           else
             # shellcheck disable=SC1091
-            source integrations/fstarter/versions.env
+            source scripts/integrations/fstarter/versions.env
             VER="${FSPURE_ANALYZER_VERSION:-}"
             if [[ -z "$VER" || "$VER" == "latest" ]]; then
               VER="$(
@@ -93,7 +93,7 @@ jobs:
           fi
 
           # Keep monorepo versions.env in sync for the next local edit (committed only if changed via separate PR path — write for apply script)
-          echo "FSPURE_ANALYZER_VERSION=${VER}" > integrations/fstarter/versions.env
+          echo "FSPURE_ANALYZER_VERSION=${VER}" > scripts/integrations/fstarter/versions.env
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
       - name: Clone fstarter
@@ -141,7 +141,7 @@ jobs:
           MSG="chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})
 
           Source: e-St/fspure@${SHORT_SHA}
-          Path: integrations/fstarter
+          Path: scripts/integrations/fstarter
           Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
 
           Updates:
@@ -170,7 +170,7 @@ jobs:
           | | |
           |--|--|
           | **FSharp.PureAnalyzer** | \`${ANALYZER_VERSION}\` (nuget.org) |
-          | **Source path** | \`integrations/fstarter/\` |
+          | **Source path** | \`scripts/integrations/fstarter/\` |
           | **Workflow** | [run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |
 
           ### Files

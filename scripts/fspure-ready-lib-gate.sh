@@ -34,7 +34,7 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 ok() { echo "OK: $*"; }
 step() { echo ""; echo "==> $*"; }
 
-[[ -f "$ROOT/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" ]] \
+[[ -f "$ROOT/src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" ]] \
   || die "run from fspure monorepo (FSharp.PureAnalyzer missing)"
 [[ -f "$SAMPLE/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj" ]] \
   || die "sample missing: samples/fspure-ready-lib"
@@ -80,10 +80,10 @@ paket_restore() {
 # ---------------------------------------------------------------------------
 step "Pack FSharp.PureAnalyzer $VERSION → $FEED"
 # ---------------------------------------------------------------------------
-paket_restore "$ROOT/FSharp.PureAnalyzer"
-paket_restore "$ROOT/fspure-collector"
+paket_restore "$ROOT/src/FSharp.PureAnalyzer"
+paket_restore "$ROOT/src/fspure-collector"
 
-dotnet pack "$ROOT/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" \
+dotnet pack "$ROOT/src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" \
   -c "$CONFIGURATION" \
   -o "$FEED" \
   --nologo \

@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.PURE_BOT_PAT || secrets.GITHUB_TOKEN }}
 
@@ -36,7 +36,7 @@ jobs:
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -49,7 +49,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           # Shared fstarter build image (defined with PureAnalyzer; no IDE setup)
-          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+          configFile: src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           env: |
             PACKAGE_ID
@@ -59,8 +59,8 @@ jobs:
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
             # Shared PureFile schema (ProjectReference from the collector)
-            dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
-            cd fspure-collector
+            dotnet build src/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
+            cd src/fspure-collector
             paket install
             dotnet build -c Release --nologo
 
@@ -89,7 +89,7 @@ jobs:
           PY
 
       - name: Upload List A artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: list-a
           path: artifacts/list-a/
@@ -99,14 +99,14 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
-          mkdir -p data/list-a
-          cp artifacts/list-a/list-a.pure.json data/list-a/list-a.pure.json
-          cp artifacts/list-a/list-a.report.json data/list-a/list-a.report.json
+          mkdir -p scripts/data/list-a
+          cp artifacts/list-a/list-a.pure.json scripts/data/list-a/list-a.pure.json
+          cp artifacts/list-a/list-a.report.json scripts/data/list-a/list-a.report.json
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/list-a/list-a.pure.json data/list-a/list-a.report.json
+          git add scripts/data/list-a/list-a.pure.json scripts/data/list-a/list-a.report.json
           if git diff --staged --quiet; then
             echo "No List A changes to commit."
           else

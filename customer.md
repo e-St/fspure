@@ -240,6 +240,6 @@ Make it executable (`chmod +x .devcontainer/setup-fspure.sh`). Restore your proj
 ---
 ## See also
 - [README — consume fspure](README.md#consume-fspure-end-users)
-- [FSharp.PureAnalyzer](FSharp.PureAnalyzer/README.md)
-- [VS Code extension](vscode-extension/README.md)
+- [FSharp.PureAnalyzer](src/FSharp.PureAnalyzer/README.md)
+- [VS Code extension](editor/vscode-extension/README.md)
 - Maintainer publishing: [docs/PUBLISHING.md](docs/PUBLISHING.md)

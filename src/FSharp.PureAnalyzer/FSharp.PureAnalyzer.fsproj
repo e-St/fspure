@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Packaging (nuget.org + GitHub Packages) -->
+    <IsPackable>true</IsPackable>
+    <PackageId>FSharp.PureAnalyzer</PackageId>
+    <Version>0.4.0</Version>
+    <Description>F# analyzer that classifies definitions as pure or impure (PURE002 / PURE003) for Ionide and fsharp-analyzers. Includes MSBuild targets to embed pure.json into net10.0 library DLLs.</Description>
+    <PackageTags>fsharp;analyzer;pure;functional;ionide;fsautocomplete;msbuild</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/e-St/fspure</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/e-St/fspure</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>e-St</Authors>
+    <Copyright>Copyright (c) e-St and contributors</Copyright>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Analyzer packaging -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <!-- Paths used when packing MSBuild + fspure-collector tooling -->
+    <_FspureTasksOut>$(MSBuildThisFileDirectory)..\Fspure.BuildTasks\bin\$(Configuration)\net10.0\</_FspureTasksOut>
+    <_FspureCollectorPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-collector-publish\</_FspureCollectorPublish>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="PureSet.fs" />
+    <Compile Include="ReferencedAssemblies.fs" />
+    <Compile Include="PureManifestLoader.fs" />
+    <Compile Include="Name.fs" />
+    <Compile Include="Analysis.fs" />
+    <Compile Include="Diagnostics.fs" />
+    <Compile Include="Analyzer.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="foundational.pure.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared PureFile schema + PE pure.json reader (net10.0). -->
+    <ProjectReference Include="..\FSharp.PureSchema\FSharp.PureSchema.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Place the analyzer DLL (and PureSchema dependency) where Ionide expects them -->
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/fs"
+          Visible="false" />
+    <None Include="$(OutputPath)FSharp.PureSchema.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/fs"
+          Visible="false" />
+  </ItemGroup>
+
+  <!-- Phase 3: MSBuild props/targets (auto-imported on PackageReference) -->
+  <ItemGroup>
+    <None Include="build\FSharp.PureAnalyzer.props" Pack="true" PackagePath="build\" />
+    <None Include="build\FSharp.PureAnalyzer.targets" Pack="true" PackagePath="build\" />
+  </ItemGroup>
+
+  <!--
+    Stage BuildTasks + fspure-collector into the nupkg before GenerateNuspec.
+    Pack items are added here only (once) to avoid NU5118 duplicates.
+  -->
+  <Target Name="PrepareFspurePackageTools" BeforeTargets="GenerateNuspec;_GetPackageFiles;Pack">
+    <Message Importance="high" Text="Fspure: building BuildTasks + publishing fspure-collector for package layout..." />
+
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Fspure.BuildTasks\Fspure.BuildTasks.csproj"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration)" />
+
+    <ItemGroup>
+      <_FspureTaskFiles Include="$(_FspureTasksOut)Fspure.BuildTasks.dll" />
+      <_FspureTaskFiles Include="$(_FspureTasksOut)Mono.Cecil.dll" />
+      <_FspureTaskFiles Include="$(_FspureTasksOut)Mono.Cecil.*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_FspureTaskFiles)"
+          DestinationFolder="$(MSBuildThisFileDirectory)build\"
+          SkipUnchangedFiles="true" />
+
+    <MakeDir Directories="$(_FspureCollectorPublish)" />
+    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\fspure-collector\fspure-collector.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCollectorPublish)&quot; --nologo -v q" />
+
+    <ItemGroup>
+      <_FspureCollectorFiles Include="$(_FspureCollectorPublish)**\*.*" />
+      <None Include="@(_FspureCollectorFiles)"
+            Pack="true"
+            PackagePath="tools\fspure-collector\%(RecursiveDir)%(Filename)%(Extension)"
+            Visible="false" />
+
+      <None Include="$(MSBuildThisFileDirectory)build\Fspure.BuildTasks.dll"
+            Pack="true"
+            PackagePath="build\"
+            Visible="false" />
+      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.dll"
+            Pack="true"
+            PackagePath="build\"
+            Visible="false"
+            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.dll')" />
+      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.Pdb.dll"
+            Pack="true"
+            PackagePath="build\"
+            Visible="false"
+            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.Pdb.dll')" />
+      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.Rocks.dll"
+            Pack="true"
+            PackagePath="build\"
+            Visible="false"
+            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.Rocks.dll')" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project=".paket\Paket.Restore.targets" />
+</Project>

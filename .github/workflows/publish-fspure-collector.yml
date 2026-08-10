@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ github.event.inputs.version }}"
-          cd fspure-collector
+          cd src/fspure-collector
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
           dotnet pack fspure-collector.fsproj \
             -c Release \
@@ -55,16 +55,16 @@ jobs:
           ls -la ./nupkgs
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-tool-nupkg
-          path: fspure-collector/nupkgs/*.nupkg
+          path: src/fspure-collector/nupkgs/*.nupkg
           if-no-files-found: error
 
       - name: Publish to GitHub Packages only
         run: |
           set -euo pipefail
-          dotnet nuget push fspure-collector/nupkgs/*.nupkg \
+          dotnet nuget push src/fspure-collector/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate

@@ -7,22 +7,26 @@ on:
     branches: [main]
     paths:
       - "samples/fspure-ready-lib/**"
-      - "FSharp.PureAnalyzer/**"
-      - "msbuild/**"
-      - "fspure-collector/**"
-      - "schema/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "src/Fspure.BuildTasks/**"
+      - "src/fspure-collector/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - "scripts/fspure-ready-lib-gate.sh"
-      - "e2e/ready-lib/**"
+      - "tests/e2e/ready-lib/**"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   pull_request:
     paths:
       - "samples/fspure-ready-lib/**"
-      - "FSharp.PureAnalyzer/**"
-      - "msbuild/**"
-      - "fspure-collector/**"
-      - "schema/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "src/Fspure.BuildTasks/**"
+      - "src/fspure-collector/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
       - "scripts/fspure-ready-lib-gate.sh"
-      - "e2e/ready-lib/**"
+      - "tests/e2e/ready-lib/**"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   workflow_dispatch:
 
@@ -40,10 +44,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -58,12 +62,12 @@ jobs:
       - name: Run fspure-ready-lib gate
         run: |
           set -euo pipefail
-          chmod +x scripts/fspure-ready-lib-gate.sh e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
+          chmod +x scripts/fspure-ready-lib-gate.sh tests/e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
           bash scripts/fspure-ready-lib-gate.sh
 
       - name: Upload gate artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-ready-lib-gate
           path: |

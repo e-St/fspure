@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FSharp.PureSchema</RootNamespace>
+    <AssemblyName>FSharp.PureSchema</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <!-- Align with FSharp.Analyzers.SDK / paket FSharp.Core so ProjectReference consumers avoid MSB3277. -->
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Must match FSharp.Analyzers.SDK / FCS pin (exact 10.0.101). Do not bump until SDK does. -->
+    <PackageReference Include="FSharp.Core" Version="10.0.101" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="PureFileIO.fs" />
+    <Compile Include="PureOverrides.fs" />
+    <Compile Include="PureResourceReader.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Canonical JSON Schema for PureFile documents; kept next to the DTOs. -->
+    <None Include="pure-file.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="pure-file.schema.json" LogicalName="FSharp.PureSchema.pure-file.schema.json" />
+    <None Include="fspure.overrides.schema.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- FSharp.Core is provided by the .NET 10 SDK F# targets; do not pin a second PackageReference. -->
+</Project>

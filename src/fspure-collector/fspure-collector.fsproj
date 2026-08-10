@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>fspure_collector</RootNamespace>
+    <AssemblyName>fspure-collector</AssemblyName>
+
+    <!-- Pack as an installable dotnet tool (net10.0) -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>fspure-collector</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    <PackageId>fspure-collector</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Generate PureFile (.pure.json) pure-method whitelists from managed assemblies for fspure / FSharp.PureAnalyzer.</Description>
+    <PackageTags>fsharp;fspure;pure;functional;dotnet-tool</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/e-St/fspure</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/e-St/fspure</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>e-St</Authors>
+    <Copyright>Copyright (c) e-St and contributors</Copyright>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <!-- CollectionLeaves before ImpurityRules (isKnownPureLeaf references it) -->
+    <Compile Include="CollectionLeaves.fs" />
+    <Compile Include="ImpurityRules.fs" />
+    <Compile Include="IlAnalyzer.fs" />
+    <!-- PurityEngine seeds CollectionLeaves into pureSet -->
+    <Compile Include="PurityEngine.fs" />
+    <Compile Include="PuritySanity.fs" />
+    <Compile Include="JsonCodec.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSharp.PureSchema\FSharp.PureSchema.fsproj" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
+  </ItemGroup>
+
+  <Import Project=".paket\Paket.Restore.targets" />
+</Project>

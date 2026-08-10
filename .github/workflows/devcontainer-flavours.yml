@@ -10,7 +10,7 @@ name: Devcontainer flavours
 #     build:
 #       needs: generate-devcontainer-flavours
 #       steps:
-#         - uses: actions/checkout@v4
+#         - uses: actions/checkout@v7
 #         - uses: ./.github/actions/apply-devcontainer-flavours
 
 on:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generate flavour configs
         run: |
@@ -31,12 +31,12 @@ jobs:
           python3 .devcontainer/generate.py --check
 
       - name: Upload generated devcontainer.json files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: devcontainer-flavours
           path: |
             .devcontainer/devcontainer.json
-            FSharp.PureAnalyzer/.devcontainer/devcontainer.json
-            e2e/phase2/.devcontainer/devcontainer.json
+            src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+            tests/e2e/phase2/.devcontainer/devcontainer.json
           if-no-files-found: error
           retention-days: 1

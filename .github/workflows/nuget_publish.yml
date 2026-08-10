@@ -40,10 +40,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -87,7 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.ver.outputs.version }}"
-          cd FSharp.PureAnalyzer
+          cd src/FSharp.PureAnalyzer
           paket restore
           # PrepareFspurePackageTools runs on pack (fspure-collector + BuildTasks).
           dotnet pack FSharp.PureAnalyzer.fsproj \
@@ -106,7 +106,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.ver.outputs.collector_version }}"
-          cd fspure-collector
+          cd src/fspure-collector
           paket restore
           dotnet pack fspure-collector.fsproj \
             -c Release \
@@ -116,12 +116,12 @@ jobs:
           ls -la ./nupkgs
 
       - name: Upload nupkg artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-nupkgs-nuget-org
           path: |
-            FSharp.PureAnalyzer/nupkgs/*.nupkg
-            fspure-collector/nupkgs/*.nupkg
+            src/FSharp.PureAnalyzer/nupkgs/*.nupkg
+            src/fspure-collector/nupkgs/*.nupkg
           if-no-files-found: error
 
       # Always ship GitHub Release assets (workflow_dispatch used to skip this and
@@ -171,20 +171,20 @@ jobs:
           fi
 
           gh release upload "$TAG" \
-            FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --repo "${{ github.repository }}" \
             --clobber
 
-          if [[ -d fspure-collector/nupkgs ]] && compgen -G "fspure-collector/nupkgs/*.nupkg" >/dev/null; then
+          if [[ -d src/fspure-collector/nupkgs ]] && compgen -G "src/fspure-collector/nupkgs/*.nupkg" >/dev/null; then
             gh release upload "$TAG" \
-              fspure-collector/nupkgs/*.nupkg \
+              src/fspure-collector/nupkgs/*.nupkg \
               --repo "${{ github.repository }}" \
               --clobber
           fi
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Attached nupkgs to GitHub Release: $TAG"
-          echo "URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+          echo "URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/docs/releases/tag/${TAG}"
 
       - name: NuGet login (OIDC → temp API key)
         id: login
@@ -196,7 +196,7 @@ jobs:
       - name: Publish FSharp.PureAnalyzer to nuget.org
         run: |
           set -euo pipefail
-          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+          dotnet nuget push src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
@@ -206,7 +206,7 @@ jobs:
         if: ${{ steps.ver.outputs.publish_collector == 'true' && steps.ver.outputs.collector_version != '' }}
         run: |
           set -euo pipefail
-          dotnet nuget push fspure-collector/nupkgs/*.nupkg \
+          dotnet nuget push src/fspure-collector/nupkgs/*.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
@@ -216,12 +216,12 @@ jobs:
         run: |
           set -euo pipefail
           SRC="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+          dotnet nuget push src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "$SRC" \
             --skip-duplicate
-          if [[ -d fspure-collector/nupkgs ]]; then
-            dotnet nuget push fspure-collector/nupkgs/*.nupkg \
+          if [[ -d src/fspure-collector/nupkgs ]]; then
+            dotnet nuget push src/fspure-collector/nupkgs/*.nupkg \
               --api-key "${{ secrets.GITHUB_TOKEN }}" \
               --source "$SRC" \
               --skip-duplicate

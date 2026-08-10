@@ -1,24 +1,28 @@
 # Phase 2 gate: referenced-assembly path resolution + pure.json analyser integration.
-# Requires FSharp.Analyzers.SDK 0.35.x (locked in FSharp.PureAnalyzer/paket.dependencies).
+# Requires FSharp.Analyzers.SDK 0.35.x (locked in src/FSharp.PureAnalyzer/paket.dependencies).
 name: Pure Analyzer Integration CI
 
 on:
   push:
     branches: [main]
     paths:
-      - "FSharp.PureAnalyzer/**"
-      - "FSharp.PureAnalyzer.Tests/**"
-      - "schema/**"
-      - "e2e/phase1/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
+      - "tests/e2e/phase1/**"
       - "fspure.slnx"
       - ".github/workflows/pure-analyzer-integration-ci.yml"
       - ".github/workflows/pure-set-composition-ci.yml"
   pull_request:
     paths:
-      - "FSharp.PureAnalyzer/**"
-      - "FSharp.PureAnalyzer.Tests/**"
-      - "schema/**"
-      - "e2e/phase1/**"
+      - "src/FSharp.PureAnalyzer/**"
+      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/FSharp.PureSchema/**"
+      - "tests/FSharp.PureSchema.Tests/**"
+      - "tests/fixtures/**"
+      - "tests/e2e/phase1/**"
       - "fspure.slnx"
       - ".github/workflows/pure-analyzer-integration-ci.yml"
       - ".github/workflows/pure-set-composition-ci.yml"
@@ -38,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -54,14 +58,14 @@ jobs:
           fi
 
       - name: Restore PureAnalyzer (paket)
-        working-directory: FSharp.PureAnalyzer
+        working-directory: src/FSharp.PureAnalyzer
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
       - name: Test path resolution (ProjectReference + PackageReference)
         run: >
-          dotnet test FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
           --filter "FullyQualifiedName~PathResolutionTests"
@@ -72,10 +76,10 @@ jobs:
     needs: path-resolution-tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -88,14 +92,14 @@ jobs:
           fi
 
       - name: Restore PureAnalyzer (paket)
-        working-directory: FSharp.PureAnalyzer
+        working-directory: src/FSharp.PureAnalyzer
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
       - name: Build PureAnalyzer
         run: >
-          dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj
+          dotnet build src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj
           -c ${{ env.CONFIGURATION }}
           --nologo
 
@@ -104,7 +108,7 @@ jobs:
 
       - name: Test composition + manifest integration
         run: >
-          dotnet test FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
           --filter "FullyQualifiedName~CompositionTests|FullyQualifiedName~ManifestIntegrationTests"
@@ -115,10 +119,10 @@ jobs:
     needs: manifest-integration-tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
@@ -134,13 +138,13 @@ jobs:
         run: dotnet tool restore
 
       - name: Restore PureAnalyzer (paket)
-        working-directory: FSharp.PureAnalyzer
+        working-directory: src/FSharp.PureAnalyzer
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
       - name: Run e2e phase1 baseline
-        run: bash e2e/phase1/run.sh
+        run: bash tests/e2e/phase1/run.sh
 
   pure-analyzer-phase2-gate:
     name: Phase 2 gate

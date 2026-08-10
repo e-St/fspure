@@ -2,22 +2,23 @@
 **/obj/
 **/bin/
 .fake
-e2e/.artifacts/
-e2e/customer-fixture/analyzers/
+tests/e2e/.artifacts/
+tests/e2e/customer-fixture/analyzers/
 # Dev container / local Ionide drop of FSharp.PureAnalyzer.dll
 analyzers/
-e2e/phase2/playwright/node_modules/
+tests/e2e/phase2/playwright/node_modules/
+editor/vscode-extension/node_modules/
 *.vsix
-# Local `dotnet pack` output (see FSharp.PureAnalyzer/update-analyzer.sh)
+# Local `dotnet pack` output
 *.nupkg
 **/nupkgs/
-# Local tool feed / CI smoke outputs (fspure-collector pack & smoke)
+# Local tool feed / CI smoke outputs
 artifacts/
 # Staged into the package at pack time (not committed)
-FSharp.PureAnalyzer/build/*.dll
-FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/bin/
-FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/obj/
-FSharp.PureAnalyzer.Tests/integration/**/local-feed/
+src/FSharp.PureAnalyzer/build/*.dll
+tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/bin/
+tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/obj/
+tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
 # Python bytecode from .devcontainer/generate*.py
 **/__pycache__/
 *.py[cod]

@@ -29,13 +29,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
 
       - name: Log in to GHCR (devcontainer image)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -57,14 +57,14 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           # PureAnalyzer build container — not the root fspure IDE .devcontainer
-          configFile: FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+          configFile: src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
             export TMPDIR="$HOME/.nuget-tmp"
             mkdir -p "$TMPDIR"
             VERSION="${{ steps.ver.outputs.version }}"
-            cd FSharp.PureAnalyzer
+            cd src/FSharp.PureAnalyzer
             paket restore
             dotnet build -c Release /p:Version="$VERSION"
             dotnet pack FSharp.PureAnalyzer.fsproj \
@@ -75,10 +75,10 @@ jobs:
             ls -la ./nupkgs
 
       - name: Upload nupkg artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pure-analyzer-nupkg
-          path: FSharp.PureAnalyzer/nupkgs/*.nupkg
+          path: src/FSharp.PureAnalyzer/nupkgs/*.nupkg
           if-no-files-found: error
 
       - name: Attach nupkg to GitHub Release
@@ -88,13 +88,13 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "${{ github.ref_name }}" \
-            FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --clobber
 
       - name: Publish to GitHub Packages
         run: |
           set -euo pipefail
-          dotnet nuget push FSharp.PureAnalyzer/nupkgs/*.nupkg \
+          dotnet nuget push src/FSharp.PureAnalyzer/nupkgs/*.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate

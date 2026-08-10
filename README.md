@@ -20,6 +20,29 @@ It does that by defining a pure subset and marking everything else as impure.
 
 ---
 
+## Repository layout
+
+Top-level folders are intentionally few:
+
+| Path | What lives here |
+|------|-----------------|
+| **`src/`** | Product code: analyzer, schema, collector, MSBuild tasks |
+| **`tests/`** | Unit/integration tests, fixtures, and e2e |
+| **`samples/`** | End-to-end samples (e.g. fspure-ready-lib template) |
+| **`editor/`** | VS Code extension (`fsharp-pure-decorations`) |
+| **`docs/`** | Architecture, releasing, security, site; `docs/releases/` for changelogs |
+| **`scripts/`** | CI gates, release helpers, generation data, integrations |
+
+```text
+fspure/
+  src/           FSharp.PureAnalyzer, FSharp.PureSchema, fspure-collector, Fspure.BuildTasks
+  tests/         *Tests projects, fixtures, e2e/
+  samples/       fspure-ready-lib/
+  editor/        vscode-extension/
+  docs/          guides + releases/
+  scripts/       automation + data/ + integrations/
+```
+
 ## Consume fspure (end users)
 
 **Start here:** [customer.md](customer.md) — install without a dev container, or what to add to **your** `devcontainer.json`.
@@ -133,12 +156,12 @@ code --install-extension fsharp-pure-decorations-0.2.5.vsix
 | Container | Path | Use for |
 |-----------|------|---------|
 | **fspure IDE** (default) | [`.devcontainer/`](.devcontainer/) | Codespaces, local “Reopen in Container”, pure/impure labels while hacking |
-| **PureAnalyzer build** | [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) | CI pack/build (`dotnet` / `paket` / `bundlef`) — no IDE setup |
-| **e2e** | [`e2e/phase2/.devcontainer/`](e2e/phase2/.devcontainer/) | CI / local phase 1–2 only (code-server + Playwright) — not for daily work |
+| **PureAnalyzer build** | [`src/FSharp.PureAnalyzer/.devcontainer/`](src/FSharp.PureAnalyzer/.devcontainer/) | CI pack/build (`dotnet` / `paket` / `bundlef`) — no IDE setup |
+| **e2e** | [`tests/e2e/phase2/.devcontainer/`](tests/e2e/phase2/.devcontainer/) | CI / local phase 1–2 only (code-server + Playwright) — not for daily work |
 
 All three are **generated** from shared fragments under [`.devcontainer/fragments/`](.devcontainer/fragments/) (`python3 .devcontainer/generate.py`). Workflow [generate-devcontainers.yml](.github/workflows/generate-devcontainers.yml) regenerates and commits them when fragments change. Image base is `ghcr.io/e-st/fstarter`; e2e adds layers in its Dockerfile only. No Dev Container Features.
 
-Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [e2e/README.md](e2e/README.md).
+Details: [`.devcontainer/README.md`](.devcontainer/README.md) and [tests/e2e/README.md](tests/e2e/README.md).
 
 **fspure IDE** (`postCreate` / `postAttach` → `setup-fspure-ide.sh`) installs:
 
@@ -150,8 +173,8 @@ Pack/build and customer e2e use the other containers above, not this one.
 While developing the analyzer against the local tree:
 
 ```bash
-bash FSharp.PureAnalyzer/update-analyzer.sh   # → analyzers/dotnet/fs/ + NuGet global
-bash vscode-extension/update-extension.sh    # optional: refresh decorations VSIX
+bash src/FSharp.PureAnalyzer/update-analyzer.sh   # → analyzers/dotnet/fs/ + NuGet global
+bash editor/vscode-extension/update-extension.sh    # optional: refresh decorations VSIX
 # then: Developer: Reload Window
 ```
 
@@ -225,7 +248,7 @@ That embeds `{AssemblyName}.pure.json` into your DLL. Vanilla fspure consumers t
 
 ```bash
 bash scripts/fspure-ready-lib-gate.sh
-# or: bash e2e/ready-lib/run.sh
+# or: bash tests/e2e/ready-lib/run.sh
 ```
 
 Publishing your library to nuget.org is optional; CI proves the path with a local feed.
@@ -251,14 +274,14 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 ## Develop this repository
 
 - **Interactive IDE:** open the repo in Codespaces or “Reopen in Container” → root [`.devcontainer/`](.devcontainer/) (“fspure IDE”)
-- **CI pack/build:** [`FSharp.PureAnalyzer/.devcontainer/`](FSharp.PureAnalyzer/.devcontainer/) (not the IDE container)
+- **CI pack/build:** [`src/FSharp.PureAnalyzer/.devcontainer/`](src/FSharp.PureAnalyzer/.devcontainer/) (not the IDE container)
 - Solution: `fspure.slnx` (`FSharp.PureAnalyzer`, `fspure-collector`)
-- Customer e2e (separate container): [e2e/README.md](e2e/README.md)
-- Library-embed gate: [e2e/ready-lib/README.md](e2e/ready-lib/README.md) · workflow `fspure-ready-lib-gate.yml`
-- fstarter integration pack + PR sync: [integrations/fstarter](integrations/fstarter/) · [docs/SYNC-FSTARTER.md](docs/SYNC-FSTARTER.md)
+- Customer e2e (separate container): [tests/e2e/README.md](tests/e2e/README.md)
+- Library-embed gate: [tests/e2e/ready-lib/README.md](tests/e2e/ready-lib/README.md) · workflow `fspure-ready-lib-gate.yml`
+- fstarter integration pack + PR sync: [scripts/integrations/fstarter](scripts/integrations/fstarter/) · [docs/SYNC-FSTARTER.md](docs/SYNC-FSTARTER.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - Security (Dependabot, CodeQL, audits): [docs/SECURITY.md](docs/SECURITY.md)
-- Releasing (Release PR, beta, pins): [docs/RELEASING.md](docs/RELEASING.md) · [releases/](releases/)
+- Releasing (Release PR, beta, pins): [docs/RELEASING.md](docs/RELEASING.md) · [docs/releases/](docs/releases/)
 - Language policy (F# first): [docs/LANGUAGES.md](docs/LANGUAGES.md)
 
 ```bash
@@ -266,10 +289,10 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 cd FSharp.PureAnalyzer && paket restore && dotnet build -c Release
 
 # Extension unit tests
-node vscode-extension/test/decorations.logic.test.js
+node editor/vscode-extension/test/decorations.logic.test.js
 
-# Phase 1 e2e (analyzer baseline; in CI runs inside e2e/phase2/.devcontainer)
-bash e2e/phase1/run.sh
+# Phase 1 e2e (analyzer baseline; in CI runs inside tests/e2e/phase2/.devcontainer)
+bash tests/e2e/phase1/run.sh
 
 # Phase 4 library-embed gate (local feed)
 bash scripts/fspure-ready-lib-gate.sh

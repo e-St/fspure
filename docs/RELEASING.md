@@ -18,11 +18,11 @@ flowchart TD
 
 | Id | Artifact | Changelog |
 |----|----------|-----------|
-| `FSharp.PureAnalyzer` | NuGet analyzer + embed tools | `releases/CHANGELOG.FSharp.PureAnalyzer.md` |
-| `fspure-collector` | NuGet dotnet tool | `releases/CHANGELOG.fspure-collector.md` |
-| `fsharp-pure-decorations` | Open VSX / VSIX | `releases/CHANGELOG.fsharp-pure-decorations.md` |
+| `FSharp.PureAnalyzer` | NuGet analyzer + embed tools | `docs/releases/CHANGELOG.FSharp.PureAnalyzer.md` |
+| `fspure-collector` | NuGet dotnet tool | `docs/releases/CHANGELOG.fspure-collector.md` |
+| `fsharp-pure-decorations` | Open VSX / VSIX | `docs/releases/CHANGELOG.fsharp-pure-decorations.md` |
 
-Last published official versions: **`releases/manifest.json`** → `lastOfficial`.
+Last published official versions: **`docs/releases/manifest.json`** → `lastOfficial`.
 
 ---
 
@@ -48,12 +48,12 @@ Optional inputs: exact next versions and which components to publish.
 
 Creates a PR that updates:
 
-- `releases/manifest.json` → `pending` (versions + `publish` flags)
+- `docs/releases/manifest.json` → `pending` (versions + `publish` flags)
 - Each changelog’s **`## [Unreleased]`** draft (from git log — rewrite freely)
 
 ### 2. Edit the PR
 
-1. Open `releases/manifest.json`
+1. Open `docs/releases/manifest.json`
 2. Set each component’s **`to`** version (e.g. `0.5.0`)
 3. Set **`publish`: true/false** per component
 4. Edit the three **CHANGELOG.*** Unreleased sections until you like the notes
@@ -88,12 +88,12 @@ You may keep the existing policy for `nuget_publish.yml` as a manual fallback.
 
 | Location | Field |
 |----------|--------|
-| `FSharp.PureAnalyzer/*.fsproj` | `<Version>` |
-| `fspure-collector/*.fsproj` | `<Version>` |
-| `vscode-extension/package.json` | `version` |
+| `src/FSharp.PureAnalyzer/*.fsproj` | `<Version>` |
+| `src/fspure-collector/*.fsproj` | `<Version>` |
+| `editor/vscode-extension/package.json` | `version` |
 | `samples/fspure-ready-lib/Directory.Packages.props` | `FspureAnalyzerVersion` |
 | `samples/fspure-ready-lib/scripts/resolve-fspure-analyzer-version.sh` | fallback |
-| `integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION` |
+| `scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION` |
 | Sample / root README examples | version strings |
 
 ready-lib satellite is refreshed by **Sync fspure-ready-lib** (push).  

@@ -2,7 +2,7 @@
 # Phase 5 permanent regression net (KISS — no extra library projects).
 #
 # Uses only:
-#   - e2e/customer-fixture          → foundational-only badges
+#   - tests/e2e/customer-fixture          → foundational-only badges
 #   - samples/fspure-ready-lib      → library embed (PackageReference + ProjectReference)
 #   - existing unit tests           → missing / zero / corrupt pure.json fallback
 #   - decorations.logic.test.js     → VS Code badge mapping contract (no IDE launch)
@@ -37,7 +37,7 @@ chmod +x \
   "$ROOT/scripts/fspure-ready-lib-gate.sh" \
   "$ROOT/scripts/phase5-regression.sh" \
   "$SAMPLE/scripts/"*.sh \
-  "$ROOT/e2e/phase1/run.sh" \
+  "$ROOT/tests/e2e/phase1/run.sh" \
   2>/dev/null || true
 
 mkdir -p "$ART" "$ANALYZER_DROP"
@@ -48,7 +48,7 @@ step "1/5  Foundational only (customer-fixture e2e phase1)"
 if [[ "${SKIP_PHASE1:-0}" == "1" ]]; then
   echo "(skipped SKIP_PHASE1=1)"
 else
-  bash "$ROOT/e2e/phase1/run.sh"
+  bash "$ROOT/tests/e2e/phase1/run.sh"
   ok "foundational badges match expectations.json"
 fi
 
@@ -206,19 +206,19 @@ if [[ "${SKIP_UNIT:-0}" == "1" ]]; then
   echo "(skipped SKIP_UNIT=1)"
 else
   if command -v paket >/dev/null 2>&1; then
-    (cd "$ROOT/FSharp.PureAnalyzer" && paket restore)
+    (cd "$ROOT/src/FSharp.PureAnalyzer" && paket restore)
   elif [[ -x "$HOME/.dotnet/tools/paket" ]]; then
-    (cd "$ROOT/FSharp.PureAnalyzer" && "$HOME/.dotnet/tools/paket" restore)
+    (cd "$ROOT/src/FSharp.PureAnalyzer" && "$HOME/.dotnet/tools/paket" restore)
   fi
 
   # PureSchema resource reader fixtures (zero / single / multi pure.json)
-  dotnet test "$ROOT/schema/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" \
+  dotnet test "$ROOT/tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" \
     -c "$CONFIGURATION" \
     --verbosity minimal \
     --filter "FullyQualifiedName~ResourceReaderTests"
 
   # Analyser fallback + composition + override contracts
-  dotnet test "$ROOT/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" \
+  dotnet test "$ROOT/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" \
     -c "$CONFIGURATION" \
     --verbosity minimal \
     --filter "FullyQualifiedName~ManifestIntegrationTests|FullyQualifiedName~CompositionTests|FullyQualifiedName~OverrideTests"
@@ -229,8 +229,8 @@ fi
 step "5/5  VS Code decoration contract (minimal, no IDE)"
 # ---------------------------------------------------------------------------
 if command -v node >/dev/null 2>&1 \
-  && [[ -f "$ROOT/vscode-extension/test/decorations.logic.test.js" ]]; then
-  node "$ROOT/vscode-extension/test/decorations.logic.test.js"
+  && [[ -f "$ROOT/editor/vscode-extension/test/decorations.logic.test.js" ]]; then
+  node "$ROOT/editor/vscode-extension/test/decorations.logic.test.js"
   ok "decoration PURE002/PURE003 → pure/impure labels"
 else
   echo "(skipped: node or decorations.logic.test.js missing)"
@@ -238,7 +238,7 @@ fi
 
 echo ""
 echo "✅ Phase 5 regression green"
-echo "   foundational:     e2e/phase1"
+echo "   foundational:     tests/e2e/phase1"
 echo "   PackageReference: scripts/fspure-ready-lib-gate.sh + golden"
 echo "   ProjectReference: samples/fspure-ready-lib Consumer"
 echo "   fallbacks:        unit tests (missing/zero/corrupt)"

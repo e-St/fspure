@@ -3,7 +3,7 @@
 # shellcheck shell=bash
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MANIFEST="${MANIFEST:-$ROOT/releases/manifest.json}"
+MANIFEST="${MANIFEST:-$ROOT/docs/releases/manifest.json}"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 

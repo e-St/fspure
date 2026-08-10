@@ -63,4 +63,4 @@ fi
 
 echo "    nuget.org path incomplete; packing from local tree."
 echo "==> FSharp.PureAnalyzer: pack + install from local tree"
-bash "$ROOT/FSharp.PureAnalyzer/update-analyzer.sh"
+bash "$ROOT/src/FSharp.PureAnalyzer/update-analyzer.sh"
