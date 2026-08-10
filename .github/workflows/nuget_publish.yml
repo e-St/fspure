@@ -1,8 +1,8 @@
 name: Publish Pure Analyzer to nuget.org
 
 # Packs and publishes (Trusted Publishing / OIDC — workflow file MUST be nuget_publish.yml):
-#   - FSharp.PureAnalyzer  → nuget.org + GitHub Packages
-#   - fspure-collector     → nuget.org + GitHub Packages (same OIDC policy)
+#   - FSharp.PureAnalyzer  → nuget.org + GitHub Packages + GitHub Release (v{version}, Latest)
+#   - fspure-collector     → nuget.org + GitHub Packages + same GitHub Release (if enabled)
 #
 # nuget.org Trusted Publishing policy must list:
 #   Workflow File: nuget_publish.yml
