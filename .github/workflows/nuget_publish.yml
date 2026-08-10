@@ -124,20 +124,67 @@ jobs:
             fspure-collector/nupkgs/*.nupkg
           if-no-files-found: error
 
-      - name: Attach nupkgs to GitHub Release
-        if: github.event_name == 'release'
+      # Always ship GitHub Release assets (workflow_dispatch used to skip this and
+      # left the Releases page stuck on an older "Latest" tag such as 0.3.2).
+      - name: Ensure GitHub Release and attach nupkgs
+        id: ghrel
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release upload "${{ github.ref_name }}" \
-            FSharp.PureAnalyzer/nupkgs/*.nupkg \
-            --clobber
-          if [[ -d fspure-collector/nupkgs ]]; then
-            gh release upload "${{ github.ref_name }}" \
-              fspure-collector/nupkgs/*.nupkg \
-              --clobber || true
+          VERSION="${{ steps.ver.outputs.version }}"
+          VERSION="${VERSION#v}"
+
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v${VERSION}"
           fi
+
+          NOTES="## FSharp.PureAnalyzer ${VERSION}
+
+          Also published to **nuget.org** and GitHub Packages.
+
+          | Artifact | Notes |
+          |----------|--------|
+          | \`FSharp.PureAnalyzer.${VERSION}.nupkg\` | Phase 3 layout: \`build/\` + \`tools/fspure-collector/\` + analyzers |
+          | \`fspure-collector.*.nupkg\` | Optional standalone dotnet tool (same workflow) |
+
+          Install:
+          \`\`\`bash
+          dotnet add package FSharp.PureAnalyzer --version ${VERSION}
+          dotnet tool install -g fspure-collector
+          \`\`\`
+          "
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — uploading assets and marking latest."
+            gh release edit "$TAG" --repo "${{ github.repository }}" --latest || true
+          else
+            echo "Creating release $TAG from ${GITHUB_SHA}"
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --target "${GITHUB_SHA}" \
+              --title "${VERSION}" \
+              --notes "$NOTES" \
+              --latest
+          fi
+
+          gh release upload "$TAG" \
+            FSharp.PureAnalyzer/nupkgs/*.nupkg \
+            --repo "${{ github.repository }}" \
+            --clobber
+
+          if [[ -d fspure-collector/nupkgs ]] && compgen -G "fspure-collector/nupkgs/*.nupkg" >/dev/null; then
+            gh release upload "$TAG" \
+              fspure-collector/nupkgs/*.nupkg \
+              --repo "${{ github.repository }}" \
+              --clobber
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Attached nupkgs to GitHub Release: $TAG"
+          echo "URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
 
       - name: NuGet login (OIDC → temp API key)
         id: login

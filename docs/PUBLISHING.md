@@ -50,7 +50,7 @@ That is why **both** packages publish from **`nuget_publish.yml` only**.
 |----------|----------|-----------|
 | `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release; Open VSX (`OVSX_PAT`) |
 | `.github/workflows/release-pure-analyzer.yml` | Release / manual | Analyzer → GitHub Packages + Release assets |
-| **`.github/workflows/nuget_publish.yml`** | Release / manual | **FSharp.PureAnalyzer + fspure-collector** → **nuget.org** (OIDC) + GitHub Packages |
+| **`.github/workflows/nuget_publish.yml`** | Release / manual | **FSharp.PureAnalyzer + fspure-collector** → **nuget.org** (OIDC) + GitHub Packages + **GitHub Release assets** (creates/updates `v{version}` and marks **Latest**) |
 | `.github/workflows/publish-fspure-collector.yml` | Manual | fspure-collector → **GitHub Packages only** |
 
 ### After a nuget.org release → update fstarter
