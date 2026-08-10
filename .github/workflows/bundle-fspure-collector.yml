@@ -74,7 +74,7 @@ jobs:
 
       - name: Publish release asset on main
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: fspure-collector-latest
           name: fspure-collector (latest standalone)
