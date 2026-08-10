@@ -104,7 +104,7 @@ jobs:
           ls -lh artifacts/local-feed
 
       - name: Upload tool nupkg (local feed artifact)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-tool-nupkg
           path: artifacts/local-feed/*.nupkg
@@ -248,7 +248,7 @@ jobs:
           echo "missing-assembly exit code: $code (expected non-zero)"
 
       - name: Upload smoke artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fspure-collector-smoke-output
           path: artifacts/smoke/

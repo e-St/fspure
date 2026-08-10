@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload Phase 1 artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phase1-analyzer
           path: |
@@ -132,7 +132,7 @@ jobs:
 
       - name: Upload Phase 2 screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phase2-visual-screenshots
           path: |
