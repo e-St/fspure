@@ -1,19 +1,19 @@
-# Push samples/fspure-ready-lib/ → https://github.com/e-St/fspure-ready-lib
+# Push src/samples/fspure-ready-lib/ → https://github.com/e-St/fspure-ready-lib
 #
 # Always updates both satellite branches with the same tip:
 #   main → customer CI (released FSharp.PureAnalyzer on nuget.org)
 #   dev  → integration CI (latest from e-St GitHub Packages)
 #
-# Setup: docs/SYNC-FSPURE-READY-LIB.md  ·  secret: FSPURE_READY_LIB_PUSH_TOKEN
+# Setup: src/docs/SYNC-FSPURE-READY-LIB.md  ·  secret: FSPURE_READY_LIB_PUSH_TOKEN
 name: Sync fspure-ready-lib
 
 on:
   push:
     branches: [main]
     paths:
-      - "samples/fspure-ready-lib/**"
+      - "src/samples/fspure-ready-lib/**"
       - ".github/workflows/sync-fspure-ready-lib.yml"
-      - "docs/SYNC-FSPURE-READY-LIB.md"
+      - "src/docs/SYNC-FSPURE-READY-LIB.md"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -48,7 +48,7 @@ jobs:
             echo "::error::Secret FSPURE_READY_LIB_PUSH_TOKEN is not set on e-St/fspure."
             echo "Create a fine-grained PAT with Contents: Write (+ Workflows: Write) on e-St/fspure-ready-lib,"
             echo "then add it as repository secret FSPURE_READY_LIB_PUSH_TOKEN."
-            echo "See docs/SYNC-FSPURE-READY-LIB.md"
+            echo "See src/docs/SYNC-FSPURE-READY-LIB.md"
             exit 1
           fi
 
@@ -64,7 +64,7 @@ jobs:
       - name: Update satellite working tree from monorepo sample
         run: |
           set -euo pipefail
-          SRC="${GITHUB_WORKSPACE}/samples/fspure-ready-lib"
+          SRC="${GITHUB_WORKSPACE}/src/samples/fspure-ready-lib"
           DST="$RUNNER_TEMP/fspure-ready-lib"
           test -d "$SRC"
 
@@ -79,7 +79,7 @@ jobs:
 
           {
             echo "source_repo=e-St/fspure"
-            echo "source_path=samples/fspure-ready-lib"
+            echo "source_path=src/samples/fspure-ready-lib"
             echo "source_sha=${GITHUB_SHA}"
             echo "source_ref=${GITHUB_REF}"
             echo "synced_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -105,7 +105,7 @@ jobs:
             SHORT_SHA="${GITHUB_SHA:0:7}"
             MSG="sync from e-St/fspure@${SHORT_SHA}
 
-          Source: samples/fspure-ready-lib
+          Source: src/samples/fspure-ready-lib
           Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
           "
             git commit -m "$MSG"

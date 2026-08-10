@@ -1,0 +1,63 @@
+<!--
+  GENERATED FILE — do not edit by hand.
+  Template: src/docs/templates/ARCHITECTURE.md.scriban
+  Channel: {{ Channel }} | Ref: {{ RefName }} | Generated: {{ GeneratedAt }}
+-->
+
+# fspure architecture (short)
+
+How pure/impure labels are decided for vanilla fspure (analyzer + VS Code extension).
+
+## Pieces
+
+| Piece | Role |
+|-------|------|
+| **fspure-collector** | Scans assemblies (IL) → writes a `PureFile` (`.pure.json`) whitelist |
+| **FSharp.PureAnalyzer** | Builds a pure set, labels defs (`PURE002` impure / `PURE003` pure) |
+| **fsharp-pure-decorations** | End-of-line badges from those diagnostics |
+| **MSBuild targets** (in the analyzer package) | After build: collect → optional `pure-extra.json` → embed `{AssemblyName}.pure.json` |
+
+## Precedence (highest last)
+
+```text
+  foundational.pure.json
+        │
+        ▼
+  + pure.json embeds from referenced DLLs
+        │
+        ▼
+  ± fspure.overrides.json  (remove, then add)
+```
+
+**overrides > library embeds > foundational**
+
+Disable foundational: `"useFoundational": false` in overrides, or `FSPURE_DISABLE_FOUNDATIONAL=1`.
+
+## Library one-liner
+
+```xml
+{{ snip "ready-lib-package-ref" }}
+```
+
+`PrivateAssets=all` so your package consumers are not forced to take the analyzer.
+
+Sample API (from the ready-lib):
+
+```fsharp
+{{ snip "ready-lib-api" }}
+```
+
+## Consumers
+
+1. Reference `FSharp.PureAnalyzer`  
+2. Optional: VS Code extension  
+3. Optional: `fspure.overrides.json` in the **app** project  
+
+## TFM
+
+Purity infrastructure targets **net10.0** only.
+
+## Docs generation
+
+Markdown is generated with **F# + Scriban** (`src/DocsGenerator`). Code samples use `<docs-snippet id="…">` markers in real source.  
+Stable Markdown on `main` is refreshed **only on official releases**. Preview: `{{ BaseUrl }}`.

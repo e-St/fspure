@@ -6,34 +6,34 @@ on:
   push:
     branches: [main]
     paths:
-      - "tests/e2e/**"
-      - "samples/fspure-ready-lib/**"
+      - "src/tests/e2e/**"
+      - "src/samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "editor/vscode-extension/test/**"
-      - "scripts/fspure-ready-lib-gate.sh"
-      - "scripts/phase5-regression.sh"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/editor/vscode-extension/test/**"
+      - "src/scripts/fspure-ready-lib-gate.sh"
+      - "src/scripts/phase5-regression.sh"
       - ".github/workflows/phase5-regression.yml"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   pull_request:
     paths:
-      - "tests/e2e/**"
-      - "samples/fspure-ready-lib/**"
+      - "src/tests/e2e/**"
+      - "src/samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "editor/vscode-extension/test/**"
-      - "scripts/fspure-ready-lib-gate.sh"
-      - "scripts/phase5-regression.sh"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/editor/vscode-extension/test/**"
+      - "src/scripts/fspure-ready-lib-gate.sh"
+      - "src/scripts/phase5-regression.sh"
       - ".github/workflows/phase5-regression.yml"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   workflow_dispatch:
@@ -75,8 +75,8 @@ jobs:
       - name: Run Phase 5 regression
         run: |
           set -euo pipefail
-          chmod +x scripts/*.sh tests/e2e/phase1/run.sh tests/e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
-          bash scripts/phase5-regression.sh
+          chmod +x src/scripts/*.sh src/tests/e2e/phase1/run.sh src/tests/e2e/ready-lib/run.sh src/samples/fspure-ready-lib/src/scripts/*.sh
+          bash src/scripts/phase5-regression.sh
 
       - name: Upload artifacts
         if: always()
@@ -87,5 +87,5 @@ jobs:
             artifacts/phase5/
             artifacts/local-feed/
             artifacts/fspure-ready-lib-gate/
-            tests/e2e/.artifacts/phase1/
+            src/tests/e2e/.artifacts/phase1/
           if-no-files-found: warn

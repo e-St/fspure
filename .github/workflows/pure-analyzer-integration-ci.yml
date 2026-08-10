@@ -7,22 +7,22 @@ on:
     branches: [main]
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "tests/e2e/phase1/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/tests/e2e/phase1/**"
       - "fspure.slnx"
       - ".github/workflows/pure-analyzer-integration-ci.yml"
       - ".github/workflows/pure-set-composition-ci.yml"
   pull_request:
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "tests/e2e/phase1/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/tests/e2e/phase1/**"
       - "fspure.slnx"
       - ".github/workflows/pure-analyzer-integration-ci.yml"
       - ".github/workflows/pure-set-composition-ci.yml"
@@ -65,7 +65,7 @@ jobs:
 
       - name: Test path resolution (ProjectReference + PackageReference)
         run: >
-          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
           --filter "FullyQualifiedName~PathResolutionTests"
@@ -108,7 +108,7 @@ jobs:
 
       - name: Test composition + manifest integration
         run: >
-          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
           --filter "FullyQualifiedName~CompositionTests|FullyQualifiedName~ManifestIntegrationTests"
@@ -144,7 +144,7 @@ jobs:
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
 
       - name: Run e2e phase1 baseline
-        run: bash tests/e2e/phase1/run.sh
+        run: bash src/tests/e2e/phase1/run.sh
 
   pure-analyzer-phase2-gate:
     name: Phase 2 gate

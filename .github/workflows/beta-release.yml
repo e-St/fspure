@@ -58,5 +58,5 @@ jobs:
           BETA_KIND: ${{ github.event.inputs.kind || 'ci' }}
         run: |
           set -euo pipefail
-          chmod +x scripts/release/*.sh
-          bash scripts/release/publish-beta.sh
+          chmod +x src/scripts/release/*.sh
+          bash src/scripts/release/publish-beta.sh

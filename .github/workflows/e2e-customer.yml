@@ -2,10 +2,10 @@ name: Customer E2E (pure/impure labels)
 
 # Two-phase consumer check (analyzer baseline + visual pure/impure decorations):
 #
-#   Phase 1 — Analyzer baseline on tests/e2e/customer-fixture/Program.fs
+#   Phase 1 — Analyzer baseline on src/tests/e2e/customer-fixture/Program.fs
 #   Phase 2 — VS Code (code-server) opens Program.fs and screenshots pure/impure labels
 #
-# Both phases use tests/e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
+# Both phases use src/tests/e2e/phase2/.devcontainer (known-good visual e2e image), NOT the
 # root IDE or FSharp.PureAnalyzer build containers — so those changes cannot
 # break CI e2e.
 
@@ -14,18 +14,18 @@ on:
     branches: [main, master]
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "editor/vscode-extension/**"
-      - "tests/e2e/**"
-      - ".devcontainer/fragments/**"
+      - "src/editor/vscode-extension/**"
+      - "src/tests/e2e/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/e2e-customer.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "editor/vscode-extension/**"
-      - "tests/e2e/**"
-      - ".devcontainer/fragments/**"
+      - "src/editor/vscode-extension/**"
+      - "src/tests/e2e/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/e2e-customer.yml"
       - ".github/workflows/devcontainer-flavours.yml"
@@ -63,7 +63,7 @@ jobs:
       - name: Run Phase 1 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          configFile: tests/e2e/phase2/.devcontainer/devcontainer.json
+          configFile: src/tests/e2e/phase2/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
@@ -82,7 +82,7 @@ jobs:
               export PATH="$HOME/.local/bin:$PATH"
             fi
 
-            bash tests/e2e/phase1/run.sh
+            bash src/tests/e2e/phase1/run.sh
 
       - name: Upload Phase 1 artifacts
         if: always()
@@ -90,8 +90,8 @@ jobs:
         with:
           name: phase1-analyzer
           path: |
-            tests/e2e/.artifacts/phase1/**
-            tests/e2e/.artifacts/analyzer-drop/**
+            src/tests/e2e/.artifacts/phase1/**
+            src/tests/e2e/.artifacts/analyzer-drop/**
           if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ jobs:
       - name: Run Phase 2 inside e2e phase2 devcontainer
         uses: devcontainers/ci@v0.3
         with:
-          configFile: tests/e2e/phase2/.devcontainer/devcontainer.json
+          configFile: src/tests/e2e/phase2/.devcontainer/devcontainer.json
           push: never
           runCmd: |
             set -euo pipefail
@@ -128,7 +128,7 @@ jobs:
             export CODE_SERVER_HOST=127.0.0.1
             export CODE_SERVER_PORT=8080
             export WAIT_MS=180000
-            bash tests/e2e/phase2/run.sh
+            bash src/tests/e2e/phase2/run.sh
 
       - name: Upload Phase 2 screenshots
         if: always()
@@ -136,8 +136,8 @@ jobs:
         with:
           name: phase2-visual-screenshots
           path: |
-            tests/e2e/.artifacts/phase2/**/*.png
-            tests/e2e/.artifacts/phase2/**/*.json
-            tests/e2e/.artifacts/phase2/**/*.log
-            tests/e2e/.artifacts/phase2/**/*.vsix
+            src/tests/e2e/.artifacts/phase2/**/*.png
+            src/tests/e2e/.artifacts/phase2/**/*.json
+            src/tests/e2e/.artifacts/phase2/**/*.log
+            src/tests/e2e/.artifacts/phase2/**/*.vsix
           if-no-files-found: ignore

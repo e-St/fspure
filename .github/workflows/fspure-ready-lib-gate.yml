@@ -6,27 +6,27 @@ on:
   push:
     branches: [main]
     paths:
-      - "samples/fspure-ready-lib/**"
+      - "src/samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "scripts/fspure-ready-lib-gate.sh"
-      - "tests/e2e/ready-lib/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/scripts/fspure-ready-lib-gate.sh"
+      - "src/tests/e2e/ready-lib/**"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   pull_request:
     paths:
-      - "samples/fspure-ready-lib/**"
+      - "src/samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
-      - "scripts/fspure-ready-lib-gate.sh"
-      - "tests/e2e/ready-lib/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
+      - "src/scripts/fspure-ready-lib-gate.sh"
+      - "src/tests/e2e/ready-lib/**"
       - ".github/workflows/fspure-ready-lib-gate.yml"
   workflow_dispatch:
 
@@ -62,8 +62,8 @@ jobs:
       - name: Run fspure-ready-lib gate
         run: |
           set -euo pipefail
-          chmod +x scripts/fspure-ready-lib-gate.sh tests/e2e/ready-lib/run.sh samples/fspure-ready-lib/scripts/*.sh
-          bash scripts/fspure-ready-lib-gate.sh
+          chmod +x src/scripts/fspure-ready-lib-gate.sh src/tests/e2e/ready-lib/run.sh src/samples/fspure-ready-lib/src/scripts/*.sh
+          bash src/scripts/fspure-ready-lib-gate.sh
 
       - name: Upload gate artifacts
         if: always()

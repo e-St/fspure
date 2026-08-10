@@ -8,7 +8,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "editor/vscode-extension/**"
+      - "src/editor/vscode-extension/**"
       - ".github/workflows/publish-vscode-extension.yml"
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: editor/vscode-extension
+        working-directory: src/editor/vscode-extension
 
     steps:
       - name: Checkout
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: vsix
-          path: editor/vscode-extension/${{ steps.ver.outputs.vsix }}
+          path: src/editor/vscode-extension/${{ steps.ver.outputs.vsix }}
           if-no-files-found: error
 
       - name: Create / update GitHub Release

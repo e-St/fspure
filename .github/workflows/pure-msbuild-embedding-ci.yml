@@ -7,23 +7,23 @@ on:
     branches: [main]
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
       - "fspure.slnx"
       - ".github/workflows/pure-msbuild-embedding-ci.yml"
   pull_request:
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
       - "fspure.slnx"
       - ".github/workflows/pure-msbuild-embedding-ci.yml"
   workflow_dispatch:
@@ -109,7 +109,7 @@ jobs:
 
       - name: Test MSBuild embedding + package layout
         run: >
-          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
           --filter "FullyQualifiedName~MsBuildEmbeddingTests"

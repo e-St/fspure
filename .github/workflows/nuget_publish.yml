@@ -184,7 +184,7 @@ jobs:
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Attached nupkgs to GitHub Release: $TAG"
-          echo "URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/docs/releases/tag/${TAG}"
+          echo "URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/src/docs/releases/tag/${TAG}"
 
       - name: NuGet login (OIDC → temp API key)
         id: login

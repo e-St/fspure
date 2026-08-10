@@ -60,13 +60,13 @@ jobs:
           ROOT: ${{ github.workspace }}
         run: |
           set -euo pipefail
-          chmod +x scripts/release/*.sh
-          bash scripts/release/prepare-release-pr.sh
+          chmod +x src/scripts/release/*.sh
+          bash src/scripts/release/prepare-release-pr.sh
 
       - name: Create branch and PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          chmod +x scripts/release/create-release-pr.sh
-          bash scripts/release/create-release-pr.sh
+          chmod +x src/scripts/release/create-release-pr.sh
+          bash src/scripts/release/create-release-pr.sh

@@ -5,7 +5,7 @@
 #   Contents: Read and write
 #   Pull requests: Read and write
 #
-# Docs: docs/SYNC-FSTARTER.md
+# Docs: src/docs/SYNC-FSTARTER.md
 name: PR fspure updates to fstarter
 
 on:
@@ -14,10 +14,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/integrations/fstarter/**"
-      - "scripts/prepare-fstarter-update.sh"
+      - "src/scripts/integrations/fstarter/**"
+      - "src/scripts/prepare-fstarter-update.sh"
       - ".github/workflows/pr-fstarter.yml"
-      - "docs/SYNC-FSTARTER.md"
+      - "src/docs/SYNC-FSTARTER.md"
   workflow_dispatch:
     inputs:
       analyzer_version:
@@ -55,7 +55,7 @@ jobs:
           if [[ -z "${FSPURE_FSTARTER_TOKEN:-}" ]]; then
             echo "::error::Secret FSPURE_FSTARTER_TOKEN is not set on e-St/fspure."
             echo "Create a fine-grained PAT with Contents + Pull requests write on e-St/fstarter."
-            echo "See docs/SYNC-FSTARTER.md"
+            echo "See src/docs/SYNC-FSTARTER.md"
             exit 1
           fi
 
@@ -63,7 +63,7 @@ jobs:
         id: ver
         run: |
           set -euo pipefail
-          chmod +x scripts/prepare-fstarter-update.sh scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
+          chmod +x src/scripts/prepare-fstarter-update.sh src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
 
           # Priority: workflow input → release tag → versions.env → nuget.org latest stable
           INPUT="${{ github.event.inputs.analyzer_version }}"
@@ -81,7 +81,7 @@ jobs:
             echo "Using explicit/release version: $VER"
           else
             # shellcheck disable=SC1091
-            source scripts/integrations/fstarter/versions.env
+            source src/scripts/integrations/fstarter/versions.env
             VER="${FSPURE_ANALYZER_VERSION:-}"
             if [[ -z "$VER" || "$VER" == "latest" ]]; then
               VER="$(
@@ -93,7 +93,7 @@ jobs:
           fi
 
           # Keep monorepo versions.env in sync for the next local edit (committed only if changed via separate PR path — write for apply script)
-          echo "FSPURE_ANALYZER_VERSION=${VER}" > scripts/integrations/fstarter/versions.env
+          echo "FSPURE_ANALYZER_VERSION=${VER}" > src/scripts/integrations/fstarter/versions.env
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
       - name: Clone fstarter
@@ -110,7 +110,7 @@ jobs:
           FSPURE_ANALYZER_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           set -euo pipefail
-          bash scripts/prepare-fstarter-update.sh \
+          bash src/scripts/prepare-fstarter-update.sh \
             "$RUNNER_TEMP/fstarter" \
             "${{ steps.ver.outputs.version }}"
 
@@ -141,7 +141,7 @@ jobs:
           MSG="chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})
 
           Source: e-St/fspure@${SHORT_SHA}
-          Path: scripts/integrations/fstarter
+          Path: src/scripts/integrations/fstarter
           Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
 
           Updates:
@@ -170,7 +170,7 @@ jobs:
           | | |
           |--|--|
           | **FSharp.PureAnalyzer** | \`${ANALYZER_VERSION}\` (nuget.org) |
-          | **Source path** | \`scripts/integrations/fstarter/\` |
+          | **Source path** | \`src/scripts/integrations/fstarter/\` |
           | **Workflow** | [run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |
 
           ### Files

@@ -1,8 +1,7 @@
-# Generate stable Markdown into the repo tree (for review / emergency use).
-#
-# Does NOT publish fspure.net. The custom domain is updated only by
-# Official release (see official-release.yml → "Publish fspure.net").
-name: Docs stable (Markdown only)
+# Generate stable Markdown + site under .generated/ (gitignored).
+# Does NOT commit into the repo tree and does NOT publish fspure.net.
+# fspure.net is updated only by Official release.
+name: Docs stable (generate only)
 
 on:
   workflow_call:
@@ -19,48 +18,38 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: docs-stable-markdown
+  group: docs-stable-generate
   cancel-in-progress: false
 
 jobs:
   generate-markdown:
-    name: Generate stable Markdown (no fspure.net publish)
+    name: Generate stable docs into .generated/
     runs-on: ubuntu-latest
     if: github.repository == 'e-St/fspure'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
-      - name: Generate (write repo files only)
+      - name: Generate (Markdown + site under .generated/)
         run: |
           set -euo pipefail
           VER="${{ inputs.version }}"
-          chmod +x scripts/docs-generate.sh
-          # Generate site artifacts locally but we do NOT push them to Pages here.
-          bash scripts/docs-generate.sh stable "$VER"
+          chmod +x src/scripts/docs-generate.sh
+          bash src/scripts/docs-generate.sh stable "$VER"
+          test -f .generated/docs/README.md
+          test -d .generated/site
 
-      - name: Commit Markdown to current branch
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md docs/*.md docs/assets || true
-          if git diff --staged --quiet; then
-            echo "No Markdown changes to commit."
-            exit 0
-          fi
-          git commit -m "docs: regenerate Markdown for ${{ inputs.version }} (Scriban)
-
-          Markdown only — fspure.net is updated solely by Official release."
-          git push
+      - name: Upload generated site
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-stable-${{ inputs.version }}
+          path: .generated/site
+          if-no-files-found: error

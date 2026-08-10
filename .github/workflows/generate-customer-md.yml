@@ -8,16 +8,16 @@ on:
     branches: [main, master]
     paths:
       - "src/DocsGenerator/**"
-      - "docs/templates/**"
-      - ".devcontainer/fragments/**"
-      - "scripts/docs-generate.sh"
+      - "src/docs/templates/**"
+      - "src/devcontainer/fragments/**"
+      - "src/scripts/docs-generate.sh"
       - ".github/workflows/generate-customer-md.yml"
   pull_request:
     paths:
       - "src/DocsGenerator/**"
-      - "docs/templates/**"
-      - ".devcontainer/fragments/**"
-      - "scripts/docs-generate.sh"
+      - "src/docs/templates/**"
+      - "src/devcontainer/fragments/**"
+      - "src/scripts/docs-generate.sh"
       - ".github/workflows/generate-customer-md.yml"
   workflow_dispatch:
 
@@ -33,11 +33,11 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
-      - name: Generate preview into _site (ephemeral)
+      - name: Generate preview into .generated/site (ephemeral)
         run: |
           set -euo pipefail
-          chmod +x scripts/docs-generate.sh
-          bash scripts/docs-generate.sh preview "ci-check"
-          test -f _site/preview/ci-check/README.md
-          test -f _site/preview/ci-check/customer.md
-          echo "OK: docs generator rendered preview artifacts"
+          chmod +x src/scripts/docs-generate.sh
+          bash src/scripts/docs-generate.sh preview "ci-check"
+          test -f .generated/site/preview/ci-check/README.md
+          test -f .generated/site/preview/ci-check/customer.md
+          echo "OK: docs generator rendered preview artifacts under .generated/"

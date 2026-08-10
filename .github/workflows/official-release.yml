@@ -1,4 +1,4 @@
-# Runs when a Release PR (edits under docs/releases/) is merged to main.
+# Runs when a Release PR (edits under src/docs/releases/) is merged to main.
 # Publishes selected components, applies pins, triggers satellite syncs.
 name: Official release
 
@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - "docs/releases/**"
+      - "src/docs/releases/**"
   workflow_dispatch:
     inputs:
       confirm:
@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish from docs/releases/manifest.json pending
+    name: Publish from src/docs/releases/manifest.json pending
     runs-on: ubuntu-latest
     if: |
       github.repository == 'e-St/fspure' && (
@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json, sys
-          m = json.load(open("docs/releases/manifest.json"))
+          m = json.load(open("src/docs/releases/manifest.json"))
           if not m.get("pending"):
               print("No pending release in manifest — nothing to publish.")
               sys.exit(0)
@@ -54,7 +54,7 @@ jobs:
           for n, c in m["pending"]["components"].items():
               print(n, c)
           PY
-          if ! python3 -c "import json; m=json.load(open('docs/releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
+          if ! python3 -c "import json; m=json.load(open('src/docs/releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -108,8 +108,8 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-          chmod +x scripts/release/*.sh
-          bash scripts/release/publish-official.sh
+          chmod +x src/scripts/release/*.sh
+          bash src/scripts/release/publish-official.sh
 
       - name: Commit pin updates to main
         if: steps.guard.outputs.skip != 'true'
@@ -140,16 +140,14 @@ jobs:
           gh workflow run "Sync fspure-ready-lib" --ref main || true
           gh workflow run "PR fspure updates to fstarter" --ref main || true
 
-      - name: Regenerate stable docs (Scriban → main Markdown)
+      - name: Generate stable docs (Scriban → .generated/)
         if: steps.guard.outputs.skip != 'true'
         id: docs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           VER="$(python3 - <<'PY'
 import json
-m = json.load(open("docs/releases/manifest.json"))
+m = json.load(open("src/docs/releases/manifest.json"))
 p = m.get("pending") or {}
 comps = (p.get("components") or {})
 a = comps.get("FSharp.PureAnalyzer") or {}
@@ -157,19 +155,11 @@ print(a.get("to") or m["lastOfficial"]["FSharp.PureAnalyzer"])
 PY
 )"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
-          echo "Docs stable version=$VER"
-          chmod +x scripts/docs-generate.sh
-          bash scripts/docs-generate.sh stable "$VER"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md docs/*.md || true
-          if ! git diff --staged --quiet; then
-            git commit -m "docs: regenerate Markdown for ${VER} (Scriban)"
-            git pull --rebase origin main || true
-            git push origin "HEAD:main" || git push
-          else
-            echo "No Markdown changes"
-          fi
+          echo "Docs stable version=$VER → .generated/ (not committed)"
+          chmod +x src/scripts/docs-generate.sh
+          bash src/scripts/docs-generate.sh stable "$VER"
+          test -d .generated/site
+          test -f .generated/docs/README.md
 
       # ONLY this step updates fspure.net (custom domain on gh-pages site root).
       # Previews live under /preview/ and are meant to be opened via e-st.github.io.
@@ -178,7 +168,7 @@ PY
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+          publish_dir: ./.generated/site
           # Keep /preview/* from Docs preview workflow; overwrite stable root files.
           keep_files: true
           cname: fspure.net

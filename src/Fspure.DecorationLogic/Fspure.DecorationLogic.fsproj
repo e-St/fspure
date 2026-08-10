@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Pure decoration rules (F#). Tested with xUnit on .NET.
-  Fable compiles the same Logic.fs into editor/vscode-extension/src/logic.js.
+  Fable compiles the same Logic.fs into src/editor/vscode-extension/src/logic.js.
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>

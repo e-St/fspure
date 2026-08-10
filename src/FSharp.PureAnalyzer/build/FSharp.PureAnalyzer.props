@@ -15,7 +15,7 @@
     <!--
       Consumer overrides (scenario 3): place fspure.overrides.json next to the app .fsproj.
       Optional: set env FSPURE_DISABLE_FOUNDATIONAL=1 or FSPURE_OVERRIDES_PATH.
-      See docs/ARCHITECTURE.md for precedence (overrides > embeds > foundational).
+      See src/docs/templates/ARCHITECTURE.md.scriban (generated on the site) for precedence.
     -->
     <FspureOverridesJson Condition="'$(FspureOverridesJson)' == ''">$(MSBuildProjectDirectory)\fspure.overrides.json</FspureOverridesJson>
 

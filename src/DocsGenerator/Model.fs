@@ -36,7 +36,7 @@ type DocsModel =
 module Model =
 
     let private readManifestVersions (repoRoot: string) : string * string =
-        let path = Path.Combine(repoRoot, "docs", "releases", "manifest.json")
+        let path = Path.Combine(repoRoot, "src", "docs", "releases", "manifest.json")
 
         if not (File.Exists path) then
             "0.4.0", "0.1.0"
@@ -53,7 +53,7 @@ module Model =
 
     let private extractSettings (repoRoot: string) : string * string =
         let path =
-            Path.Combine(repoRoot, ".devcontainer", "fragments", "vscode-common.json")
+            Path.Combine(repoRoot, "src", "devcontainer", "fragments", "vscode-common.json")
 
         if not (File.Exists path) then
             "{}", "{}"

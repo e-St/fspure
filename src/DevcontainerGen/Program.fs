@@ -1,4 +1,5 @@
-/// Merge .devcontainer/fragments into generated devcontainer.json files (F#; replaces generate.py).
+/// Merge src/devcontainer/fragments into generated configs under .generated/devcontainer/.
+/// Optionally materializes platform copies (root .devcontainer, nested CI configs).
 module Fspure.DevcontainerGen.Program
 
 open System
@@ -8,7 +9,7 @@ open System.Text.Json.Nodes
 
 let private banner =
     "// GENERATED FILE — do not edit by hand.\n"
-    + "// Source: .devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen\n"
+    + "// Source: src/devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen\n"
 
 let rec private deepMerge (baseNode: JsonNode) (overlay: JsonNode) : JsonNode =
     match baseNode, overlay with
@@ -72,7 +73,6 @@ let private buildFlavor (fragmentsDir: string) (fragmentNames: JsonArray) : Json
 
     match doc with
     | :? JsonObject as o ->
-        // Drop top-level nulls
         let keys =
             o
             |> Seq.filter (fun p -> isNull p.Value)
@@ -85,8 +85,14 @@ let private buildFlavor (fragmentsDir: string) (fragmentNames: JsonArray) : Json
         o
     | _ -> failwith "merged document must be an object"
 
-let private generateAll (devcontainerDir: string) : unit =
-    let fragmentsDir = Path.Combine(devcontainerDir, "fragments")
+let private writeText (path: string) (text: string) =
+    Directory.CreateDirectory(Path.GetDirectoryName path) |> ignore
+    File.WriteAllText(path, text)
+
+let private resolveOut (repoRoot: string) (rel: string) =
+    Path.GetFullPath(Path.Combine(repoRoot, rel.Replace('/', Path.DirectorySeparatorChar)))
+
+let private generateAll (repoRoot: string) (fragmentsDir: string) : unit =
     let flavoursPath = Path.Combine(fragmentsDir, "flavours.json")
     let table = loadFlavourTable flavoursPath
 
@@ -96,15 +102,23 @@ let private generateAll (devcontainerDir: string) : unit =
         let fragments = cfg["fragments"] :?> JsonArray
         let outputRel = cfg["output"].GetValue<string>()
         let doc = buildFlavor fragmentsDir fragments
-        let outPath = Path.GetFullPath(Path.Combine(devcontainerDir, outputRel))
-        Directory.CreateDirectory(Path.GetDirectoryName outPath) |> ignore
-        File.WriteAllText(outPath, render doc)
+        let text = render doc
+        let outPath = resolveOut repoRoot outputRel
+        writeText outPath text
         printfn "  wrote %-5s → %s" flavour outputRel
+
+        // Optional platform materialization (Codespaces / nested CI configFile paths).
+        match cfg["platform"] with
+        | null -> ()
+        | node ->
+            let platformRel = node.GetValue<string>()
+            let platformPath = resolveOut repoRoot platformRel
+            writeText platformPath text
+            printfn "           + platform → %s" platformRel
 
     printfn "Done."
 
-let private checkAll (devcontainerDir: string) : int =
-    let fragmentsDir = Path.Combine(devcontainerDir, "fragments")
+let private checkAll (repoRoot: string) (fragmentsDir: string) : int =
     let flavoursPath = Path.Combine(fragmentsDir, "flavours.json")
     let table = loadFlavourTable flavoursPath
     let stale = ResizeArray<string>()
@@ -115,7 +129,7 @@ let private checkAll (devcontainerDir: string) : int =
         let fragments = cfg["fragments"] :?> JsonArray
         let outputRel = cfg["output"].GetValue<string>()
         let expected = buildFlavor fragmentsDir fragments
-        let outPath = Path.GetFullPath(Path.Combine(devcontainerDir, outputRel))
+        let outPath = resolveOut repoRoot outputRel
 
         if not (File.Exists outPath) then
             stale.Add $"{flavour} (missing {outPath})"
@@ -133,6 +147,27 @@ let private checkAll (devcontainerDir: string) : int =
             with _ ->
                 stale.Add $"{flavour} (invalid JSON)"
 
+        // Platform copies must match when present on disk.
+        match cfg["platform"] with
+        | null -> ()
+        | node ->
+            let platformRel = node.GetValue<string>()
+            let platformPath = resolveOut repoRoot platformRel
+
+            if File.Exists platformPath then
+                let platformText = File.ReadAllText platformPath
+
+                try
+                    let actual = JsonNode.Parse(stripBanner platformText)
+
+                    if
+                        actual.ToJsonString() <> (expected :> JsonNode).ToJsonString()
+                        || not (platformText.StartsWith("// GENERATED"))
+                    then
+                        stale.Add $"{flavour} platform ({platformRel})"
+                with _ ->
+                    stale.Add $"{flavour} platform invalid ({platformRel})"
+
     if stale.Count > 0 then
         eprintfn "Generated devcontainer.json files are out of date:"
 
@@ -148,7 +183,6 @@ let private checkAll (devcontainerDir: string) : int =
 [<EntryPoint>]
 let main argv =
     let repoRoot =
-        // Prefer cwd; walk up for fspure.slnx
         let start = Directory.GetCurrentDirectory()
 
         let rec walk d n =
@@ -161,14 +195,17 @@ let main argv =
 
         walk start 0
 
-    let devcontainerDir = Path.Combine(repoRoot, ".devcontainer")
+    let fragmentsDir = Path.Combine(repoRoot, "src", "devcontainer", "fragments")
     let check = argv |> Array.exists (fun a -> a = "--check")
 
     try
-        if check then
-            checkAll devcontainerDir
+        if not (Directory.Exists fragmentsDir) then
+            eprintfn "ERROR: fragments dir missing: %s" fragmentsDir
+            1
+        elif check then
+            checkAll repoRoot fragmentsDir
         else
-            generateAll devcontainerDir
+            generateAll repoRoot fragmentsDir
             0
     with ex ->
         eprintfn "ERROR: %s" ex.Message

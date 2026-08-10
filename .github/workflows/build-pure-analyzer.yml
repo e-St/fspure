@@ -6,7 +6,7 @@ on:
     paths:
       - "src/FSharp.PureAnalyzer/**"
       - "src/FSharp.PureSchema/**"
-      - ".devcontainer/fragments/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/build-pure-analyzer.yml"
       - ".github/workflows/devcontainer-flavours.yml"
@@ -14,7 +14,7 @@ on:
     paths:
       - "src/FSharp.PureAnalyzer/**"
       - "src/FSharp.PureSchema/**"
-      - ".devcontainer/fragments/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/build-pure-analyzer.yml"
       - ".github/workflows/devcontainer-flavours.yml"

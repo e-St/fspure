@@ -35,8 +35,9 @@ jobs:
         with:
           name: devcontainer-flavours
           path: |
+            .generated/devcontainer/**/devcontainer.json
             .devcontainer/devcontainer.json
             src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
-            tests/e2e/phase2/.devcontainer/devcontainer.json
+            src/tests/e2e/phase2/.devcontainer/devcontainer.json
           if-no-files-found: error
           retention-days: 1

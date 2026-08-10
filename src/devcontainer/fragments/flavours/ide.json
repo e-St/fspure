@@ -1,0 +1,15 @@
+{
+  "name": "fspure IDE",
+  "image": "ghcr.io/e-st/fstarter:latest",
+  "postCreateCommand": "bash src/devcontainer/setup-fspure-ide.sh",
+  "postAttachCommand": "bash src/devcontainer/setup-fspure-ide.sh",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "dotnet.defaultSolution": "fspure.slnx",
+        "FSharp.workspacePath": "fspure.slnx"
+      }
+    }
+  }
+}

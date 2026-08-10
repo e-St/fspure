@@ -1,21 +1,24 @@
 name: Generate devcontainer.json
 
-# When shared fragments or the generator change, regenerate the three
-# committed devcontainer.json outputs and push if they differ.
+# When shared fragments or the generator change, regenerate configs under
+# .generated/devcontainer/ and materialize the root Codespaces entry.
 #
-# Source of truth: .devcontainer/fragments/
+# Source of truth: src/devcontainer/fragments/
 # Generator:       dotnet run --project src/DevcontainerGen --
+#
+# Only the root .devcontainer/devcontainer.json (platform entry) is committed.
+# Nested / CI flavours live under .generated/ (gitignored) and are produced in CI.
 
 on:
   push:
     branches: [main, master]
     paths:
-      - ".devcontainer/fragments/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/generate-devcontainers.yml"
   pull_request:
     paths:
-      - ".devcontainer/fragments/**"
+      - "src/devcontainer/fragments/**"
       - "src/DevcontainerGen/**"
       - ".github/workflows/generate-devcontainers.yml"
   workflow_dispatch:
@@ -31,9 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          # PR: update the head branch. Push: current branch.
           ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-          # Need history/token that can push back to the same repo.
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate devcontainer.json files
@@ -42,8 +43,7 @@ jobs:
       - name: Verify outputs match generator
         run: dotnet run --project src/DevcontainerGen -- --check
 
-      - name: Commit and push if changed
-        # Fork PRs cannot push with GITHUB_TOKEN; fail with a clear message instead.
+      - name: Commit root Codespaces entry if changed
         env:
           EVENT_NAME: ${{ github.event_name }}
           PR_IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository && 'true' || 'false' }}
@@ -53,29 +53,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add \
-            .devcontainer/devcontainer.json \
-            src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json \
-            tests/e2e/phase2/.devcontainer/devcontainer.json
+          # Only the platform Codespaces entry is committed.
+          git add .devcontainer/devcontainer.json
 
           if git diff --staged --quiet; then
-            echo "Generated devcontainer.json files already up to date."
+            echo "Root .devcontainer/devcontainer.json already up to date."
             exit 0
           fi
 
           if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
-            echo "::error::Generated devcontainer.json files are stale."
+            echo "::error::Root .devcontainer/devcontainer.json is stale."
             echo "Run locally: dotnet run --project src/DevcontainerGen --"
-            echo "Then commit the three generated outputs."
+            echo "Then commit .devcontainer/devcontainer.json"
             git --no-pager diff --cached --stat
             exit 1
           fi
 
-          git commit -m "chore(devcontainer): regenerate flavour configs from fragments"
+          git commit -m "chore(devcontainer): regenerate root Codespaces config from fragments"
 
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             git push origin "HEAD:${{ github.head_ref }}"
           else
             git push
           fi
-          echo "Pushed regenerated devcontainer.json files."
+          echo "Pushed regenerated root .devcontainer/devcontainer.json."

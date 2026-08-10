@@ -1,5 +1,5 @@
 // GENERATED FILE — do not edit by hand.
-// Source: .devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen
+// Source: src/devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen
 {
   "remoteUser": "vscode",
   "remoteEnv": {
@@ -60,7 +60,7 @@
   },
   "name": "fspure IDE",
   "image": "ghcr.io/e-st/fstarter:latest",
-  "postCreateCommand": "bash .devcontainer/setup-fspure-ide.sh",
-  "postAttachCommand": "bash .devcontainer/setup-fspure-ide.sh",
+  "postCreateCommand": "bash src/devcontainer/setup-fspure-ide.sh",
+  "postAttachCommand": "bash src/devcontainer/setup-fspure-ide.sh",
   "features": {}
 }

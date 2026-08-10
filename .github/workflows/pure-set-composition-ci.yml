@@ -7,20 +7,20 @@ on:
     branches: [main]
     paths:
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "fspure.slnx"
       - ".github/workflows/pure-set-composition-ci.yml"
       - ".github/workflows/build-pure-analyzer.yml"
   pull_request:
     paths:
       - "src/FSharp.PureSchema/**"
-      - "tests/FSharp.PureSchema.Tests/**"
-      - "tests/fixtures/**"
+      - "src/tests/FSharp.PureSchema.Tests/**"
+      - "src/tests/fixtures/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "tests/FSharp.PureAnalyzer.Tests/**"
+      - "src/tests/FSharp.PureAnalyzer.Tests/**"
       - "fspure.slnx"
       - ".github/workflows/pure-set-composition-ci.yml"
       - ".github/workflows/build-pure-analyzer.yml"
@@ -50,11 +50,11 @@ jobs:
       - name: Restore schema + fixture assemblies
         run: >
           dotnet restore
-          tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          src/tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
 
       - name: Test PureResourceReader (synthetic net10.0 assemblies)
         run: >
-          dotnet test tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          dotnet test src/tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --no-restore
           --verbosity normal
@@ -99,7 +99,7 @@ jobs:
 
       - name: Test PureSet compose + cache
         run: >
-          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
 
@@ -138,13 +138,13 @@ jobs:
 
       - name: Full schema suite (schema + merge + resource reader)
         run: >
-          dotnet test tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
+          dotnet test src/tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
 
       - name: Full composition suite
         run: >
-          dotnet test tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
+          dotnet test src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj
           -c ${{ env.CONFIGURATION }}
           --verbosity normal
 

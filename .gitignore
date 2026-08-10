@@ -2,25 +2,43 @@
 **/obj/
 **/bin/
 .fake
-tests/e2e/.artifacts/
-tests/e2e/customer-fixture/analyzers/
+
+# Generated outputs (docs site, markdown, devcontainer flavours, etc.)
+.generated/*
+!.generated/.gitignore
+
+# Legacy site output path (prefer .generated/site)
+_site/
+
+# Nested platform materializations of DevcontainerGen (regenerate in CI / locally).
+# Root .devcontainer/devcontainer.json is the Codespaces entry and may be committed.
+src/FSharp.PureAnalyzer/.devcontainer/devcontainer.json
+src/tests/e2e/phase2/.devcontainer/devcontainer.json
+
 # Dev container / local Ionide drop of FSharp.PureAnalyzer.dll
 analyzers/
-tests/e2e/phase2/playwright/node_modules/
-editor/vscode-extension/node_modules/
+
+# E2E / editor local artifacts
+src/tests/e2e/.artifacts/
+src/tests/e2e/customer-fixture/analyzers/
+src/tests/e2e/phase2/playwright/node_modules/
+src/editor/vscode-extension/node_modules/
 *.vsix
+
 # Local `dotnet pack` output
 *.nupkg
 **/nupkgs/
+
 # Local tool feed / CI smoke outputs
 artifacts/
+
 # Staged into the package at pack time (not committed)
 src/FSharp.PureAnalyzer/build/*.dll
-tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/bin/
-tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/obj/
-tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
-# Python bytecode from .devcontainer/generate*.py
+src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/bin/
+src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/**/obj/
+src/tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
+
+# Bytecode leftovers
 **/__pycache__/
 *.py[cod]
-_site/
 result/

@@ -71,8 +71,9 @@ module Render =
 
     let writeOutputs
         (repoRoot: string)
+        (markdownOut: string)
         (siteOut: string option)
-        (writeRepoFiles: bool)
+        (writeMarkdown: bool)
         (outputs: OutputFile list)
         : unit
         =
@@ -95,16 +96,17 @@ module Render =
                 | Some siteRoot -> write siteRoot (name.Substring("site/".Length)) o.Content
                 | None -> ()
             else
-                if writeRepoFiles then
+                if writeMarkdown then
+                    // Templates may be "README.md", "docs/foo.md", or bare "foo.md".
                     let destRel =
                         if name.Equals("README.md", StringComparison.OrdinalIgnoreCase) then
                             "README.md"
                         elif name.StartsWith("docs/", StringComparison.Ordinal) then
-                            name
+                            name.Substring("docs/".Length)
                         else
-                            Path.Combine("docs", name).Replace('\\', '/')
+                            name
 
-                    write repoRoot destRel o.Content
+                    write markdownOut destRel o.Content
 
                 // Mirror Markdown into the static site (preview or stable).
                 match siteOut with
@@ -114,15 +116,17 @@ module Render =
         match siteOut with
         | None -> ()
         | Some siteRoot ->
+            let docsSrc = Path.Combine(repoRoot, "src", "docs")
+
             let staticPairs =
                 [
-                    "docs/assets/fspure.png", "fspure.png"
-                    "docs/assets/fspure.png", "assets/fspure.png"
-                    "docs/assets/image.png", "assets/image.png"
-                    "docs/site.css", "site.css"
-                    "docs/legal.html", "legal.html"
-                    "docs/privacy.html", "privacy.html"
-                    "docs/.nojekyll", ".nojekyll"
+                    Path.Combine(docsSrc, "assets", "fspure.png"), "fspure.png"
+                    Path.Combine(docsSrc, "assets", "fspure.png"), Path.Combine("assets", "fspure.png")
+                    Path.Combine(docsSrc, "assets", "image.png"), Path.Combine("assets", "image.png")
+                    Path.Combine(docsSrc, "site.css"), "site.css"
+                    Path.Combine(docsSrc, "legal.html"), "legal.html"
+                    Path.Combine(docsSrc, "privacy.html"), "privacy.html"
+                    Path.Combine(docsSrc, ".nojekyll"), ".nojekyll"
                 ]
 
             // Only ship CNAME at stable site root (not under /preview/…)
@@ -130,11 +134,9 @@ module Render =
                 if siteRoot.Replace('\\', '/').Contains("/preview/") then
                     staticPairs
                 else
-                    ("docs/CNAME", "CNAME") :: staticPairs
+                    (Path.Combine(docsSrc, "CNAME"), "CNAME") :: staticPairs
 
-            for srcRel, destRel in withCname do
-                let src = Path.Combine(repoRoot, srcRel.Replace('/', Path.DirectorySeparatorChar))
-
+            for src, destRel in withCname do
                 if File.Exists src then
                     let dest =
                         Path.Combine(siteRoot, destRel.Replace('/', Path.DirectorySeparatorChar))
@@ -144,3 +146,4 @@ module Render =
                     | _ -> ()
 
                     File.Copy(src, dest, true)
+                    printfn "  copied %s → %s" (Path.GetRelativePath(repoRoot, src).Replace('\\', '/')) destRel

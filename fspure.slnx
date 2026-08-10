@@ -1,22 +1,22 @@
 <Solution>
   <Project Path="src/FSharp.PureSchema/FSharp.PureSchema.fsproj" />
-  <Project Path="tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" />
-  <Project Path="tests/fixtures/ZeroPureResources/ZeroPureResources.fsproj" />
-  <Project Path="tests/fixtures/SinglePureResource/SinglePureResource.fsproj" />
-  <Project Path="tests/fixtures/MultiPureResources/MultiPureResources.fsproj" />
+  <Project Path="src/tests/FSharp.PureSchema.Tests/FSharp.PureSchema.Tests.fsproj" />
+  <Project Path="src/tests/fixtures/ZeroPureResources/ZeroPureResources.fsproj" />
+  <Project Path="src/tests/fixtures/SinglePureResource/SinglePureResource.fsproj" />
+  <Project Path="src/tests/fixtures/MultiPureResources/MultiPureResources.fsproj" />
   <Project Path="src/fspure-collector/fspure-collector.fsproj" />
-  <Project Path="tests/fspure-collector.Tests/fspure-collector.Tests.fsproj" />
+  <Project Path="src/tests/fspure-collector.Tests/fspure-collector.Tests.fsproj" />
   <Project Path="src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/integration/ConsumerProjectRef/ConsumerProjectRef.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/integration/ConsumerPackageRef/ConsumerPackageRef.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/integration/ConsumerProjectRef/ConsumerProjectRef.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/integration/ConsumerPackageRef/ConsumerPackageRef.fsproj" />
   <Project Path="src/Fspure.Embed/Fspure.Embed.fsproj" />
   <Project Path="src/DevcontainerGen/DevcontainerGen.fsproj" />
   <Project Path="src/DocsGenerator/DocsGenerator.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedLib/EmbedLib.fsproj" />
-  <Project Path="tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedConsumer/EmbedConsumer.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedLib/EmbedLib.fsproj" />
+  <Project Path="src/tests/FSharp.PureAnalyzer.Tests/msbuild-fixtures/EmbedConsumer/EmbedConsumer.fsproj" />
   <Project Path="src/Fspure.DecorationLogic/Fspure.DecorationLogic.fsproj" />
   <Project Path="src/Fspure.DecorationLogic.Tests/Fspure.DecorationLogic.Tests.fsproj" />
-  <Project Path="tests/e2e/phase2/ScreenshotCapture/ScreenshotCapture.fsproj" />
+  <Project Path="src/tests/e2e/phase2/ScreenshotCapture/ScreenshotCapture.fsproj" />
 </Solution>
