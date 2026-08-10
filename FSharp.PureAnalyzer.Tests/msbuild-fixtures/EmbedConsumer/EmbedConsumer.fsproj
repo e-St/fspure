@@ -14,6 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EmbedLib\EmbedLib.fsproj" />
-    <PackageReference Include="FSharp.Core" Version="10.0.101" />
+    <PackageReference Include="FSharp.Core" Version="10.1.302" />
   </ItemGroup>
 </Project>

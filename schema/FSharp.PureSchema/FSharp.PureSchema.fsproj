@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="10.0.101" />
+    <PackageReference Include="FSharp.Core" Version="10.1.302" />
   </ItemGroup>
 
   <ItemGroup>
