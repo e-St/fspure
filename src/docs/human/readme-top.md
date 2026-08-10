@@ -1,6 +1,22 @@
+<p align="center">
+  <img src="src/docs/assets/fspure.png" alt="fspure logo" width="520" />
+</p>
+
+> Typically, interactions with the outside world occur at the boundary of your application.  
+> — Isaac Abraham
+
 # fspure
 
-**See which F# functions are pure. Push the impure stuff to the edge.**
+This project explores how an **F# analyzer** and **VS Code extension** can help you push impurity to the boundary of your application.
+
+It does that by defining a pure subset and marking everything else as impure.
+
+![pure / impure decorations in the editor](src/docs/assets/image.png)
+
+| Component | Role |
+|-----------|------|
+| **FSharp.PureAnalyzer** | Classifies definitions (`PURE002` impure / `PURE003` pure) for Ionide & `fsharp-analyzers` |
+| **fsharp-pure-decorations** | VS Code extension: end-of-line **pure** / **impure** badges after Ionide LineLens |
 
 | | |
 |---|---|
@@ -13,28 +29,26 @@
 | Path | Role |
 |------|------|
 | `src/` | Hand-authored source: products, tests, samples, docs, **F# tools** |
-| `src/Fspure.Tasks/` | **F# monorepo task runner** (replaces bash for docs/security/gates) |
+| `src/Fspure.Tasks/` | **F# monorepo task runner** (docs, security, gates, e2e phase1/5) |
+| `src/docs/human/` | Hand-authored prose for generated docs (this file leads the README) |
 | `.generated/` | Generated outputs (gitignored) |
 | `.github/` | CI |
 | `flake.nix` | Optional .NET SDK shell only |
 
-## Quick start (F#)
+## Quick start (maintainers)
 
 ```text
 dotnet run --project src/Fspure.Tasks -- help
 dotnet run --project src/Fspure.Tasks -- docs preview
 dotnet run --project src/Fspure.Tasks -- security
 dotnet run --project src/Fspure.Tasks -- ready-lib-gate
-dotnet run --project src/Fspure.Tasks -- phase1
-dotnet run --project src/Fspure.Tasks -- phase5
 dotnet run --project src/DevcontainerGen
 ```
 
-Install and usage for end users: **[fspure.net](https://fspure.net)**.
+End-user install (analyzer + extension + settings) is generated **below** this human section, and on **[fspure.net](https://fspure.net)**.
 
 Maintainer docs:
 
-- [src/docs/LANGUAGES.md](src/docs/LANGUAGES.md) — **F# first**, no new shell logic  
-- [src/docs/DOCS.md](src/docs/DOCS.md) — docs publish policy  
+- [src/docs/LANGUAGES.md](src/docs/LANGUAGES.md) — F# first  
+- [src/docs/DOCS.md](src/docs/DOCS.md) — docs / human anchors  
 - [src/docs/RELEASING.md](src/docs/RELEASING.md) — release flow  
-- [src/docs/NIX.md](src/docs/NIX.md) — optional flake shell  
