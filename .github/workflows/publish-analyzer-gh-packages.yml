@@ -7,7 +7,7 @@ on:
     branches: [main]
     paths:
       - "src/FSharp.PureAnalyzer/**"
-      - "src/Fspure.BuildTasks/**"
+      - "src/Fspure.Embed/**"
       - "src/FSharp.PureSchema/**"
       - "src/fspure-collector/**"
       - ".github/workflows/publish-analyzer-gh-packages.yml"

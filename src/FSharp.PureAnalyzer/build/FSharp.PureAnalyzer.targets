@@ -1,23 +1,19 @@
 <Project>
   <!--
     Fspure Phase 3: after CoreBuild, run fspure-collector on $(TargetPath),
-    optionally merge pure-extra.json, then embed the result into the DLL.
+    optionally merge pure-extra.json, then embed via F# tool (dotnet exec).
 
     Package layout:
       build/FSharp.PureAnalyzer.props|.targets
-      build/Fspure.BuildTasks.dll (+ Mono.Cecil.dll)
-      tools/fspure-collector/fspure-collector.dll (+ deps)
+      tools/fspure-collector/…
+      tools/fspure-embed/…          (F#; replaces former C# MSBuild task DLL)
   -->
 
   <PropertyGroup>
     <_FspureBuildDir>$(MSBuildThisFileDirectory)</_FspureBuildDir>
-    <_FspureTasksAssembly Condition="'$(_FspureTasksAssembly)' == ''">$(_FspureBuildDir)Fspure.BuildTasks.dll</_FspureTasksAssembly>
     <_FspureCollectorDll Condition="'$(_FspureCollectorDll)' == ''">$(_FspureBuildDir)..\tools\fspure-collector\fspure-collector.dll</_FspureCollectorDll>
+    <_FspureEmbedDll Condition="'$(_FspureEmbedDll)' == ''">$(_FspureBuildDir)..\tools\fspure-embed\fspure-embed.dll</_FspureEmbedDll>
   </PropertyGroup>
-
-  <UsingTask TaskName="EmbedPureJson"
-             AssemblyFile="$(_FspureTasksAssembly)"
-             Condition="Exists('$(_FspureTasksAssembly)')" />
 
   <Target Name="FspureGenerateAndEmbedPureJson"
           AfterTargets="CoreBuild"
@@ -27,13 +23,12 @@
                      and Exists('$(TargetPath)')">
 
     <PropertyGroup>
-      <!-- Prefer obj intermediate path so generated pure.json is not left next to the project. -->
       <FspureGeneratedPureJson Condition="'$(FspureGeneratedPureJson)' == ''">$(MSBuildProjectDirectory)\$(IntermediateOutputPath)$(AssemblyName).pure.json</FspureGeneratedPureJson>
-      <!-- Resource name must use AssemblyName evaluated at build time (not props-import time). -->
       <FspurePureJsonResourceName Condition="'$(FspurePureJsonResourceName)' == ''">$(AssemblyName).pure.json</FspurePureJsonResourceName>
       <_FspurePureJsonOut>$([System.IO.Path]::GetFullPath('$(FspureGeneratedPureJson)'))</_FspurePureJsonOut>
       <_FspureTargetPath>$([System.IO.Path]::GetFullPath('$(TargetPath)'))</_FspureTargetPath>
       <_FspureCollectorDllFull>$([System.IO.Path]::GetFullPath('$(_FspureCollectorDll)'))</_FspureCollectorDllFull>
+      <_FspureEmbedDllFull>$([System.IO.Path]::GetFullPath('$(_FspureEmbedDll)'))</_FspureEmbedDllFull>
       <_FspurePackageVersion Condition="'$(Version)' != ''">$(Version)</_FspurePackageVersion>
       <_FspurePackageVersion Condition="'$(_FspurePackageVersion)' == ''">0.0.0</_FspurePackageVersion>
       <_FspureMergeArgs></_FspureMergeArgs>
@@ -51,16 +46,11 @@
     </PropertyGroup>
 
     <Error Condition="'$(_FspureSkipEmbed)' == 'true' and '$(FspureEmbedPureJsonTreatAsError)' == 'true' and !Exists('$(_FspureCollectorDllFull)')"
-           Text="Fspure: fspure-collector not found at '$(_FspureCollectorDllFull)'. Reinstall/pack FSharp.PureAnalyzer, or set _FspureCollectorDll." />
+           Text="Fspure: fspure-collector not found at '$(_FspureCollectorDllFull)'." />
 
     <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_FspurePureJsonOut)'))"
              Condition="'$(_FspureSkipEmbed)' != 'true'" />
 
-    <!--
-      Collect pure methods from the just-built assembly.
-      defaults=false: only analyze this library (not FSharp.Core/BCL defaults).
-      public-only=true: ship public surface for consumers.
-    -->
     <PropertyGroup>
       <_FspureCollectorContinueOnError>false</_FspureCollectorContinueOnError>
       <_FspureCollectorContinueOnError Condition="'$(FspureEmbedPureJsonTreatAsError)' != 'true'">true</_FspureCollectorContinueOnError>
@@ -80,14 +70,14 @@
     <Error Condition="'$(_FspureSkipEmbed)' != 'true' and '$(FspureEmbedPureJsonTreatAsError)' == 'true' and !Exists('$(_FspurePureJsonOut)')"
            Text="Fspure: expected pure.json at '$(_FspurePureJsonOut)' after collector run." />
 
-    <Error Condition="'$(_FspureSkipEmbed)' != 'true' and Exists('$(_FspurePureJsonOut)') and !Exists('$(_FspureTasksAssembly)') and '$(FspureEmbedPureJsonTreatAsError)' == 'true'"
-           Text="Fspure: EmbedPureJson task assembly missing at '$(_FspureTasksAssembly)'." />
+    <Error Condition="'$(_FspureSkipEmbed)' != 'true' and Exists('$(_FspurePureJsonOut)') and !Exists('$(_FspureEmbedDllFull)') and '$(FspureEmbedPureJsonTreatAsError)' == 'true'"
+           Text="Fspure: fspure-embed tool missing at '$(_FspureEmbedDllFull)'." />
 
-    <EmbedPureJson
-      Condition="'$(_FspureSkipEmbed)' != 'true' and Exists('$(_FspurePureJsonOut)') and Exists('$(_FspureTasksAssembly)')"
-      AssemblyPath="$(_FspureTargetPath)"
-      PureJsonPath="$(_FspurePureJsonOut)"
-      ResourceName="$(FspurePureJsonResourceName)" />
+    <Exec Condition="'$(_FspureSkipEmbed)' != 'true' and Exists('$(_FspurePureJsonOut)') and Exists('$(_FspureEmbedDllFull)')"
+          Command="dotnet exec &quot;$(_FspureEmbedDllFull)&quot; --assembly &quot;$(_FspureTargetPath)&quot; --pure-json &quot;$(_FspurePureJsonOut)&quot; --resource-name &quot;$(FspurePureJsonResourceName)&quot;"
+          LogStandardErrorAsError="true"
+          ConsoleToMSBuild="true"
+          ContinueOnError="false" />
 
     <Message Importance="normal"
              Condition="'$(_FspureSkipEmbed)' != 'true' and Exists('$(_FspurePureJsonOut)')"

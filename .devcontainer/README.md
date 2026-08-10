@@ -20,14 +20,14 @@ Dev Containers have **no** native `extends` for `devcontainer.json`. This repo k
   flavours/
     ide.json              # IDE-only: image, postCreate/postAttach, fspure.slnx
     build.json            # build-only: name + image (no vscode lifecycle)
-    e2e.json              # e2e-only: Dockerfile build, ports, fixture settings
+    e2e.json              # e2e-only: image + post-create.sh, ports, fixture settings
 ```
 
 **Edit fragments only.** Then regenerate the three committed outputs:
 
 ```bash
-python3 .devcontainer/generate.py          # write
-python3 .devcontainer/generate.py --check  # fail if stale
+dotnet run --project src/DevcontainerGen          # write
+dotnet run --project src/DevcontainerGen --check  # fail if stale
 ```
 
 CI:
@@ -45,7 +45,7 @@ Generated files start with `// GENERATED FILE` — do not hand-edit them.
 | IDE, build | `image`: `ghcr.io/e-st/fstarter:latest` |
 | e2e | `Dockerfile` with `FROM ghcr.io/e-st/fstarter:latest`, then only code-server + Playwright deps + `fsharp-analyzers` |
 
-So tooling (`.NET` / Paket / Node from **fstarter**) is maintained once; e2e only maintains its extra layers in `tests/e2e/phase2/.devcontainer/Dockerfile`.
+So tooling (`.NET` / Paket / Node from **fstarter**) is maintained once; e2e only maintains its extra layers in `tests/e2e/phase2/.devcontainer/post-create.sh`.
 
 ## fspure IDE (default)
 

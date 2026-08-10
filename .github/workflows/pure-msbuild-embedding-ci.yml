@@ -8,7 +8,7 @@ on:
     paths:
       - "src/FSharp.PureAnalyzer/**"
       - "tests/FSharp.PureAnalyzer.Tests/**"
-      - "src/Fspure.BuildTasks/**"
+      - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
       - "tests/FSharp.PureSchema.Tests/**"
@@ -19,7 +19,7 @@ on:
     paths:
       - "src/FSharp.PureAnalyzer/**"
       - "tests/FSharp.PureAnalyzer.Tests/**"
-      - "src/Fspure.BuildTasks/**"
+      - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
       - "tests/FSharp.PureSchema.Tests/**"
@@ -57,16 +57,22 @@ jobs:
             echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
           fi
 
-      - name: Build Fspure.BuildTasks
-        run: dotnet build src/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c ${{ env.CONFIGURATION }} --nologo
+      - name: Build Fspure.Embed
+        run: dotnet build src/Fspure.Embed/Fspure.Embed.fsproj -c ${{ env.CONFIGURATION }} --nologo
 
       - name: Restore and publish fspure-collector
         working-directory: src/fspure-collector
         run: |
           set -euo pipefail
           if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
-          mkdir -p ../artifacts/fspure-collector-publish
-          dotnet publish -c ${{ env.CONFIGURATION }} -f net10.0 -o ../artifacts/fspure-collector-publish --nologo
+          mkdir -p "$GITHUB_WORKSPACE/artifacts/fspure-collector-publish"
+          dotnet publish -c ${{ env.CONFIGURATION }} -f net10.0 -o "$GITHUB_WORKSPACE/artifacts/fspure-collector-publish" --nologo
+
+      - name: Publish fspure-embed
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/artifacts/fspure-embed-publish"
+          dotnet publish src/Fspure.Embed/Fspure.Embed.fsproj -c ${{ env.CONFIGURATION }} -f net10.0 -o "$GITHUB_WORKSPACE/artifacts/fspure-embed-publish" --nologo
 
   msbuild-embedding-tests:
     name: MSBuild embedding unit tests

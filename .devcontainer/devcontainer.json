@@ -1,5 +1,5 @@
 // GENERATED FILE — do not edit by hand.
-// Source: .devcontainer/fragments/  |  Regenerate: python3 .devcontainer/generate.py
+// Source: .devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen
 {
   "remoteUser": "vscode",
   "remoteEnv": {

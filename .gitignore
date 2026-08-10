@@ -23,3 +23,4 @@ tests/FSharp.PureAnalyzer.Tests/integration/**/local-feed/
 **/__pycache__/
 *.py[cod]
 _site/
+result/

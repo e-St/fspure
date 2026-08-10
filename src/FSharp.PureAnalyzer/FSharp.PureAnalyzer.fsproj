@@ -25,9 +25,9 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
-    <!-- Paths used when packing MSBuild + fspure-collector tooling -->
-    <_FspureTasksOut>$(MSBuildThisFileDirectory)..\Fspure.BuildTasks\bin\$(Configuration)\net10.0\</_FspureTasksOut>
+    <!-- Paths used when packing collector + embed tools -->
     <_FspureCollectorPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-collector-publish\</_FspureCollectorPublish>
+    <_FspureEmbedPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-embed-publish\</_FspureEmbedPublish>
   </PropertyGroup>
 
   <ItemGroup>
@@ -74,27 +74,14 @@
   </ItemGroup>
 
   <!--
-    Stage BuildTasks + fspure-collector into the nupkg before GenerateNuspec.
-    Pack items are added here only (once) to avoid NU5118 duplicates.
+    Stage F# tools (collector + embed) into the nupkg before GenerateNuspec.
   -->
   <Target Name="PrepareFspurePackageTools" BeforeTargets="GenerateNuspec;_GetPackageFiles;Pack">
-    <Message Importance="high" Text="Fspure: building BuildTasks + publishing fspure-collector for package layout..." />
+    <Message Importance="high" Text="Fspure: publishing fspure-collector + fspure-embed for package layout..." />
 
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Fspure.BuildTasks\Fspure.BuildTasks.csproj"
-             Targets="Restore;Build"
-             Properties="Configuration=$(Configuration)" />
-
-    <ItemGroup>
-      <_FspureTaskFiles Include="$(_FspureTasksOut)Fspure.BuildTasks.dll" />
-      <_FspureTaskFiles Include="$(_FspureTasksOut)Mono.Cecil.dll" />
-      <_FspureTaskFiles Include="$(_FspureTasksOut)Mono.Cecil.*.dll" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_FspureTaskFiles)"
-          DestinationFolder="$(MSBuildThisFileDirectory)build\"
-          SkipUnchangedFiles="true" />
-
-    <MakeDir Directories="$(_FspureCollectorPublish)" />
+    <MakeDir Directories="$(_FspureCollectorPublish);$(_FspureEmbedPublish)" />
     <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\fspure-collector\fspure-collector.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCollectorPublish)&quot; --nologo -v q" />
+    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\Fspure.Embed\Fspure.Embed.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureEmbedPublish)&quot; --nologo -v q" />
 
     <ItemGroup>
       <_FspureCollectorFiles Include="$(_FspureCollectorPublish)**\*.*" />
@@ -102,26 +89,11 @@
             Pack="true"
             PackagePath="tools\fspure-collector\%(RecursiveDir)%(Filename)%(Extension)"
             Visible="false" />
-
-      <None Include="$(MSBuildThisFileDirectory)build\Fspure.BuildTasks.dll"
+      <_FspureEmbedFiles Include="$(_FspureEmbedPublish)**\*.*" />
+      <None Include="@(_FspureEmbedFiles)"
             Pack="true"
-            PackagePath="build\"
+            PackagePath="tools\fspure-embed\%(RecursiveDir)%(Filename)%(Extension)"
             Visible="false" />
-      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.dll"
-            Pack="true"
-            PackagePath="build\"
-            Visible="false"
-            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.dll')" />
-      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.Pdb.dll"
-            Pack="true"
-            PackagePath="build\"
-            Visible="false"
-            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.Pdb.dll')" />
-      <None Include="$(MSBuildThisFileDirectory)build\Mono.Cecil.Rocks.dll"
-            Pack="true"
-            PackagePath="build\"
-            Visible="false"
-            Condition="Exists('$(MSBuildThisFileDirectory)build\Mono.Cecil.Rocks.dll')" />
     </ItemGroup>
   </Target>
 

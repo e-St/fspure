@@ -9,7 +9,7 @@ on:
       - "tests/FSharp.PureSchema.Tests/**"
       - "tests/fixtures/**"
       - ".devcontainer/fragments/**"
-      - ".devcontainer/generate.py"
+      - "src/DevcontainerGen/**"
       - ".github/workflows/bundle-fspure-collector.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   pull_request:
@@ -19,7 +19,7 @@ on:
       - "tests/FSharp.PureSchema.Tests/**"
       - "tests/fixtures/**"
       - ".devcontainer/fragments/**"
-      - ".devcontainer/generate.py"
+      - "src/DevcontainerGen/**"
       - ".github/workflows/bundle-fspure-collector.yml"
       - ".github/workflows/devcontainer-flavours.yml"
   workflow_dispatch:

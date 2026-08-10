@@ -1,5 +1,5 @@
 // GENERATED FILE — do not edit by hand.
-// Source: .devcontainer/fragments/  |  Regenerate: python3 .devcontainer/generate.py
+// Source: .devcontainer/fragments/  |  Regenerate: dotnet run --project src/DevcontainerGen
 {
   "remoteUser": "vscode",
   "remoteEnv": {
@@ -34,7 +34,7 @@
         "FSharp.lineLens.enabled": "replaceCodeLens",
         "FSharp.lineLens.prefix": "  // ",
         "FSharp.pipelineHints.enabled": true,
-        "FSharp.pipelineHints.prefix": "// ",
+        "FSharp.pipelineHints.prefix": "  // ",
         "FSharp.linter": true,
         "FSharp.enableAnalyzers": true,
         "FSharp.analyzersPath": [
@@ -54,26 +54,19 @@
           "**/obj": true,
           "**/bin": true,
           "**/.paket": true
-        },
-        "dotnet.defaultSolution": "tests/e2e/customer-fixture/customer-fixture.slnx",
-        "FSharp.workspaceModePeekDeepLevel": 1,
-        "FSharp.showExplorerOnStartup": true,
-        "fsharpPureDecorations.impureColor": "#E2A66A",
-        "fsharpPureDecorations.pureColor": "#6A9955"
+        }
       }
     }
   },
-  "name": "fspure e2e (code-server + Playwright)",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
+  "name": "fspure e2e (code-server \u002B Playwright)",
+  "image": "ghcr.io/e-st/fstarter:latest",
+  "postCreateCommand": "bash tests/e2e/phase2/.devcontainer/post-create.sh",
   "forwardPorts": [
     8080
   ],
   "portsAttributes": {
     "8080": {
-      "label": "code-server (VS Code Web)",
+      "label": "code-server",
       "onAutoForward": "notify"
     }
   }

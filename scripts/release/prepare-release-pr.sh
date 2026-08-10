@@ -73,7 +73,7 @@ pending = {
             "from": last["FSharp.PureAnalyzer"],
             "to": env_or("ANALYZER_TO", bump(last["FSharp.PureAnalyzer"])),
             "publish": os.environ.get("PUBLISH_ANALYZER", "true").lower() == "true",
-            "paths": ["src/FSharp.PureAnalyzer/", "src/FSharp.PureSchema/", "src/Fspure.BuildTasks/"],
+            "paths": ["src/FSharp.PureAnalyzer/", "src/FSharp.PureSchema/", "src/Fspure.Embed/"],
             "changelog": "docs/releases/CHANGELOG.FSharp.PureAnalyzer.md",
         },
         "fspure-collector": {

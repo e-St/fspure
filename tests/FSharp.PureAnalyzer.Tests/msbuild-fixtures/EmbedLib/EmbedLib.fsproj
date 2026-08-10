@@ -23,9 +23,9 @@
   <!-- Import Phase 3 props/targets from the repo (same files shipped in the nupkg). -->
   <Import Project="..\..\..\..\src\FSharp.PureAnalyzer\build\FSharp.PureAnalyzer.props" />
   <PropertyGroup>
-    <!-- Point at in-repo build outputs for collector + embed task (4 levels up to monorepo root). -->
-    <_FspureTasksAssembly>$(MSBuildThisFileDirectory)..\..\..\..\src\Fspure.BuildTasks\bin\$(Configuration)\net10.0\Fspure.BuildTasks.dll</_FspureTasksAssembly>
+    <!-- In-repo published tools (4 levels up to monorepo root). -->
     <_FspureCollectorDll>$(MSBuildThisFileDirectory)..\..\..\..\artifacts\fspure-collector-publish\fspure-collector.dll</_FspureCollectorDll>
+    <_FspureEmbedDll>$(MSBuildThisFileDirectory)..\..\..\..\artifacts\fspure-embed-publish\fspure-embed.dll</_FspureEmbedDll>
   </PropertyGroup>
   <Import Project="..\..\..\..\src\FSharp.PureAnalyzer\build\FSharp.PureAnalyzer.targets" />
 </Project>

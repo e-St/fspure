@@ -8,7 +8,7 @@ on:
     paths:
       - "samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "src/Fspure.BuildTasks/**"
+      - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
       - "tests/FSharp.PureSchema.Tests/**"
@@ -20,7 +20,7 @@ on:
     paths:
       - "samples/fspure-ready-lib/**"
       - "src/FSharp.PureAnalyzer/**"
-      - "src/Fspure.BuildTasks/**"
+      - "src/Fspure.Embed/**"
       - "src/fspure-collector/**"
       - "src/FSharp.PureSchema/**"
       - "tests/FSharp.PureSchema.Tests/**"

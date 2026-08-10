@@ -21,28 +21,32 @@ module private Paths =
     let embedConsumerProj () =
         Path.Combine(fixtures (), "EmbedConsumer", "EmbedConsumer.fsproj")
 
-/// Build fspure-collector publish layout + BuildTasks (same as pack prep).
+/// Publish fspure-collector + fspure-embed (same layout as nupkg tools/).
 let private ensureToolsBuilt () =
     let root = repoRoot ()
-    let tasksProj = Path.Combine(root, "src", "Fspure.BuildTasks", "Fspure.BuildTasks.csproj")
-    let code, o, e = runDotnet root (sprintf "build \"%s\" -c Release --nologo -v q" tasksProj) 120_000
-    assertExitZero "build Fspure.BuildTasks" code o e
 
-    let collectorProj = Path.Combine(root, "src", "fspure-collector", "fspure-collector.fsproj")
-    let publishOut = Path.Combine(root, "artifacts", "fspure-collector-publish")
-    Directory.CreateDirectory publishOut |> ignore
+    let publishTool (projRel: string) (outDir: string) (dllName: string) =
+        let proj = Path.Combine(root, projRel)
+        Directory.CreateDirectory outDir |> ignore
 
-    let code2, o2, e2 =
-        runDotnet
-            root
-            (sprintf
-                "publish \"%s\" -c Release -f net10.0 -o \"%s\" --nologo -v q"
-                collectorProj
-                publishOut)
-            180_000
+        let code, o, e =
+            runDotnet
+                root
+                (sprintf "publish \"%s\" -c Release -f net10.0 -o \"%s\" --nologo -v q" proj outDir)
+                180_000
 
-    assertExitZero "publish fspure-collector" code2 o2 e2
-    Assert.True(File.Exists(Path.Combine(publishOut, "fspure-collector.dll")))
+        assertExitZero (sprintf "publish %s" dllName) code o e
+        Assert.True(File.Exists(Path.Combine(outDir, dllName)))
+
+    publishTool
+        (Path.Combine("src", "fspure-collector", "fspure-collector.fsproj"))
+        (Path.Combine(root, "artifacts", "fspure-collector-publish"))
+        "fspure-collector.dll"
+
+    publishTool
+        (Path.Combine("src", "Fspure.Embed", "Fspure.Embed.fsproj"))
+        (Path.Combine(root, "artifacts", "fspure-embed-publish"))
+        "fspure-embed.dll"
 
 [<Fact>]
 let ``MSBuild targets embed AssemblyName.pure.json into library DLL`` () =
@@ -181,8 +185,8 @@ let ``FSharp.PureAnalyzer nupkg ships build targets and fspure-collector tools``
             [
                 Path.Combine(extractDir, "build", "FSharp.PureAnalyzer.props")
                 Path.Combine(extractDir, "build", "FSharp.PureAnalyzer.targets")
-                Path.Combine(extractDir, "build", "Fspure.BuildTasks.dll")
                 Path.Combine(extractDir, "tools", "fspure-collector", "fspure-collector.dll")
+                Path.Combine(extractDir, "tools", "fspure-embed", "fspure-embed.dll")
                 Path.Combine(extractDir, "analyzers", "dotnet", "fs", "FSharp.PureAnalyzer.dll")
                 Path.Combine(extractDir, "analyzers", "dotnet", "fs", "FSharp.PureSchema.dll")
             ]

@@ -27,8 +27,8 @@ jobs:
       - name: Generate flavour configs
         run: |
           set -euo pipefail
-          python3 .devcontainer/generate.py
-          python3 .devcontainer/generate.py --check
+          dotnet run --project src/DevcontainerGen --
+          dotnet run --project src/DevcontainerGen -- --check
 
       - name: Upload generated devcontainer.json files
         uses: actions/upload-artifact@v7

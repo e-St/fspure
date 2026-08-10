@@ -4,19 +4,19 @@ name: Generate devcontainer.json
 # committed devcontainer.json outputs and push if they differ.
 #
 # Source of truth: .devcontainer/fragments/
-# Generator:       python3 .devcontainer/generate.py
+# Generator:       dotnet run --project src/DevcontainerGen --
 
 on:
   push:
     branches: [main, master]
     paths:
       - ".devcontainer/fragments/**"
-      - ".devcontainer/generate.py"
+      - "src/DevcontainerGen/**"
       - ".github/workflows/generate-devcontainers.yml"
   pull_request:
     paths:
       - ".devcontainer/fragments/**"
-      - ".devcontainer/generate.py"
+      - "src/DevcontainerGen/**"
       - ".github/workflows/generate-devcontainers.yml"
   workflow_dispatch:
 
@@ -37,10 +37,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate devcontainer.json files
-        run: python3 .devcontainer/generate.py
+        run: dotnet run --project src/DevcontainerGen --
 
       - name: Verify outputs match generator
-        run: python3 .devcontainer/generate.py --check
+        run: dotnet run --project src/DevcontainerGen -- --check
 
       - name: Commit and push if changed
         # Fork PRs cannot push with GITHUB_TOKEN; fail with a clear message instead.
@@ -65,7 +65,7 @@ jobs:
 
           if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
             echo "::error::Generated devcontainer.json files are stale."
-            echo "Run locally: python3 .devcontainer/generate.py"
+            echo "Run locally: dotnet run --project src/DevcontainerGen --"
             echo "Then commit the three generated outputs."
             git --no-pager diff --cached --stat
             exit 1
