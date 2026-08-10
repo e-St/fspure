@@ -61,7 +61,7 @@ Maintainer docs:
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
   Channel: stable | Ref: v0.4.0 | Version: 0.4.0
-  Generated: 2026-08-10T20:30:21Z
+  Generated: 2026-08-10T20:34:37Z
 -->
 
 
@@ -78,7 +78,7 @@ dotnet add package FSharp.PureAnalyzer --version 0.4.0
 
 Paket:
 
-```
+```paket
 nuget FSharp.PureAnalyzer 0.4.0
 ```
 
@@ -89,8 +89,7 @@ Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named
 Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [Open VSX](https://open-vsx.org/extension/e-st/fsharp-pure-decorations), **and** [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp).
 
 ```bash
-# Open VSX / VSCodium / many code-server setups:
-# Extensions UI → search “F# Pure Analyzer Decorations”
+# Extensions UI → search “F# Pure Analyzer Decorations” (Open VSX / VSCodium / code-server)
 ```
 
 ### 3. Workspace settings
