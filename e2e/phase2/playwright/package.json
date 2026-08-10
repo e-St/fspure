@@ -8,6 +8,6 @@
     "capture": "node screenshot.mjs"
   },
   "dependencies": {
-    "playwright": "1.50.1"
+    "playwright": "1.55.1"
   }
 }

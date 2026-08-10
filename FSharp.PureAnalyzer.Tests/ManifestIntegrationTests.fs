@@ -82,7 +82,7 @@ let ``assembly with zero pure.json resources falls back to foundational only`` (
     let root = repoRoot ()
 
     let fixtureProj =
-        Path.Combine(root, "schema", "fixtures", "ZeroPureResources", "ZeroPureResources.csproj")
+        Path.Combine(root, "schema", "fixtures", "ZeroPureResources", "ZeroPureResources.fsproj")
 
     let code, o, e = runDotnet root (sprintf "build \"%s\" -c Release --nologo -v q" fixtureProj) 120_000
     assertExitZero "build ZeroPureResources" code o e

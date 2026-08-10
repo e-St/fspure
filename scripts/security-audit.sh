@@ -40,11 +40,12 @@ scan_nuget_project() {
   local out
   out="$(dotnet list "$proj" package --vulnerable --include-transitive 2>&1 || true)"
   echo "$out"
-  if echo "$out" | grep -qiE 'has the following vulnerable packages|Vulnerable|Severity'; then
-    # Filter false positives: header-only lines
-    if echo "$out" | grep -qiE 'Critical|High|Moderate|Low|GHSA-|CVE-'; then
-      die_soft "vulnerable package(s) in $proj"
-    fi
+  # Do not match the success phrase "has no vulnerable packages".
+  if echo "$out" | grep -qiE 'has the following vulnerable packages'; then
+    die_soft "vulnerable package(s) in $proj"
+  fi
+  if echo "$out" | grep -qiE 'GHSA-[0-9a-z-]+|CVE-[0-9]{4}-'; then
+    die_soft "advisory id reported for $proj"
   fi
 }
 
@@ -66,6 +67,7 @@ scan_nuget_project "FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj"
 scan_nuget_project "fspure-collector/fspure-collector.fsproj"
 scan_nuget_project "fspure-collector.Tests/fspure-collector.Tests.fsproj"
 scan_nuget_project "msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj"
+# (C# by necessity for MSBuild task hosting — see docs/LANGUAGES.md)
 scan_nuget_project "samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj"
 
 # --- npm audit ---

@@ -8,6 +8,7 @@
 |------|----------|-----|
 | **VS Code extension** (`vscode-extension/`) | JavaScript | VS Code extension host API is JS/TS; no first-class F# extension host |
 | **Playwright e2e** (`e2e/phase2/playwright/`) | JavaScript | Playwright’s primary/node tooling surface |
+| **MSBuild task** (`msbuild/Fspure.BuildTasks/`) | **C#** | Task host uses `Activator.CreateInstance`; F# task types fail with MSB4061 (“Type must be a type provided by the runtime”) under out-of-proc execution |
 | **Devcontainer generators** (`.devcontainer/generate*.py`) | Python | Small JSON-merge utilities used only at generate time; rewriting is optional |
 | **YAML / shell** | YAML, bash | GitHub Actions and thin orchestration wrappers |
 | **JSON / props** | data formats | Not “logic” languages |
@@ -19,7 +20,7 @@
 | `FSharp.PureAnalyzer/` | Analyzer (F#) |
 | `fspure-collector/` | dotnet tool (F#) |
 | `schema/` | PureFile schema + PE reader (F#) |
-| `msbuild/Fspure.BuildTasks/` | MSBuild task **EmbedPureJson** (F# + Mono.Cecil) |
+| `msbuild/Fspure.BuildTasks/` | MSBuild task **EmbedPureJson** (C# + Mono.Cecil — see exceptions) |
 | `e2e/phase1/AssertDefinitionBadges/` | SARIF baseline assert (F#) |
 | `schema/fixtures/*` | PE resource fixture assemblies (F#) |
 | `samples/fspure-ready-lib/` | Sample library (F#) |

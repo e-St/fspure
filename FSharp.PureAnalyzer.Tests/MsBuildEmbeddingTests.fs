@@ -24,7 +24,7 @@ module private Paths =
 /// Build fspure-collector publish layout + BuildTasks (same as pack prep).
 let private ensureToolsBuilt () =
     let root = repoRoot ()
-    let tasksProj = Path.Combine(root, "msbuild", "Fspure.BuildTasks", "Fspure.BuildTasks.fsproj")
+    let tasksProj = Path.Combine(root, "msbuild", "Fspure.BuildTasks", "Fspure.BuildTasks.csproj")
     let code, o, e = runDotnet root (sprintf "build \"%s\" -c Release --nologo -v q" tasksProj) 120_000
     assertExitZero "build Fspure.BuildTasks" code o e
 

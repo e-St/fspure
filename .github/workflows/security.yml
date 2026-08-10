@@ -41,61 +41,31 @@ jobs:
           comment-summary-in-pr: on-failure
 
   codeql:
-    name: CodeQL
+    name: CodeQL (JavaScript)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
       actions: read
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [csharp, javascript]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        if: matrix.language == 'csharp'
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Install paket
-        if: matrix.language == 'csharp'
-        run: |
-          set -euo pipefail
-          if ! command -v paket >/dev/null 2>&1; then
-            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
-            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-          fi
-
+      # CodeQL has no F# extractor. Product code is F# (NuGet audit + review cover deps).
+      # Tiny C# MSBuild task is not worth a csharp job that fails with "no C# source seen".
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
+          languages: javascript
           queries: security-extended
 
-      - name: Build C# / F# for CodeQL
-        if: matrix.language == 'csharp'
-        run: |
-          set -euo pipefail
-          (cd FSharp.PureAnalyzer && paket restore)
-          (cd fspure-collector && paket restore)
-          # Build main products + schema (tests optional for CodeQL DB)
-          dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
-          dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj -c Release --nologo
-          dotnet build fspure-collector/fspure-collector.fsproj -c Release --nologo
-          dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.fsproj -c Release --nologo
-
-      - name: Autobuild (JavaScript)
-        if: matrix.language == 'javascript'
+      - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:javascript"
 
   package-audit:
     name: NuGet + npm vulnerability audit

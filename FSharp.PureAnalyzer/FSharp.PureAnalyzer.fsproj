@@ -80,7 +80,7 @@
   <Target Name="PrepareFspurePackageTools" BeforeTargets="GenerateNuspec;_GetPackageFiles;Pack">
     <Message Importance="high" Text="Fspure: building BuildTasks + publishing fspure-collector for package layout..." />
 
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\msbuild\Fspure.BuildTasks\Fspure.BuildTasks.fsproj"
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\msbuild\Fspure.BuildTasks\Fspure.BuildTasks.csproj"
              Targets="Restore;Build"
              Properties="Configuration=$(Configuration)" />
 
