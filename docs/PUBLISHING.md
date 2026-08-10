@@ -79,6 +79,10 @@ Library embed targets require a package that includes `build/` + `tools/fspure-c
 `publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing.  
 `nuget_publish.yml` **fails** if `NUGET_USER` is missing or the Trusted Publishing policy workflow name does not match.
 
+## Security automation
+
+Dependabot, CodeQL, dependency review, NuGet/npm audits, and gitleaks: [SECURITY.md](SECURITY.md).
+
 ## Versioning
 
 - **Extension:** bump `vscode-extension/package.json` → `version` before merge.

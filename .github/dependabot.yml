@@ -1,0 +1,60 @@
+# Dependency updates for e-St/fspure.
+# Docs: https://docs.github.com/en/code-security/dependabot
+version: 2
+updates:
+  # --- GitHub Actions ---
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - security
+    commit-message:
+      prefix: "ci(deps)"
+
+  # --- VS Code extension (npm) ---
+  - package-ecosystem: npm
+    directory: "/vscode-extension"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - vscode-extension
+    commit-message:
+      prefix: "chore(deps)"
+    # Production-only; avoid churn on unused dev tooling if added later
+    allow:
+      - dependency-type: "all"
+
+  # --- E2E Playwright (npm) ---
+  - package-ecosystem: npm
+    directory: "/e2e/phase2/playwright"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - e2e
+    commit-message:
+      prefix: "chore(deps)"
+
+  # --- NuGet (PackageReference projects: schema, tests, fixtures, samples, BuildTasks) ---
+  # Paket-managed FSharp.PureAnalyzer / fspure-collector are audited in CI
+  # (dotnet list package --vulnerable); Dependabot NuGet does not update paket.dependencies.
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - nuget
+    commit-message:
+      prefix: "chore(deps)"

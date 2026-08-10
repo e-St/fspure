@@ -1,0 +1,150 @@
+# Vulnerability scanning + dependency hygiene for e-St/fspure.
+#
+# - CodeQL (C# / JavaScript)
+# - Dependency review on pull requests (public repos: free GitHub Advanced Security features)
+# - NuGet + npm audits via scripts/security-audit.sh
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly Monday 06:15 UTC
+    - cron: "15 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency review (PR)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp, javascript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install paket
+        if: matrix.language == 'csharp'
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Build C# / F# for CodeQL
+        if: matrix.language == 'csharp'
+        run: |
+          set -euo pipefail
+          (cd FSharp.PureAnalyzer && paket restore)
+          (cd fspure-collector && paket restore)
+          # Build main products + schema (tests optional for CodeQL DB)
+          dotnet build schema/FSharp.PureSchema/FSharp.PureSchema.fsproj -c Release --nologo
+          dotnet build FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj -c Release --nologo
+          dotnet build fspure-collector/fspure-collector.fsproj -c Release --nologo
+          dotnet build msbuild/Fspure.BuildTasks/Fspure.BuildTasks.csproj -c Release --nologo
+
+      - name: Autobuild (JavaScript)
+        if: matrix.language == 'javascript'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  package-audit:
+    name: NuGet + npm vulnerability audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install paket
+        run: |
+          set -euo pipefail
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Run security-audit.sh
+        env:
+          CONFIGURATION: Release
+          NPM_AUDIT_LEVEL: high
+        run: |
+          set -euo pipefail
+          chmod +x scripts/security-audit.sh
+          bash scripts/security-audit.sh
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

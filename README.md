@@ -257,6 +257,7 @@ Disable the built-in foundational list: `"useFoundational": false` or env `FSPUR
 - Library-embed gate: [e2e/ready-lib/README.md](e2e/ready-lib/README.md) · workflow `fspure-ready-lib-gate.yml`
 - fstarter integration pack + PR sync: [integrations/fstarter](integrations/fstarter/) · [docs/SYNC-FSTARTER.md](docs/SYNC-FSTARTER.md)
 - Maintainer publishing (secrets, Open VSX, nuget.org): [docs/PUBLISHING.md](docs/PUBLISHING.md)
+- Security (Dependabot, CodeQL, audits): [docs/SECURITY.md](docs/SECURITY.md)
 
 ```bash
 # Analyzer
