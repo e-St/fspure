@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Compile Include="Snippets.fs" />
+    <Compile Include="Human.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Render.fs" />
     <Compile Include="Program.fs" />

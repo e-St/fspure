@@ -57,19 +57,49 @@ Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (ge
 
 | Path | Role |
 |------|------|
-| `src/docs/templates/*.scriban` | Edit these (source of truth for Markdown **and** site HTML/CSS) |
-| `src/docs/templates/site/` | `index.html`, `legal.html`, `privacy.html`, `site.css` templates only |
+| `src/docs/human/<id>.md` | **Hand-authored** prose — always wins; never generated |
+| `src/docs/templates/*.scriban` | Generated structure; call `{{ human "id" }}` for human blocks |
+| `src/docs/templates/site/` | Site HTML/CSS templates only |
 | `src/docs/**` (hand Markdown, assets, releases) | Edit these — **not** generated site pages |
 | `src/DocsGenerator/` | F# + Scriban generator (**preview/stable** modes) |
 | `src/Fspure.Tasks` | Monorepo CLI: `docs`, `security`, gates |
-| `src/scripts/docs-generate.sh` | Thin shim → Fspure.Tasks |
 | `.generated/docs/` | Generated Markdown (gitignored) |
 | `.generated/site/` | Generated static site (gitignored) |
-| `.github/workflows/docs-preview.yml` | github.io previews |
-| `.github/workflows/official-release.yml` | **only** job that updates fspure.net |
-| `.github/workflows/docs-stable.yml` | Generate artifact only (no domain publish) |
 
-## Snippet markers
+## Human anchors
+
+Human instructions must stay above generated install noise where it matters.
+
+1. Edit `src/docs/human/readme-top.md` (or add `src/docs/human/<id>.md`).
+2. In the Scriban template, put the human block **first**:
+
+```scriban
+{{ human "readme-top" }}
+
+<!-- generated sections below -->
+## 60-second install
+…
+```
+
+3. Output looks like:
+
+```markdown
+<!-- <human id="readme-top"> -->
+# fspure
+…
+<!-- </human> -->
+
+## 60-second install
+…
+```
+
+- `{{ human "id" }}` — required; fails if the file is missing.  
+- `{{ human_opt "id" }}` — optional empty.  
+- Source of truth is always `src/docs/human/`, not the generated file.
+
+Root `README.md` on GitHub can mirror `human/readme-top.md` for maintainers; full product README is produced into `.generated/` / the site on generate.
+
+## Snippet markers (code from the repo)
 
 ```fsharp
 // <docs-snippet id="my-sample">

@@ -27,6 +27,8 @@ type DocsModel =
         CollectorVersion: string
         /// Snippet id → source body
         Snippets: Map<string, string>
+        /// Human partial id → body (from src/docs/human/<id>.md)
+        Humans: Map<string, string>
         /// Pretty-printed Ionide / decoration workspace settings (from vscode-common.json)
         WorkspaceSettingsJson: string
         /// Required-only settings subset for ELI20 path
@@ -99,6 +101,7 @@ module Model =
         : DocsModel * string list
         =
         let snippets, warnings = Snippets.collect repoRoot
+        let humans = Human.loadAll repoRoot
         let analyzerVer, collectorVer = readManifestVersions repoRoot
         let fullSettings, minSettings = extractSettings repoRoot
 
@@ -117,6 +120,7 @@ module Model =
                 AnalyzerVersion = analyzerVer
                 CollectorVersion = collectorVer
                 Snippets = snippets
+                Humans = humans
                 WorkspaceSettingsJson = fullSettings
                 MinimalSettingsJson = minSettings
             }

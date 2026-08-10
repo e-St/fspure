@@ -1,27 +1,12 @@
+{{ human "readme-top" }}
+
 <!--
-  GENERATED FILE — do not edit by hand.
+  GENERATED below this line — do not hand-edit.
   Template: src/docs/templates/README.md.scriban
-  Generator: src/DocsGenerator (F# + Scriban)
+  Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
   Channel: {{ Channel }} | Ref: {{ RefName }} | Version: {{ Version }}
   Generated: {{ GeneratedAt }}
-  Snippets are pulled from real source via <docs-snippet id="…"> markers.
-  Main-branch Markdown is only committed on stable releases.
 -->
-
-<p align="center">
-  <img src="src/docs/assets/fspure.png" alt="fspure logo" width="520" />
-</p>
-
-> Typically, interactions with the outside world occur at the boundary of your application.  
-> — Isaac Abraham
-
-# fspure
-
-**See which F# functions are pure. Push the impure stuff to the edge.**
-
-Install one NuGet package + one VS Code extension. Open a file. Done.
-
-![pure / impure decorations in the editor](src/docs/assets/image.png)
 
 {{ if Channel != "stable" }}
 > **Preview docs** for `{{ RefName }}` ({{ Version }}).  
@@ -69,7 +54,7 @@ Open an F# file, wait for Ionide. You should see:
 - **pure** badges on clean functions  
 - **impure** badges on anything that touches I/O, mutation, randomness, etc.
 
-Full end-user guide (dev containers, fstarter, troubleshooting): **[docs/customer.md](docs/customer.md)**.
+Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
 
 ---
 
@@ -118,12 +103,13 @@ More: **[src/samples/fspure-ready-lib](src/samples/fspure-ready-lib/)**.
 ## Repo map
 
 ```text
-src/       analyzer, schema, collector, MSBuild tasks
-tests/     unit + e2e
-src/samples/   fspure-ready-lib template
-src/editor/    VS Code extension
-docs/      guides, templates, generated pages, assets
-src/scripts/   CI / release helpers
+src/              analyzer, schema, collector, embed, F# tools
+src/Fspure.Tasks  monorepo CLI (docs, security, gates, phase1/5)
+src/tests/        unit + e2e
+src/samples/      fspure-ready-lib template
+src/editor/       VS Code extension
+src/docs/         hand docs, human/ partials, templates, releases
+.generated/       docs site + markdown (gitignored)
 ```
 
 ---
@@ -132,26 +118,21 @@ src/scripts/   CI / release helpers
 
 | Channel | When | Where |
 |---------|------|--------|
-| **Stable** | **Official release only** | This README on `main` + **[fspure.net](https://fspure.net)** |
+| **Stable** | **Official release only** | **[fspure.net](https://fspure.net)** (+ generated site under `.generated/`) |
 | **Preview** | Feature branches / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
 
-Templates: `src/docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban). Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
+Templates: `src/docs/templates/`. Human prose: `src/docs/human/`. Generator: `src/DocsGenerator`. Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
 
 ```text
-# Preview → github.io (does not rewrite main Markdown, does not touch fspure.net)
-nix run .#docs -- preview
-# or:  dotnet run --project src/DocsGenerator -- preview
-
-# Stable → used by Official release only (.generated/ + fspure.net publish)
-nix run .#docs -- stable {{ AnalyzerVersion }}
+dotnet run --project src/Fspure.Tasks -- docs preview
+dotnet run --project src/Fspure.Tasks -- docs stable {{ AnalyzerVersion }}
 ```
 
 ---
 
 ## Links
 
-- [Customer / install guide](docs/customer.md)
-- [Architecture](src/docs/ARCHITECTURE.md)
+- [Customer / install guide](customer.md)
 - [Releasing](src/docs/RELEASING.md)
 - [Security](src/docs/SECURITY.md)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)

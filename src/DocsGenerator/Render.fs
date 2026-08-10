@@ -29,8 +29,14 @@ module Render =
                 failwith
                     $"docs-snippet id '{id}' not found. Mark source with <docs-snippet id=\"{id}\"> … </docs-snippet>."
 
+        // Human partials: always from src/docs/human/<id>.md — never invented by templates.
+        let human (id: string) = Human.get model.Humans id
+        let humanOpt (id: string) = Human.tryGet model.Humans id
+
         so.Import("snip", Func<string, string>(snip))
         so.Import("snippet", Func<string, string>(snip))
+        so.Import("human", Func<string, string>(human))
+        so.Import("human_opt", Func<string, string>(humanOpt))
         so
 
     let renderTemplate (templateText: string) (model: DocsModel) : string =
