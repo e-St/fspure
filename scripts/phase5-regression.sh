@@ -217,12 +217,12 @@ else
     --verbosity minimal \
     --filter "FullyQualifiedName~ResourceReaderTests"
 
-  # Analyser fallback + composition contracts
+  # Analyser fallback + composition + override contracts
   dotnet test "$ROOT/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" \
     -c "$CONFIGURATION" \
     --verbosity minimal \
-    --filter "FullyQualifiedName~ManifestIntegrationTests|FullyQualifiedName~CompositionTests"
-  ok "fallback + composition unit tests"
+    --filter "FullyQualifiedName~ManifestIntegrationTests|FullyQualifiedName~CompositionTests|FullyQualifiedName~OverrideTests"
+  ok "fallback + composition + override unit tests"
 fi
 
 # ---------------------------------------------------------------------------

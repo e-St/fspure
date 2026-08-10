@@ -125,6 +125,8 @@ module Analyzer =
         (projectResults: FSharpCheckProjectResults option)
         : PureSet.Index =
         try
+            // Precedence: overrides > library embeds > foundational
+            // (see PureManifestLoader; fspure.overrides.json + FSPURE_DISABLE_FOUNDATIONAL).
             (PureManifestLoader.loadForAnalysis (Some projectOptions) projectResults).Index
         with _ ->
             // Never fail analysis because of manifest discovery.

@@ -12,6 +12,7 @@
     <Compile Include="SchemaTests.fs" />
     <Compile Include="MergeTests.fs" />
     <Compile Include="ResourceReaderTests.fs" />
+    <Compile Include="OverridesTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -220,6 +220,7 @@ One line on a **net10.0** library (use a `FSharp.PureAnalyzer` package that ship
 That embeds `{AssemblyName}.pure.json` into your DLL. Vanilla fspure consumers then get pure/impure labels for your API automatically.
 
 - Template + badges table: [samples/fspure-ready-lib](samples/fspure-ready-lib/)
+- Architecture (embed, discovery, precedence): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Monorepo proof (local NuGet feed, no publish required):
 
 ```bash
@@ -228,6 +229,22 @@ bash scripts/fspure-ready-lib-gate.sh
 ```
 
 Publishing your library to nuget.org is optional; CI proves the path with a local feed.
+
+### Override the pure list (no fork)
+
+In your **app** project, add `fspure.overrides.json` next to the `.fsproj`:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "useFoundational": true,
+  "add": [ "MyCompany.Helpers.IPromiseThisIsPure" ],
+  "remove": [ "Some.Method.I.Do.Not.Trust" ]
+}
+```
+
+Precedence: **overrides > library embeds > foundational**.  
+Disable the built-in foundational list: `"useFoundational": false` or env `FSPURE_DISABLE_FOUNDATIONAL=1`.
 
 ---
 

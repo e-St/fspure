@@ -1,13 +1,15 @@
 # Publishing fspure artifacts
 
-This document is for **maintainers**. End-user install steps live in the root [README](../README.md).
+This document is for **maintainers**. End-user install steps live in the root [README](../README.md).  
+Architecture (embeds, overrides, precedence): [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Both distribution channels stay active:
 
 | Artifact | Easy (registry) | Advanced (GitHub) |
 |----------|-----------------|-------------------|
 | VS Code extension | [Open VSX](https://open-vsx.org/) | GitHub Release `.vsix` |
-| F# analyzer | nuget.org | GitHub Packages + Release assets |
+| F# analyzer (+ MSBuild embed targets) | nuget.org | GitHub Packages + Release assets |
+| purity-collector (dotnet tool) | nuget.org | GitHub Packages + Release assets |
 
 > **Note:** This project does **not** publish to the Visual Studio Marketplace (that path needs Azure DevOps / an Azure subscription). Open VSX is the default registry.
 
@@ -45,7 +47,21 @@ GitHub Packages needs no extra secrets beyond `GITHUB_TOKEN` (provided by Action
 |----------|----------|-----------|
 | `.github/workflows/publish-vscode-extension.yml` | Push to `vscode-extension/**` or manual | GitHub Release always; Open VSX (`OVSX_PAT` required) |
 | `.github/workflows/release-pure-analyzer.yml` | GitHub Release published or manual version input | GitHub Packages + Release assets |
-| `.github/workflows/nuget_publish.yml` | GitHub Release published or manual version input | nuget.org via OIDC (`NUGET_USER` required); also GitHub Packages + Release assets |
+| `.github/workflows/nuget_publish.yml` | GitHub Release published or manual version input | **FSharp.PureAnalyzer** → nuget.org via OIDC (`NUGET_USER`); also GitHub Packages |
+| `.github/workflows/publish-purity-collector.yml` | GitHub Release published or manual version input | **purity-collector** tool → nuget.org + GitHub Packages |
+
+### Phase 3 analyzer on nuget.org
+
+Library embed targets require a package that includes `build/` + `tools/purity-collector/`.  
+Ship that layout with `nuget_publish.yml` (not the older analyzer-only 0.3.2 layout). After publish, satellite `fspure-ready-lib` main CI can pin the new stable version instead of GitHub Packages `-ci.*` builds.
+
+```bash
+# Consumers
+dotnet add package FSharp.PureAnalyzer --version <version>
+
+# Optional: tool only
+dotnet tool install -g purity-collector --version <version>
+```
 
 `publish-vscode-extension.yml` **fails** if `OVSX_PAT` is missing. `nuget_publish.yml` **fails** if `NUGET_USER` is missing (Trusted Publishing cannot mint a temp key without it).
 

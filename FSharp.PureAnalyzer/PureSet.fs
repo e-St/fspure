@@ -12,8 +12,8 @@ open FSharp.PureSchema
 /// FCS vs IL naming differences and includes a large supplemental pure allowlist
 /// for FSharp.Core collection combinators (HOFs the IL fixed-point often drops).
 ///
-/// Phase 1: composition + caching are exposed for library-embedded pure.json manifests.
-/// The live analyser still uses foundational-only `contains` until Phase 2 wires discovery.
+/// Composition + caching for foundational, library embeds, and project overrides.
+/// Live analyser uses PureManifestLoader (overrides > embeds > foundational).
 module PureSet =
 
     let normalizeName (fullName: string) : string =
@@ -703,6 +703,62 @@ module PureSet =
     /// Compose foundational index with additional PureFiles.
     let composeWithFoundational (additional: PureFile seq) : Index =
         compose (foundationalIndex ()) additional
+
+    /// Empty pure index (no method names). Used when foundational is disabled.
+    let emptyIndex () : Index = buildIndex []
+
+    /// Remove full names (and their normalized / last-segment keys) from an index.
+    let without (index: Index) (namesToRemove: string seq) : Index =
+        let toRemove = namesToRemove |> Seq.filter (fun s -> not (String.IsNullOrWhiteSpace s)) |> Seq.toList
+
+        if toRemove.IsEmpty then
+            index
+        else
+            let exact = HashSet<string>(index.Exact, StringComparer.Ordinal)
+            let normalized = HashSet<string>(index.Normalized, StringComparer.Ordinal)
+            let lastSeg = HashSet<string>(index.LastSegment, StringComparer.Ordinal)
+
+            for fn in toRemove do
+                exact.Remove(fn) |> ignore
+                let n = normalizeName fn
+                exact.Remove(n) |> ignore
+                normalized.Remove(n) |> ignore
+                lastSeg.Remove(lastSegmentKey fn) |> ignore
+
+            {
+                Exact = exact
+                Normalized = normalized
+                LastSegment = lastSeg
+            }
+
+    /// Add full names to an index (union).
+    let withNames (index: Index) (namesToAdd: string seq) : Index =
+        let toAdd = namesToAdd |> Seq.filter (fun s -> not (String.IsNullOrWhiteSpace s))
+
+        if Seq.isEmpty toAdd then
+            index
+        else
+            let exact = HashSet<string>(index.Exact, StringComparer.Ordinal)
+            let normalized = HashSet<string>(index.Normalized, StringComparer.Ordinal)
+            let lastSeg = HashSet<string>(index.LastSegment, StringComparer.Ordinal)
+
+            for fn in toAdd do
+                exact.Add(fn) |> ignore
+                let n = normalizeName fn
+                normalized.Add(n) |> ignore
+                lastSeg.Add(lastSegmentKey fn) |> ignore
+
+            {
+                Exact = exact
+                Normalized = normalized
+                LastSegment = lastSeg
+            }
+
+    /// Apply project overrides: remove then add (add wins if a name is in both).
+    let applyOverrides (index: Index) (ov: PureOverrides) : Index =
+        index
+        |> fun i -> without i ov.Remove
+        |> fun i -> withNames i ov.Add
 
     // --- Composition cache (MVID + pure.json content hashes) ---
 

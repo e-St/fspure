@@ -1,0 +1,114 @@
+# Publish purity-collector as a dotnet tool to nuget.org (+ GitHub Packages).
+# Use after Phase 3+ analyzer releases so library authors can also install the tool alone.
+#
+# Requires repository secret NUGET_USER (Trusted Publishing / OIDC), same as nuget_publish.yml.
+name: Publish purity-collector tool
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tool package version (e.g. 0.1.0)"
+        required: false
+        default: "0.1.0"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            # Optional: purity-collector-v0.1.0 style tags
+            VERSION="${VERSION#purity-collector-}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Require NUGET_USER
+        env:
+          NUGET_USER: ${{ secrets.NUGET_USER }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${NUGET_USER:-}" ]]; then
+            echo "::error::NUGET_USER secret is not configured."
+            exit 1
+          fi
+
+      - name: Install paket
+        run: |
+          if ! command -v paket >/dev/null 2>&1; then
+            dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
+            echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          fi
+
+      - name: Pack purity-collector tool
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          cd purity-collector
+          if command -v paket >/dev/null 2>&1; then paket restore; else "$HOME/.dotnet/tools/paket" restore; fi
+          dotnet pack purity-collector.fsproj \
+            -c Release \
+            -o ./nupkgs \
+            /p:Version="$VERSION" \
+            /p:PackageVersion="$VERSION"
+          ls -la ./nupkgs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: purity-collector-tool-nupkg
+          path: purity-collector/nupkgs/*.nupkg
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            purity-collector/nupkgs/*.nupkg \
+            --clobber
+
+      - name: NuGet login (OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish to nuget.org
+        run: |
+          set -euo pipefail
+          dotnet nuget push purity-collector/nupkgs/*.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "Published purity-collector ${{ steps.ver.outputs.version }} to nuget.org"
+
+      - name: Publish to GitHub Packages
+        run: |
+          set -euo pipefail
+          dotnet nuget push purity-collector/nupkgs/*.nupkg \
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --skip-duplicate

@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="TestProcess.fs" />
     <Compile Include="CompositionTests.fs" />
+    <Compile Include="OverrideTests.fs" />
     <Compile Include="PathResolutionTests.fs" />
     <Compile Include="ManifestIntegrationTests.fs" />
     <Compile Include="MsBuildEmbeddingTests.fs" />

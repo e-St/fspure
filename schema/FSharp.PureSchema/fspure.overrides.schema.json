@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/e-St/fspure/schema/fspure.overrides.schema.json",
+  "title": "fspure.overrides.json",
+  "description": "Project-level purity overrides. Precedence: overrides > library embeds > foundational.",
+  "type": "object",
+  "required": ["schemaVersion"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "useFoundational": {
+      "type": "boolean",
+      "default": true,
+      "description": "When false, foundational.pure.json is not used as the base set. Env FSPURE_DISABLE_FOUNDATIONAL=1 also disables it."
+    },
+    "add": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Full method names to treat as pure (unioned last)."
+    },
+    "remove": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Full method names to strip from the composed pure set."
+    }
+  }
+}

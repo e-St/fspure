@@ -13,6 +13,13 @@
     <FspurePureExtraJson Condition="'$(FspurePureExtraJson)' == ''">$(MSBuildProjectDirectory)\pure-extra.json</FspurePureExtraJson>
 
     <!--
+      Consumer overrides (scenario 3): place fspure.overrides.json next to the app .fsproj.
+      Optional: set env FSPURE_DISABLE_FOUNDATIONAL=1 or FSPURE_OVERRIDES_PATH.
+      See docs/ARCHITECTURE.md for precedence (overrides > embeds > foundational).
+    -->
+    <FspureOverridesJson Condition="'$(FspureOverridesJson)' == ''">$(MSBuildProjectDirectory)\fspure.overrides.json</FspureOverridesJson>
+
+    <!--
       Resource name defaults are applied in FSharp.PureAnalyzer.targets at CoreBuild time
       so $(AssemblyName) is fully evaluated (avoid embedding as ".pure.json").
       Override with FspurePureJsonResourceName if needed.
