@@ -8,19 +8,19 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$ROOT"
 
 CONFIGURATION="${DOTNET_CONFIGURATION:-Release}"
 FIXTURE_DIR="$ROOT/tests/e2e/customer-fixture"
 ANALYZER_DROP="$FIXTURE_DIR/analyzers/dotnet/fs"
 ARTIFACTS="$ROOT/tests/e2e/.artifacts/phase2"
-EXT_DIR="$ROOT/vscode-extension"
+EXT_DIR="$ROOT/editor/vscode-extension"
 
 mkdir -p "$ANALYZER_DROP" "$ARTIFACTS"
 
 echo "==> Phase 2 prepare: build PureAnalyzer"
-pushd "$ROOT/FSharp.PureAnalyzer" >/dev/null
+pushd "$ROOT/src/FSharp.PureAnalyzer" >/dev/null
 if command -v paket >/dev/null 2>&1; then
   paket restore
 fi

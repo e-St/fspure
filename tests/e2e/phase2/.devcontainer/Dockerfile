@@ -39,7 +39,7 @@ RUN apt-get update \
 
 # code-server = VS Code for the Web (same extension host as Codespaces)
 ARG CODE_SERVER_VERSION=4.96.4
-RUN curl -fsSL "https://github.com/coder/code-server/docs/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" \
+RUN curl -fsSL "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_amd64.deb" \
       -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb

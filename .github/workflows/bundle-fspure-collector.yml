@@ -64,10 +64,11 @@ jobs:
             BINARY_PATH=$(bundlef -p | tail -n 1)
             echo "Binary: $BINARY_PATH"
             ls -lh "$BINARY_PATH"
-            mkdir -p ../artifacts
-            cp "$BINARY_PATH" ../artifacts/fspure-collector
-            chmod +x ../artifacts/fspure-collector
-            ../artifacts/fspure-collector --help
+            # monorepo root artifacts/ (two levels up from src/fspure-collector)
+            mkdir -p ../../artifacts
+            cp "$BINARY_PATH" ../../artifacts/fspure-collector
+            chmod +x ../../artifacts/fspure-collector
+            ../../artifacts/fspure-collector --help
 
       - name: Upload fspure-collector artifact
         uses: actions/upload-artifact@v7

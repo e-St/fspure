@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$ROOT"
 
 CONFIGURATION="${DOTNET_CONFIGURATION:-Release}"
@@ -27,7 +27,7 @@ BASELINE="$FIXTURE_DIR/expectations.json"
 mkdir -p "$ANALYZER_OUT/dotnet/fs" "$REPORT_DIR"
 
 echo "==> Phase 1: build FSharp.PureAnalyzer ($CONFIGURATION)"
-pushd "$ROOT/FSharp.PureAnalyzer" >/dev/null
+pushd "$ROOT/src/FSharp.PureAnalyzer" >/dev/null
 if command -v paket >/dev/null 2>&1; then
   paket restore
 fi

@@ -46,8 +46,8 @@ jobs:
 
       - name: Ensure LICENSE is packaged
         run: |
-          if [[ ! -f LICENSE && -f ../LICENSE ]]; then
-            cp ../LICENSE LICENSE
+          if [[ ! -f LICENSE && -f ../../LICENSE ]]; then
+            cp ../../LICENSE LICENSE
           fi
 
       - name: Package VSIX
@@ -113,5 +113,15 @@ jobs:
             echo "This is the default extension registry for fspure (VS Marketplace is not used)."
             exit 1
           fi
-          npx --yes ovsx publish "${{ steps.ver.outputs.vsix }}" --pat "$OVSX_PAT"
-          echo "Published to Open VSX: ${{ steps.ver.outputs.extensionId }}"
+          set +e
+          out=$(npx --yes ovsx publish "${{ steps.ver.outputs.vsix }}" --pat "$OVSX_PAT" 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          if [[ $code -eq 0 ]]; then
+            echo "Published to Open VSX: ${{ steps.ver.outputs.extensionId }}"
+          elif echo "$out" | grep -qiE 'already published|is already published'; then
+            echo "Open VSX already has this version — treating as success."
+          else
+            exit "$code"
+          fi

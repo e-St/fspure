@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ARTIFACTS="$ROOT/tests/e2e/.artifacts/phase2"
 FIXTURE_DIR="$ROOT/tests/e2e/customer-fixture"
 HOST="${CODE_SERVER_HOST:-127.0.0.1}"

@@ -64,16 +64,16 @@ jobs:
             paket install
             dotnet build -c Release --nologo
 
-            mkdir -p ../artifacts/list-a
+            mkdir -p ../../artifacts/list-a
             dotnet run -c Release --no-build -- \
               --defaults true \
               --package-id "$PACKAGE_ID" \
               --public-only "$PUBLIC_ONLY" \
-              -o ../artifacts/list-a/list-a.pure.json \
-              --report ../artifacts/list-a/list-a.report.json
+              -o ../../artifacts/list-a/list-a.pure.json \
+              --report ../../artifacts/list-a/list-a.report.json
 
             echo "Generated:"
-            ls -lh ../artifacts/list-a
+            ls -lh ../../artifacts/list-a
 
       - name: Summarize List A
         run: |
