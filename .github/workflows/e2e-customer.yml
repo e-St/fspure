@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
@@ -104,7 +104,7 @@ jobs:
     # Screenshots are always uploaded; job fails if labels never appear.
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Apply generated devcontainer flavours
         uses: ./.github/actions/apply-devcontainer-flavours
