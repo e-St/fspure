@@ -152,7 +152,7 @@ a:focus-visible {
   margin-top: 0.5rem;
 }
 
-/* Legal / get-started article pages */
+/* Legal pages */
 .legal {
   position: relative;
   z-index: 1;
@@ -193,7 +193,6 @@ a:focus-visible {
   margin-top: 0.65rem;
 }
 
-.legal ol,
 .legal ul {
   margin: 0.5rem 0 0 1.2rem;
 }
@@ -208,7 +207,7 @@ a:focus-visible {
 }
 
 .legal .note {
-  margin: 0 0 1.25rem;
+  margin-top: 1.5rem;
   padding: 0.85rem 1rem;
   border-radius: 0.5rem;
   background: rgba(255, 248, 235, 0.65);
@@ -222,30 +221,6 @@ a:focus-visible {
   margin-bottom: 1.25rem;
   font-size: 0.9rem;
   font-weight: 500;
-}
-
-.legal pre {
-  overflow-x: auto;
-  margin: 0.75rem 0 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 0.45rem;
-  background: rgba(74, 52, 40, 0.06);
-  border: 1px solid rgba(74, 52, 40, 0.12);
-  font-size: 0.85rem;
-  line-height: 1.45;
-  color: var(--text);
-}
-
-.legal code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
-}
-
-.legal p code,
-.legal li code {
-  padding: 0.1em 0.35em;
-  border-radius: 0.25rem;
-  background: rgba(74, 52, 40, 0.08);
 }
 
 .placeholder {

@@ -1,8 +1,8 @@
 <!--
   GENERATED FILE — do not edit by hand.
-  Template: docs/templates/customer.md.scriban
+  Template: src/docs/templates/customer.md.scriban
   Channel: stable | Ref: v0.4.0 | Version: 0.4.0
-  Generated: 2026-08-10T18:52:49Z
+  Generated: 2026-08-10T20:30:21Z
 -->
 
 # Using fspure (get started)
@@ -176,7 +176,7 @@ Ship pure metadata inside your DLL so consumers get labels without re-running th
     <PackageReference Include="FSharp.PureAnalyzer" Version="$(FspureAnalyzerVersion)" PrivateAssets="all" />
 ```
 
-See [samples/fspure-ready-lib](../samples/fspure-ready-lib/).
+See [src/samples/fspure-ready-lib](../src/samples/fspure-ready-lib/).
 
 ---
 

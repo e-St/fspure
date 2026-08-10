@@ -1,8 +1,8 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
-  Channel: preview | Ref: local-test | Version: 0.4.0
-  Generated: 2026-08-10T19:27:10Z
+  Channel: preview | Ref: human-top | Version: 0.4.0
+  Generated: 2026-08-10T20:20:20Z
 -->
 
 # Using fspure (get started)
@@ -15,7 +15,7 @@ You want pure/impure labels in the editor. You need **two** things:
 Plus **Ionide for F#**.
 
 
-> Preview docs for `local-test`. Stable guide: [fspure.net](https://fspure.net) / [main README](https://github.com/e-St/fspure#60-second-install).
+> Preview docs for `human-top`. Stable guide: [fspure.net](https://fspure.net) / [main README](https://github.com/e-St/fspure#60-second-install).
 
 
 ---
@@ -197,4 +197,4 @@ See [src/samples/fspure-ready-lib](../src/samples/fspure-ready-lib/).
 
 - Analyzer: **0.4.0**  
 - Collector: **0.1.0**  
-- Docs channel: **preview** (`local-test`)
+- Docs channel: **preview** (`human-top`)

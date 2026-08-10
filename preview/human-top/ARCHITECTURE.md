@@ -1,7 +1,7 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/ARCHITECTURE.md.scriban
-  Channel: preview | Ref: local-test | Generated: 2026-08-10T19:27:10Z
+  Channel: preview | Ref: human-top | Generated: 2026-08-10T20:20:20Z
 -->
 
 # fspure architecture (short)
@@ -98,4 +98,4 @@ Purity infrastructure targets **net10.0** only.
 ## Docs generation
 
 Markdown is generated with **F# + Scriban** (`src/DocsGenerator`). Code samples use `<docs-snippet id="…">` markers in real source.  
-Stable Markdown on `main` is refreshed **only on official releases**. Preview: `https://e-st.github.io/fspure/preview/local-test`.
+Stable Markdown on `main` is refreshed **only on official releases**. Preview: `https://e-st.github.io/fspure/preview/human-top`.

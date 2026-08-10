@@ -60,10 +60,14 @@ Maintainer docs:
   GENERATED below this line — do not hand-edit.
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
-  Channel: stable | Ref: v0.4.0 | Version: 0.4.0
-  Generated: 2026-08-10T20:30:21Z
+  Channel: preview | Ref: human-top | Version: 0.4.0
+  Generated: 2026-08-10T20:20:20Z
 -->
 
+
+> **Preview docs** for `human-top` (0.4.0).  
+> Stable install guide always lives on [main / fspure.net](https://fspure.net).  
+> This page: https://e-st.github.io/fspure/preview/human-top
 
 
 ---

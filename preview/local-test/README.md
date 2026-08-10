@@ -1,15 +1,15 @@
 <!--
   GENERATED FILE — do not edit by hand.
-  Template: docs/templates/README.md.scriban
+  Template: src/docs/templates/README.md.scriban
   Generator: src/DocsGenerator (F# + Scriban)
   Channel: preview | Ref: local-test | Version: 0.4.0
-  Generated: 2026-08-10T18:37:28Z
+  Generated: 2026-08-10T19:27:10Z
   Snippets are pulled from real source via <docs-snippet id="…"> markers.
   Main-branch Markdown is only committed on stable releases.
 -->
 
 <p align="center">
-  <img src="docs/assets/fspure.png" alt="fspure logo" width="520" />
+  <img src="src/docs/assets/fspure.png" alt="fspure logo" width="520" />
 </p>
 
 > Typically, interactions with the outside world occur at the boundary of your application.  
@@ -21,12 +21,12 @@
 
 Install one NuGet package + one VS Code extension. Open a file. Done.
 
-![pure / impure decorations in the editor](docs/assets/image.png)
+![pure / impure decorations in the editor](src/docs/assets/image.png)
 
 
 > **Preview docs** for `local-test` (0.4.0).  
 > Stable install guide always lives on [main / fspure.net](https://fspure.net).  
-> This page: https://fspure.net/preview/local-test
+> This page: https://e-st.github.io/fspure/preview/local-test
 
 
 ---
@@ -147,7 +147,7 @@ let purePipeline (x: int) =
     x |> double |> fun n -> add n 0 |> List.sum
 ```
 
-Source: `tests/e2e/customer-fixture/Program.fs`
+Source: `src/tests/e2e/customer-fixture/Program.fs`
 
 ### Library one-liner (embed pure.json in your DLL)
 
@@ -160,7 +160,7 @@ Source: `tests/e2e/customer-fixture/Program.fs`
     <PackageReference Include="FSharp.PureAnalyzer" Version="$(FspureAnalyzerVersion)" PrivateAssets="all" />
 ```
 
-Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
+Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
 
 ```fsharp
     // --- Pure (collector should classify as pure) ---
@@ -199,9 +199,9 @@ Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
         System.Console.WriteLine(message)
 ```
 
-Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Library.fs`
+Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Library.fs`
 
-More: **[samples/fspure-ready-lib](samples/fspure-ready-lib/)**.
+More: **[src/samples/fspure-ready-lib](src/samples/fspure-ready-lib/)**.
 
 ---
 
@@ -210,10 +210,10 @@ More: **[samples/fspure-ready-lib](samples/fspure-ready-lib/)**.
 ```text
 src/       analyzer, schema, collector, MSBuild tasks
 tests/     unit + e2e
-samples/   fspure-ready-lib template
-editor/    VS Code extension
+src/samples/   fspure-ready-lib template
+src/editor/    VS Code extension
 docs/      guides, templates, generated pages, assets
-scripts/   CI / release helpers
+src/scripts/   CI / release helpers
 ```
 
 ---
@@ -222,22 +222,17 @@ scripts/   CI / release helpers
 
 | Channel | When | Where |
 |---------|------|--------|
-| **Stable** | Official release only | This README on `main` + [fspure.net](https://fspure.net) |
-| **Preview** | Every branch / PR / beta | `https://fspure.net/preview/<branch>/` |
+| **Stable** | **Official release only** | This README on `main` + **[fspure.net](https://fspure.net)** |
+| **Preview** | Feature branches / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
 
-Templates: `docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban).
+Templates: `src/docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban). Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
 
 ```bash
-# Preview (does not rewrite main-branch Markdown)
-dotnet run --project src/DocsGenerator -- \
-  --channel preview --ref "$(git branch --show-current)" \
-  --site-out "_site/preview/$(git branch --show-current)" \
-  --base-url "https://fspure.net/preview/$(git branch --show-current)"
+# Preview → github.io (does not rewrite main Markdown, does not touch fspure.net)
+bash src/scripts/docs-generate.sh preview
 
-# Stable (release pipeline only)
-dotnet run --project src/DocsGenerator -- \
-  --channel stable --ref v0.4.0 --version 0.4.0 \
-  --write-repo-files --site-out _site --base-url https://fspure.net
+# Stable → used by Official release only (main Markdown + fspure.net)
+bash src/scripts/docs-generate.sh stable 0.4.0
 ```
 
 ---
@@ -245,9 +240,9 @@ dotnet run --project src/DocsGenerator -- \
 ## Links
 
 - [Customer / install guide](docs/customer.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Releasing](docs/RELEASING.md)
-- [Security](docs/SECURITY.md)
+- [Architecture](src/docs/ARCHITECTURE.md)
+- [Releasing](src/docs/RELEASING.md)
+- [Security](src/docs/SECURITY.md)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)
 
