@@ -86,12 +86,7 @@ jobs:
             if [[ -z "$VER" || "$VER" == "latest" ]]; then
               VER="$(
                 curl -fsSL "https://api.nuget.org/v3-flatcontainer/fsharp.pureanalyzer/index.json" \
-                  | python3 -c '
-import json, sys
-data = json.load(sys.stdin)
-vers = [v for v in data.get("versions") or [] if "-" not in v]
-print(sorted(vers, key=lambda s: tuple(int(x) for x in s.split(".")))[-1])
-'
+                  | python3 -c "import json,sys; d=json.load(sys.stdin); v=[x for x in (d.get('versions') or []) if '-' not in x]; print(sorted(v, key=lambda s: tuple(int(p) for p in s.split('.')))[-1])"
               )"
             fi
             echo "Using versions.env / nuget.org: $VER"
