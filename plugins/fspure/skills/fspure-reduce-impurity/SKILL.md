@@ -17,19 +17,16 @@ fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --f
 
 `impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. If it is empty but a focused function is still impure (PURE002, or I/O you can see in a `let`), treat those effects as work too.
 
-**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). If a function body contains an impure call, make that function **higher-order**: take the impurity as a function argument (dependencies first). The core stays testable — tests pass `ignore` (or a fake); the host passes `printf` / real I/O. Do not add live call sites that were not already executing. Show host/test wiring only in comments.
+**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). If a function body contains an impure call, keep the function's name and make it **higher-order**: take the impurity as a function argument (dependencies first). Name that parameter by use case, not the old callee — `write`, `read`, `send`, `log`, … Define the outsourced effect as a real example function with the same name.
 
-Stay idiomatic F#: curried `let add hello x y`, not tupled, not an interface/`type`/class just to inject I/O. Pass `printf "%s"` or `fun () -> printf "hello"` at the edge; tests use `ignore`. If the effect is on the result, the injected function can take that value (`// add (printfn "%d") 2 3`).
+Stay idiomatic F#: curried `let add write x y`, not tupled, not an interface/`type`/class just to inject I/O. Tests can pass `ignore`. Do not add live call sites that were not already executing.
 
 ```
 // before                         // after
-let add x y =                     let add hello x y =
-    printf "hello"                    hello ()
-    x + y                             x + y
-                                  // host (only if add was already called):
-                                  // add (fun () -> printf "hello") 2 3
-                                  // tests:
-                                  // add ignore 2 3
+let add x y =                     let write s = printf "%s" s
+    printf "hello"                let add write x y =
+    x + y                             write "hello"
+                                      x + y
 ```
 
 Do not write `printf "hello"` at file scope. Do not drop, skip, or "simplify away" the effect.

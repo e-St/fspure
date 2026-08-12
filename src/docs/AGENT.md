@@ -96,9 +96,9 @@ Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impu
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json
      → if exit 1, read impureCalls (facts)
      → if the report is empty but a function is still impure, read the body
-     → make the function higher-order: take the impurity as a function argument (do not hoist, do not delete)
-     → idiomatic F#: curried, dependencies first; host passes printf, tests pass ignore
-     → do not add executing calls that were not already running; wiring examples stay comments
+     → keep the function name; inject impurity as a generic-use-case argument (write, read, send, …)
+     → define the outsourced effect as a real example function of that name (do not hoist, do not delete)
+     → do not add executing calls that were not already running
      → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
 
