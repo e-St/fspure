@@ -12,7 +12,7 @@ Target:
 https://github.com/e-St/fstarter
 ```
 
-Unlike `fspure-ready-lib` (force-push satellite), **fstarter** receives a **pull request** so template maintainers can review pin and setup changes. The title names the actual change (`fspure: pin skill main → fspure-reduce-impurity-v0.1.1`, `fspure: update Codespace setup`, …); the body shows old → new pins and only the files that differ from fstarter `main`.
+Unlike `fspure-ready-lib` (force-push satellite), **fstarter** receives a **pull request** so template maintainers can review pin and setup changes. The title names the actual change (`fspure: pin skill main → fspure-reduce-impurity-v0.1.1`, `fspure: update Codespace setup`, …). The body leads with what Codespaces will do after merge, lists only pins that change, and names only pack files that differ. A run that would only bump `.fspure-sync-source` does **not** open a PR. Skill-only edits on fspure do not open an fstarter PR (the skill is not copied into the template; the pin is).
 
 ```mermaid
 flowchart LR
@@ -71,6 +71,8 @@ Priority when resolving the pin:
 | Push to `main` changing `src/scripts/integrations/fstarter/**` | **PR fspure updates to fstarter** |
 | GitHub Release published | same (pins from release tag when possible) |
 | Manual **Actions → PR fspure updates to fstarter** | same (`analyzer_version`, `dry_run`) |
+
+Skill-only commits do **not** open an fstarter PR. Official skill publish updates `FSPURE_SKILL_REF` in `versions.env`, and that is what opens the pin PR.
 
 ## Day-to-day
 

@@ -18,7 +18,6 @@ on:
       - "src/scripts/prepare-fstarter-update.sh"
       - ".github/workflows/pr-fstarter.yml"
       - "src/docs/SYNC-FSTARTER.md"
-      - "plugins/fspure/skills/**"
   workflow_dispatch:
     inputs:
       analyzer_version:
@@ -148,6 +147,7 @@ jobs:
             exit 0
           fi
 
+          set +e
           DESCRIBE="$(python3 "${GITHUB_WORKSPACE}/src/scripts/describe-fstarter-pr.py" \
             --fstarter . \
             --fspure-sha "${GITHUB_SHA}" \
@@ -157,6 +157,13 @@ jobs:
             --event "${GITHUB_EVENT_NAME}" \
             --subject "${SUBJECT}" \
             --ref-name "${GITHUB_REF_NAME}")"
+          rc=$?
+          set -e
+          if [[ "$rc" -eq 2 ]]; then
+            echo "Only .fspure-sync-source changed — no fstarter PR (nothing for a human to review)."
+            exit 0
+          fi
+          [[ "$rc" -eq 0 ]]
           TITLE="$(printf '%s\n' "$DESCRIBE" | head -n 1)"
           BODY="$(printf '%s\n' "$DESCRIBE" | tail -n +3)"
 
