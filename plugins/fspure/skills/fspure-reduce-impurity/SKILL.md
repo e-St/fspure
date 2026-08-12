@@ -15,13 +15,14 @@ license: MIT
 fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --fail-on-impure
 ```
 
-`impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. If it is empty but a focused function is still impure (PURE002, or I/O you can see in a `let`), treat those effects as work too.
+`impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. Rewrite **every** row the same way — every focused function, every `callee`. Nothing here is limited to printing or a name list. If the report is empty but a focused function is still impure (PURE002, or an effect you can see in a `let`), treat those the same way.
 
-**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). If a function body contains an impure call, keep the function's name and make it **higher-order**: take the impurity as a function argument (dependencies first). Name that parameter by use case — `write`, `read`, `send`, `log`, … Define the outsourced effect as a real example function whose name is **factual** (`printfHello`, `readConfigFile`, …). Never give the example the same name as the parameter.
+**Never delete an effect. Never hoist a deferred effect to file scope** (that would run it at module load). For each impure call inside a function: keep that function's name and make it **higher-order**. Take the effect as a function argument (dependencies first; one parameter per distinct effect). Name the parameter for the role that effect plays in this function — what the caller needs done, not which library function implements it, and not a fixed vocabulary. Define the original call as a real example function named for what that call actually does. Those two names must differ.
 
-Stay idiomatic F#: curried `let add write x y`, not tupled, not an interface/`type`/class just to inject I/O. Tests can pass `ignore`. Do not add live call sites that were not already executing.
+Stay idiomatic F#: curried, not tupled, not an interface/`type`/class just to inject an effect. Tests can pass `ignore`. Do not add live call sites that were not already executing.
 
 ```
+// shape only — same rewrite for every callee, not only printf
 // before                         // after
 let add x y =                     let printfHello s = printf "%s" s
     printf "hello"                let add write x y =
@@ -29,7 +30,7 @@ let add x y =                     let printfHello s = printf "%s" s
                                       x + y
 ```
 
-Do not write `printf "hello"` at file scope. Do not drop, skip, or "simplify away" the effect.
+`add` / `write` / `printfHello` are this illustration's names, not a whitelist. Do not hoist the original impure call to file scope. Do not drop, skip, or "simplify away" the effect.
 
 Loop: `dotnet build` → analyze → inject each impurity as a function argument → repeat. Exit 0 and no leftover focused effects is done. Exit 2/3 is a tool error.
 

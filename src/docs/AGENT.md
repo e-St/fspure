@@ -96,8 +96,8 @@ Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impu
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json
      → if exit 1, read impureCalls (facts)
      → if the report is empty but a function is still impure, read the body
-     → keep the function name; inject impurity as a generic-use-case argument (write, read, send, …)
-     → define the outsourced effect as a factual example (printfHello), never the same name as the parameter
+     → for every impureCalls row (any caller, any callee): keep the caller name; inject a role-named function argument
+     → define the original call as a factual example function; example name ≠ parameter name
      → do not add executing calls that were not already running
      → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
