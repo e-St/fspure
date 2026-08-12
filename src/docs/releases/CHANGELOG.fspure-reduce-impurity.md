@@ -6,4 +6,11 @@ Official versions are GitHub tags `fspure-reduce-impurity-v{version}`. `gh skill
 
 ## [Unreleased]
 
-<!-- Filled by Prepare release PR from git log — edit freely before merge. -->
+### Added
+
+- For F# aficionados and anyone else.
+
+### Changed
+
+- Inject each impurity as a higher-order function argument. Same rewrite for every focused function and every `callee`, not a `printf` / `write` list.
+- Name the parameter for the role the effect plays; name the example function for what that call actually does. Those two names must differ.
