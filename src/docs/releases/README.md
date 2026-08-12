@@ -7,6 +7,7 @@ Official version numbers and changelogs for publishable components live here.
 | Analyzer | `FSharp.PureAnalyzer` | [CHANGELOG.FSharp.PureAnalyzer.md](./CHANGELOG.FSharp.PureAnalyzer.md) |
 | Collector tool | `fspure-collector` | [CHANGELOG.fspure-collector.md](./CHANGELOG.fspure-collector.md) |
 | VS Code extension | `e-st.fsharp-pure-decorations` | [CHANGELOG.fsharp-pure-decorations.md](./CHANGELOG.fsharp-pure-decorations.md) |
+| Agent skill | `fspure-reduce-impurity` | [CHANGELOG.fspure-reduce-impurity.md](./CHANGELOG.fspure-reduce-impurity.md) |
 
 ## Flow (short)
 

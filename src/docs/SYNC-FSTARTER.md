@@ -37,7 +37,7 @@ flowchart LR
 
 ## Version pin
 
-`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, and `FSPURE_CLI_RELEASE` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin installs that exact package from nuget.org. The skill ref is passed to `gh skill install --pin` with `--agent github-copilot` (no TTY). The CLI release is the standalone `fspure` binary installed to `~/.local/bin`. Do not omit `--agent`: `gh` then prompts and Codespaces cancel. `v0.4.0` has no skill; keep `FSPURE_SKILL_REF=main` until the next official tag.
+`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, and `FSPURE_CLI_RELEASE` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin installs that exact package from nuget.org. The skill ref is the official tag `fspure-reduce-impurity-v{version}` after a skill publish (otherwise `main` until that first tag exists). It is passed to `gh skill install --pin` with `--agent github-copilot` (no TTY). The CLI release is the standalone `fspure` binary installed to `~/.local/bin`. Do not omit `--agent`: `gh` then prompts and Codespaces cancel. A fork of fstarter keeps that pin until it merges an fstarter update.
 
 Priority when resolving the pin:
 

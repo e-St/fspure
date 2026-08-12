@@ -37,7 +37,7 @@ fi
 
 # Default keeps templates working if the versions file is missing.
 FSPURE_ANALYZER_VERSION="${FSPURE_ANALYZER_VERSION:-0.4.0}"
-# gh skill defaults to the latest GitHub Release tag (v0.4.0 has no skill).
+# Official pin is fspure-reduce-impurity-v*; main until that tag exists.
 FSPURE_SKILL_REF="${FSPURE_SKILL_REF:-main}"
 # Standalone linux-x64 CLI (GitHub Release tag). Not the analyzer nuget version.
 FSPURE_CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
@@ -225,10 +225,6 @@ install_copilot_skill() {
     --force \
     --agent github-copilot; then
     echo "✅ Copilot skill fspure-reduce-impurity (user scope, pin ${FSPURE_SKILL_REF})"
-    return 0
-  fi
-  if gh skill update fspure-reduce-impurity --agent github-copilot; then
-    echo "✅ Updated Copilot skill fspure-reduce-impurity"
     return 0
   fi
   echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network / ref ${FSPURE_SKILL_REF}?)." >&2

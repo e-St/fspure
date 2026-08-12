@@ -8,7 +8,8 @@ git config user.name "github-actions[bot]"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
 DATE="$(date -u +%Y%m%d)"
-BRANCH="release/prepare-${DATE}"
+BRANCH="${RELEASE_PR_BRANCH:-release/prepare-${DATE}}"
+TITLE="${RELEASE_PR_TITLE:-chore(release): prepare official release}"
 git checkout -B "$BRANCH"
 git add src/docs/releases/
 if git diff --staged --quiet; then
@@ -32,19 +33,18 @@ lines = [
 ]
 for name, c in p["components"].items():
     lines.append(f"| `{name}` | {c['from']} | **{c['to']}** | {c['publish']} |")
+lines += ["", "### Changelogs", ""]
+for name, c in p["components"].items():
+    clog = c.get("changelog", "")
+    if clog:
+        lines.append(f"- [{clog.rsplit('/', 1)[-1]}]({clog})")
 lines += [
-  "",
-  "### Changelogs",
-  "",
-  "- [CHANGELOG.FSharp.PureAnalyzer.md](src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md)",
-  "- [CHANGELOG.fspure-collector.md](src/docs/releases/CHANGELOG.fspure-collector.md)",
-  "- [CHANGELOG.fsharp-pure-decorations.md](src/docs/releases/CHANGELOG.fsharp-pure-decorations.md)",
   "",
   "### After merge",
   "",
   "The **Official release** workflow will:",
-  "1. Publish selected packages (nuget.org + GitHub Releases)",
-  "2. Update version pins in the monorepo (README, sample, fstarter pack)",
+  "1. Publish selected packages / skill tag (nuget.org + GitHub Releases)",
+  "2. Update version pins in the monorepo (README, sample, fstarter pack, `FSPURE_SKILL_REF`)",
   "3. Trigger ready-lib sync and fstarter PR workflows",
   "",
   "Docs: [src/docs/RELEASING.md](src/docs/RELEASING.md)",
@@ -60,7 +60,6 @@ Editable versions and changelogs under src/docs/releases/. Merge to publish."
 git push -u origin "HEAD:${BRANCH}" --force
 
 EXISTING="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
-TITLE="chore(release): prepare official release"
 if [[ -n "$EXISTING" ]]; then
   gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
   gh pr edit "$EXISTING" --add-label "release" 2>/dev/null || true

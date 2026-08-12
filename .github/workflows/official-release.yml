@@ -45,20 +45,29 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, sys
+          import json, os
+          out = os.environ["GITHUB_OUTPUT"]
           m = json.load(open("src/docs/releases/manifest.json"))
-          if not m.get("pending"):
+          pending = m.get("pending")
+          if not pending:
               print("No pending release in manifest — nothing to publish.")
-              sys.exit(0)
+              with open(out, "a") as f:
+                  f.write("skip=true\n")
+                  f.write("need_nuget=false\n")
+                  f.write("need_node=false\n")
+              raise SystemExit(0)
+          comps = pending.get("components") or {}
+          published = {n: bool(c.get("publish")) for n, c in comps.items()}
+          need_nuget = published.get("FSharp.PureAnalyzer") or published.get("fspure-collector")
+          need_node = published.get("fsharp-pure-decorations")
           print("pending=true")
-          for n, c in m["pending"]["components"].items():
+          for n, c in comps.items():
               print(n, c)
+          with open(out, "a") as f:
+              f.write("skip=false\n")
+              f.write(f"need_nuget={'true' if need_nuget else 'false'}\n")
+              f.write(f"need_node={'true' if need_node else 'false'}\n")
           PY
-          if ! python3 -c "import json; m=json.load(open('src/docs/releases/manifest.json')); raise SystemExit(0 if m.get('pending') else 1)"; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Setup .NET 10
         if: steps.guard.outputs.skip != 'true'
@@ -67,13 +76,13 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Setup Node
-        if: steps.guard.outputs.skip != 'true'
+        if: steps.guard.outputs.skip != 'true' && steps.guard.outputs.need_node == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: "20"
 
       - name: Install paket
-        if: steps.guard.outputs.skip != 'true'
+        if: steps.guard.outputs.skip != 'true' && steps.guard.outputs.need_nuget == 'true'
         run: |
           if ! command -v paket >/dev/null 2>&1; then
             dotnet tool install paket --tool-path "$HOME/.dotnet/tools"
@@ -81,7 +90,7 @@ jobs:
           fi
 
       - name: Require NUGET_USER
-        if: steps.guard.outputs.skip != 'true'
+        if: steps.guard.outputs.skip != 'true' && steps.guard.outputs.need_nuget == 'true'
         env:
           NUGET_USER: ${{ secrets.NUGET_USER }}
         run: |
@@ -92,7 +101,7 @@ jobs:
           fi
 
       - name: NuGet login (OIDC)
-        if: steps.guard.outputs.skip != 'true'
+        if: steps.guard.outputs.skip != 'true' && steps.guard.outputs.need_nuget == 'true'
         id: login
         uses: NuGet/login@v1
         with:
@@ -129,6 +138,37 @@ jobs:
           Automated by Official release workflow."
           git pull --rebase origin main || true
           git push origin "HEAD:${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}"
+
+      - name: Tag official skill release
+        if: steps.guard.outputs.skip != 'true' && env.SKILL_RELEASE_TAG != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${SKILL_RELEASE_TAG}"
+          VER="${SKILL_RELEASE_VER}"
+          git fetch origin
+          git checkout "${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}"
+          git pull --ff-only origin "${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists"
+          else
+            git tag -a "$TAG" -m "fspure-reduce-impurity $VER"
+            git push origin "$TAG"
+          fi
+          NOTES="$(VER="$VER" python3 - <<'PY'
+import os, pathlib, re
+ver = os.environ["VER"]
+text = pathlib.Path("src/docs/releases/CHANGELOG.fspure-reduce-impurity.md").read_text()
+m = re.search(rf"^## \[{re.escape(ver)}\][\s\S]*?(?=^## \[|\Z)", text, re.M)
+print((m.group(0).strip() if m else f"fspure-reduce-impurity {ver}"))
+PY
+)"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes "$NOTES" || true
+          else
+            gh release create "$TAG" --title "fspure-reduce-impurity $VER" --notes "$NOTES"
+          fi
 
       - name: Trigger ready-lib sync + fstarter PR
         if: steps.guard.outputs.skip != 'true'

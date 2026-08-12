@@ -2,9 +2,9 @@
 # Keep the Claude marketplace catalog aligned with plugins/fspure.
 #
 # Canonical skill: plugins/fspure/skills/fspure-reduce-impurity/SKILL.md
-# Copilot install (non-interactive; pin a ref that contains the skill):
+# Copilot install (non-interactive; pin the official skill tag):
 #   gh skill install e-St/fspure fspure-reduce-impurity \
-#     --scope user --pin main --force --agent github-copilot
+#     --scope user --pin fspure-reduce-impurity-vX.Y.Z --force --agent github-copilot
 #
 # Usage:
 #   bash src/scripts/update-fspure-plugin.sh --check

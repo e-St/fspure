@@ -12,13 +12,16 @@ python3 - <<'PY'
 import json
 import pathlib
 import re
+import subprocess
 
 root = pathlib.Path(".")
-m = json.loads((root / "releases" / "manifest.json").read_text())
+manifest = root / "src" / "docs" / "releases" / "manifest.json"
+m = json.loads(manifest.read_text())
 last = m["lastOfficial"]
 analyzer = last["FSharp.PureAnalyzer"]
 collector = last["fspure-collector"]
 extension = last["fsharp-pure-decorations"]
+skill = last.get("fspure-reduce-impurity")
 
 
 def sub1(path: pathlib.Path, pattern: str, repl: str) -> None:
@@ -31,7 +34,6 @@ def sub1(path: pathlib.Path, pattern: str, repl: str) -> None:
         path.write_text(new)
         print("updated", path)
     else:
-        # try global replace for multi-occurrence version strings
         new2, n2 = re.subn(pattern, repl, text)
         if n2:
             path.write_text(new2)
@@ -41,22 +43,22 @@ def sub1(path: pathlib.Path, pattern: str, repl: str) -> None:
 
 
 sub1(
-    root / "FSharp.PureAnalyzer" / "FSharp.PureAnalyzer.fsproj",
+    root / "src" / "FSharp.PureAnalyzer" / "FSharp.PureAnalyzer.fsproj",
     r"(<Version>)[^<]+(</Version>)",
     rf"\g<1>{analyzer}\g<2>",
 )
 sub1(
-    root / "fspure-collector" / "fspure-collector.fsproj",
+    root / "src" / "fspure-collector" / "fspure-collector.fsproj",
     r"(<Version>)[^<]+(</Version>)",
     rf"\g<1>{collector}\g<2>",
 )
 sub1(
-    root / "vscode-extension" / "package.json",
+    root / "src" / "editor" / "vscode-extension" / "package.json",
     r'("version"\s*:\s*")[^"]+(")',
     rf"\g<1>{extension}\g<2>",
 )
 sub1(
-    root / "samples" / "fspure-ready-lib" / "Directory.Packages.props",
+    root / "src" / "samples" / "fspure-ready-lib" / "Directory.Packages.props",
     r"(<FspureAnalyzerVersion Condition=\"'\$\(FspureAnalyzerVersion\)' == ''\">)[^<]+(</FspureAnalyzerVersion>)",
     rf"\g<1>{analyzer}\g<2>",
 )
@@ -65,14 +67,20 @@ sub1(
     r"(FSPURE_ANALYZER_VERSION=).*",
     rf"\g<1>{analyzer}",
 )
-# gh skill install --pin: next official tag includes the skill (v0.4.0 does not).
-sub1(
-    root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
-    r"(FSPURE_SKILL_REF=).*",
-    rf"\g<1>v{analyzer}",
-)
+# Skill pin is independent of the analyzer tag. Only rewrite after an official skill publish.
+if skill:
+    sub1(
+        root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
+        r"(FSPURE_SKILL_REF=).*",
+        rf"\g<1>fspure-reduce-impurity-v{skill}",
+    )
+    plugin = root / "plugins" / "fspure" / ".claude-plugin" / "plugin.json"
+    sub1(plugin, r'("version"\s*:\s*")[^"]+(")', rf"\g<1>{skill}\g<2>")
+    sync = root / "src" / "scripts" / "update-fspure-plugin.sh"
+    if sync.is_file():
+        subprocess.run(["bash", str(sync), "--sync"], check=False)
 
-readme = root / "samples" / "fspure-ready-lib" / "README.md"
+readme = root / "src" / "samples" / "fspure-ready-lib" / "README.md"
 if readme.exists():
     t = readme.read_text()
     t2 = re.sub(
@@ -98,7 +106,14 @@ if root_readme.exists():
         root_readme.write_text(t2)
         print("updated", root_readme)
 
-resolve = root / "samples" / "fspure-ready-lib" / "scripts" / "resolve-fspure-analyzer-version.sh"
+resolve = (
+    root
+    / "src"
+    / "samples"
+    / "fspure-ready-lib"
+    / "scripts"
+    / "resolve-fspure-analyzer-version.sh"
+)
 if resolve.exists():
     t = resolve.read_text()
     t2 = re.sub(

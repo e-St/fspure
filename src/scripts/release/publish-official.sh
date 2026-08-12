@@ -7,7 +7,6 @@ set -euo pipefail
 # shellcheck source=lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 require_cmd python3
-require_cmd dotnet
 require_cmd git
 
 cd "$ROOT"
@@ -104,6 +103,28 @@ publish_collector() {
   fi
 }
 
+publish_skill() {
+  local ver="$1"
+  local tag="fspure-reduce-impurity-v${ver}"
+  echo "==> Publish skill fspure-reduce-impurity $ver ($tag)"
+  python3 - <<PY
+import json, pathlib
+p = pathlib.Path("plugins/fspure/.claude-plugin/plugin.json")
+d = json.loads(p.read_text())
+d["version"] = "$ver"
+p.write_text(json.dumps(d, indent=2) + "\n")
+print("plugin.json version → $ver")
+PY
+  bash "$ROOT/src/scripts/update-fspure-plugin.sh" --sync
+  if [[ -n "${GITHUB_ENV:-}" ]]; then
+    {
+      echo "SKILL_RELEASE_TAG=${tag}"
+      echo "SKILL_RELEASE_VER=${ver}"
+    } >> "$GITHUB_ENV"
+  fi
+  echo "Skill files staged for tag ${tag} (created after pin commit)."
+}
+
 publish_extension() {
   local ver="$1"
   echo "==> Package vscode-extension $ver"
@@ -190,6 +211,10 @@ for line in "${LINES[@]}"; do
       ;;
     fsharp-pure-decorations)
       publish_extension "$to"
+      finalize_changelog "$clog" "$to"
+      ;;
+    fspure-reduce-impurity)
+      publish_skill "$to"
       finalize_changelog "$clog" "$to"
       ;;
     *)

@@ -3,8 +3,8 @@
 # User scope so it is not written into the repository.
 #
 # Non-interactive: --agent is required (otherwise gh prompts and Codespaces cancel).
-# --pin is required: gh skill otherwise uses the latest GitHub Release tag, and
-# v0.4.0 does not contain the skill. See FSPURE_SKILL_REF in versions.env.
+# --pin is required: gh skill otherwise uses the latest GitHub Release tag.
+# Official skill tags are fspure-reduce-impurity-v*. See FSPURE_SKILL_REF.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -49,11 +49,6 @@ if gh skill install e-St/fspure fspure-reduce-impurity \
   --force \
   --agent github-copilot; then
   echo "✅ Copilot skill fspure-reduce-impurity (user scope, pin ${FSPURE_SKILL_REF})"
-  exit 0
-fi
-
-if gh skill update fspure-reduce-impurity --agent github-copilot; then
-  echo "✅ Updated Copilot skill fspure-reduce-impurity"
   exit 0
 fi
 

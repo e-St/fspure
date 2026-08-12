@@ -7,12 +7,12 @@ Skill: `fspure-reduce-impurity`.
 ```text
 gh skill install e-St/fspure fspure-reduce-impurity \
   --scope user \
-  --pin main \
+  --pin fspure-reduce-impurity-vX.Y.Z \
   --force \
   --agent github-copilot
 ```
 
-`--agent` is required when there is no TTY (Codespaces / `postCreate`). `--pin main` is required until the next official GitHub Release tag includes `plugins/fspure/skills/` (`v0.4.0` does not). The fspure and fstarter devcontainers run that command on create/attach, and put `fspure` on `PATH`.
+`--agent` is required when there is no TTY (Codespaces / `postCreate`). `--pin` is the official skill tag (`fspure-reduce-impurity-v*`) from the Release PR. Until the first official skill tag exists, the Codespace pin is `main` (`v0.4.0` has no skill). The pin is `FSPURE_SKILL_REF` in the fstarter pack. The fspure and fstarter devcontainers run that command on create/attach, and put `fspure` on `PATH`.
 
 **Claude Code:**
 

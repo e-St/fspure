@@ -17,12 +17,12 @@ GitHub Copilot (VS Code agent mode, Copilot CLI, coding agent). Non-interactive 
 ```bash
 gh skill install e-St/fspure fspure-reduce-impurity \
   --scope user \
-  --pin main \
+  --pin fspure-reduce-impurity-vX.Y.Z \
   --force \
   --agent github-copilot
 ```
 
-`--agent github-copilot` is required without a TTY. `--pin main` is required until the next official tag: `gh skill` otherwise uses the latest GitHub Release (`v0.4.0`), which has no discoverable skill. The Codespace / devcontainer runs this command on create/attach, and installs the standalone `fspure` CLI to `~/.local/bin` (do not `gh release download` from the agent).
+`--agent github-copilot` is required without a TTY. `--pin` must be an official skill tag (`fspure-reduce-impurity-v*`) once one exists; until then Codespaces pin `main` because GitHub Release `v0.4.0` has no skill. The pin lives in `src/scripts/integrations/fstarter/versions.env` (`FSPURE_SKILL_REF`). The Codespace / devcontainer runs this command on create/attach, and installs the standalone `fspure` CLI to `~/.local/bin` (do not `gh release download` from the agent).
 
 Claude Code:
 
@@ -31,7 +31,7 @@ Claude Code:
 /plugin install fspure@fspure
 ```
 
-The skill body is `plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`. Edits on `main` run **Update fspure plugin**, which bumps the marketplace plugin version.
+The skill body is `plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`. Edits on `main` open a **Release PR** so you can set the skill version and changelog. Merge publishes tag `fspure-reduce-impurity-v{version}` and updates the fstarter pin.
 
 Standalone linux-x64 (fstarter `bundlef` / PublishSingleFile):
 

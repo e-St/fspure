@@ -1,5 +1,8 @@
 # Opens a Release PR with editable version numbers + changelog drafts.
 # Merge that PR to run official-release.yml.
+#
+# Manual: Actions → Prepare release PR (all components, you choose publish flags).
+# Automatic: a push to main that changes the skill opens a skill-only Release PR.
 name: Prepare release PR
 
 on:
@@ -17,6 +20,10 @@ on:
         description: "fsharp-pure-decorations next version (empty = patch bump)"
         required: false
         default: ""
+      skill_to:
+        description: "fspure-reduce-impurity next version (empty = patch bump)"
+        required: false
+        default: ""
       publish_analyzer:
         description: "Publish analyzer on merge"
         type: boolean
@@ -29,6 +36,15 @@ on:
         description: "Also publish VS Code extension (Open VSX needs OVSX_PAT)"
         type: boolean
         default: false
+      publish_skill:
+        description: "Publish skill tag + pin on merge"
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - "plugins/fspure/skills/**"
+      - "plugins/fspure/README.md"
 
 permissions:
   contents: write
@@ -42,7 +58,9 @@ jobs:
   prepare:
     name: Create Release PR
     runs-on: ubuntu-latest
-    if: github.repository == 'e-St/fspure'
+    if: >
+      github.repository == 'e-St/fspure' &&
+      (github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]')
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -54,14 +72,34 @@ jobs:
           ANALYZER_TO: ${{ inputs.analyzer_to }}
           COLLECTOR_TO: ${{ inputs.collector_to }}
           EXTENSION_TO: ${{ inputs.extension_to }}
-          PUBLISH_ANALYZER: ${{ inputs.publish_analyzer }}
-          PUBLISH_COLLECTOR: ${{ inputs.publish_collector }}
-          PUBLISH_EXTENSION: ${{ inputs.publish_extension }}
-          ROOT: ${{ github.workspace }}
+          SKILL_TO: ${{ inputs.skill_to }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PUBLISH_ANALYZER: ${{ inputs.publish_analyzer }}
+          INPUT_PUBLISH_COLLECTOR: ${{ inputs.publish_collector }}
+          INPUT_PUBLISH_EXTENSION: ${{ inputs.publish_extension }}
+          INPUT_PUBLISH_SKILL: ${{ inputs.publish_skill }}
         run: |
           set -euo pipefail
           chmod +x src/scripts/release/*.sh
+          if [[ "${EVENT_NAME}" == "push" ]]; then
+            export PUBLISH_ANALYZER=false
+            export PUBLISH_COLLECTOR=false
+            export PUBLISH_EXTENSION=false
+            export PUBLISH_SKILL=true
+            export RELEASE_PR_BRANCH=release/fspure-reduce-impurity
+            export RELEASE_PR_TITLE="chore(release): prepare fspure-reduce-impurity"
+          else
+            export PUBLISH_ANALYZER="${INPUT_PUBLISH_ANALYZER:-true}"
+            export PUBLISH_COLLECTOR="${INPUT_PUBLISH_COLLECTOR:-true}"
+            export PUBLISH_EXTENSION="${INPUT_PUBLISH_EXTENSION:-false}"
+            export PUBLISH_SKILL="${INPUT_PUBLISH_SKILL:-true}"
+          fi
           bash src/scripts/release/prepare-release-pr.sh
+          # Persist branch/title for the next step
+          {
+            echo "RELEASE_PR_BRANCH=${RELEASE_PR_BRANCH:-}"
+            echo "RELEASE_PR_TITLE=${RELEASE_PR_TITLE:-}"
+          } >> "$GITHUB_ENV"
 
       - name: Create branch and PR
         env:

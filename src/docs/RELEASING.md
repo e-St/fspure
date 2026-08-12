@@ -21,6 +21,7 @@ flowchart TD
 | `FSharp.PureAnalyzer` | NuGet analyzer + embed tools | `src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md` |
 | `fspure-collector` | NuGet dotnet tool | `src/docs/releases/CHANGELOG.fspure-collector.md` |
 | `fsharp-pure-decorations` | Open VSX / VSIX | `src/docs/releases/CHANGELOG.fsharp-pure-decorations.md` |
+| `fspure-reduce-impurity` | Copilot / Claude skill (`gh skill --pin`) | `src/docs/releases/CHANGELOG.fspure-reduce-impurity.md` |
 
 Last published official versions: **`src/docs/releases/manifest.json`** → `lastOfficial`.
 
@@ -46,6 +47,8 @@ Also can fire after **Phase 5 Regression** succeeds on `main` (workflow_run).
 
 Optional inputs: exact next versions and which components to publish.
 
+A push to `main` that changes `plugins/fspure/skills/**` (or the skill README) opens a **skill-only** Release PR (`release/fspure-reduce-impurity`) so you can set the skill `to` version and changelog without publishing nuget packages.
+
 Creates a PR that updates:
 
 - `src/docs/releases/manifest.json` → `pending` (versions + `publish` flags)
@@ -56,18 +59,18 @@ Creates a PR that updates:
 1. Open `src/docs/releases/manifest.json`
 2. Set each component’s **`to`** version (e.g. `0.5.0`)
 3. Set **`publish`: true/false** per component
-4. Edit the three **CHANGELOG.*** Unreleased sections until you like the notes
+4. Edit each **CHANGELOG.*** Unreleased section until you like the notes
 
 ### 3. Merge the PR
 
 Triggers **Official release**:
 
-1. OIDC login to nuget.org (`NUGET_USER` Trusted Publishing for `official-release.yml` — **see note below**)
-2. Pack + publish selected packages
-3. GitHub Release assets (`v{version}`, mark Latest for analyzer)
+1. OIDC login to nuget.org when analyzer/collector are selected (`NUGET_USER` — **see note below**)
+2. Pack + publish selected packages (skipped for a skill-only release)
+3. GitHub Release assets (`v{version}` for the analyzer; `fspure-reduce-impurity-v{version}` for the skill)
 4. Promote `pending` → `lastOfficial`, clear `pending`
 5. **apply-version-pins**: fsproj / package.json / sample / fstarter `versions.env` / READMEs  
-   (`FSPURE_SKILL_REF` becomes `v{analyzer}` — `gh skill` must find `plugins/fspure/skills/` on that tag)
+   (`FSPURE_SKILL_REF` becomes `fspure-reduce-impurity-v{skill}` when that component is published)
 6. Commit pin updates to `main`
 7. Dispatch **Sync fspure-ready-lib** + **PR fspure updates to fstarter**
 
@@ -94,7 +97,8 @@ You may keep the existing policy for `nuget_publish.yml` as a manual fallback.
 | `src/editor/vscode-extension/package.json` | `version` |
 | `src/samples/fspure-ready-lib/Directory.Packages.props` | `FspureAnalyzerVersion` |
 | `src/samples/fspure-ready-lib/src/scripts/resolve-fspure-analyzer-version.sh` | fallback |
-| `src/scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF=v{analyzer}` |
+| `src/scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF=fspure-reduce-impurity-v{skill}` |
+| `plugins/fspure/.claude-plugin/plugin.json` | skill / marketplace plugin version |
 | Sample / root README examples | version strings |
 
 ready-lib satellite is refreshed by **Sync fspure-ready-lib** (push).  

@@ -135,6 +135,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           SHORT_SHA="${GITHUB_SHA:0:7}"
+          SKILL_REF="$(grep -E '^FSPURE_SKILL_REF=' .devcontainer/fspure-versions.env | cut -d= -f2- || true)"
+          SKILL_REF="${SKILL_REF:-main}"
           BRANCH="fspure/sync-${ANALYZER_VERSION}-${SHORT_SHA}"
 
           git checkout -B "$BRANCH"
@@ -178,13 +180,14 @@ jobs:
           | | |
           |--|--|
           | **FSharp.PureAnalyzer** | \`${ANALYZER_VERSION}\` (nuget.org) |
+          | **Skill pin** | \`${SKILL_REF}\` (\`gh skill install --pin\`) |
           | **Source path** | \`src/scripts/integrations/fstarter/\` |
           | **Workflow** | [run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |
 
           ### Files
           - \`.devcontainer/setup-fspure.sh\` — install pin + mirror for Ionide
           - \`.devcontainer/devcontainer.json\` — analyzers path, pure decorations, LineLens
-          - \`.devcontainer/fspure-versions.env\` — \`FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION}\`
+          - \`.devcontainer/fspure-versions.env\` — \`FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION}\`, \`FSPURE_SKILL_REF=${SKILL_REF}\`
           - \`Directory.Build.props\` — strict F# compiler rules (same as fspure monorepo)
 
           Does **not** overwrite \`Dockerfile\`, \`newf.sh\`, or other fstarter-owned tooling.

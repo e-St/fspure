@@ -13,15 +13,18 @@ cd "$ROOT"
 ANALYZER_TO="${ANALYZER_TO:-}"
 COLLECTOR_TO="${COLLECTOR_TO:-}"
 EXTENSION_TO="${EXTENSION_TO:-}"
+SKILL_TO="${SKILL_TO:-}"
 PUBLISH_ANALYZER="${PUBLISH_ANALYZER:-true}"
 PUBLISH_COLLECTOR="${PUBLISH_COLLECTOR:-true}"
 PUBLISH_EXTENSION="${PUBLISH_EXTENSION:-false}"
+PUBLISH_SKILL="${PUBLISH_SKILL:-true}"
 
+export MANIFEST
 python3 - <<'PY'
-import json, os, subprocess, pathlib, datetime
+import json, os, subprocess, pathlib, datetime, re
 
-root = pathlib.Path(os.environ.get("ROOT", "."))
-manifest_path = root / "releases" / "manifest.json"
+root = pathlib.Path(".").resolve()
+manifest_path = pathlib.Path(os.environ.get("MANIFEST") or (root / "src/docs/releases/manifest.json"))
 m = json.loads(manifest_path.read_text())
 last = m["lastOfficial"]
 
@@ -32,8 +35,9 @@ def bump(v: str) -> str:
     major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2].split("-")[0])
     return f"{major}.{minor}.{patch + 1}"
 
-def git_log(path: str, version: str) -> str:
-    for tag in (f"v{version}", version):
+def git_log(path: str, version: str, extra_tags=()) -> str:
+    candidates = [f"v{version}", version, *extra_tags]
+    for tag in candidates:
         r = subprocess.run(
             ["git", "rev-parse", tag],
             cwd=root,
@@ -59,6 +63,12 @@ def git_log(path: str, version: str) -> str:
 def env_or(name: str, default: str) -> str:
     v = os.environ.get(name, "").strip()
     return v if v else default
+
+def last_or(name: str, default: str) -> str:
+    v = last.get(name)
+    return v if v else default
+
+skill_from = last_or("fspure-reduce-impurity", "0.1.0")
 
 pending = {
     "preparedAtUtc": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -90,6 +100,14 @@ pending = {
             "paths": ["src/editor/vscode-extension/"],
             "changelog": "src/docs/releases/CHANGELOG.fsharp-pure-decorations.md",
         },
+        "fspure-reduce-impurity": {
+            "from": skill_from,
+            "to": env_or("SKILL_TO", bump(skill_from)),
+            "publish": os.environ.get("PUBLISH_SKILL", "true").lower() == "true",
+            "paths": ["plugins/fspure/"],
+            "changelog": "src/docs/releases/CHANGELOG.fspure-reduce-impurity.md",
+            "tag": f"fspure-reduce-impurity-v{env_or('SKILL_TO', bump(skill_from))}",
+        },
     },
 }
 
@@ -97,21 +115,43 @@ m["pending"] = pending
 manifest_path.write_text(json.dumps(m, indent=2) + "\n")
 print("Wrote pending release to", manifest_path)
 
-# Refresh Unreleased sections in changelogs with git log drafts
 path_map = {
-    "FSharp.PureAnalyzer": ("src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md", "src/FSharp.PureAnalyzer/", last["FSharp.PureAnalyzer"]),
-    "fspure-collector": ("src/docs/releases/CHANGELOG.fspure-collector.md", "src/fspure-collector/", last["fspure-collector"]),
-    "fsharp-pure-decorations": ("src/docs/releases/CHANGELOG.fsharp-pure-decorations.md", "src/editor/vscode-extension/", last["fsharp-pure-decorations"]),
+    "FSharp.PureAnalyzer": (
+        "src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md",
+        "src/FSharp.PureAnalyzer/",
+        last["FSharp.PureAnalyzer"],
+        (),
+    ),
+    "fspure-collector": (
+        "src/docs/releases/CHANGELOG.fspure-collector.md",
+        "src/fspure-collector/",
+        last["fspure-collector"],
+        (f"fspure-collector-v{last['fspure-collector']}",),
+    ),
+    "fsharp-pure-decorations": (
+        "src/docs/releases/CHANGELOG.fsharp-pure-decorations.md",
+        "src/editor/vscode-extension/",
+        last["fsharp-pure-decorations"],
+        (f"vscode-extension-v{last['fsharp-pure-decorations']}",),
+    ),
+    "fspure-reduce-impurity": (
+        "src/docs/releases/CHANGELOG.fspure-reduce-impurity.md",
+        "plugins/fspure/",
+        skill_from,
+        (f"fspure-reduce-impurity-v{skill_from}",),
+    ),
 }
 
-for name, (clog, path, from_ver) in path_map.items():
+for name, (clog, path, from_ver, extra) in path_map.items():
+    if not pending["components"][name].get("publish"):
+        print("Skip Unreleased draft for unpublished", name)
+        continue
     clog_path = root / clog
     text = clog_path.read_text()
-    commits = git_log(path, from_ver)
+    commits = git_log(path, from_ver, extra)
     if not commits:
         commits = "- _(no path-specific commits found since last tag — edit this section)_"
     draft = f"## [Unreleased]\n\n### Draft (from git log — edit freely)\n\n{commits}\n\n"
-    import re
     if re.search(r"^## \[Unreleased\]", text, re.M):
         text = re.sub(
             r"^## \[Unreleased\][\s\S]*?(?=^## \[)",
@@ -128,4 +168,4 @@ PY
 
 echo ""
 echo "Pending release prepared. Review src/docs/releases/manifest.json and CHANGELOG.*.md"
-python3 -m json.tool "$MANIFEST" | head -80
+python3 -m json.tool "$MANIFEST" | head -100
