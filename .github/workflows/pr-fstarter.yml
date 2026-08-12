@@ -96,9 +96,11 @@ jobs:
           # Working copy for prepare-fstarter-update.sh (not committed).
           # Keep FSPURE_SKILL_REF so gh skill install does not fall back to latest tag.
           SKILL_REF="${FSPURE_SKILL_REF:-main}"
+          CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
           {
             echo "FSPURE_ANALYZER_VERSION=${VER}"
             echo "FSPURE_SKILL_REF=${SKILL_REF}"
+            echo "FSPURE_CLI_RELEASE=${CLI_RELEASE}"
           } > src/scripts/integrations/fstarter/versions.env
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 

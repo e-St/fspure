@@ -2,6 +2,8 @@
 # Install fspure into an fstarter Codespace / dev container.
 # - FSharp.PureAnalyzer from nuget.org (pinned version) → workspace analyzers/dotnet/fs/
 # - fsharp-pure-decorations from Open VSX VSIX (not MS Marketplace id)
+# - standalone `fspure` CLI → ~/.local/bin (so Copilot does not download releases)
+# - Copilot skill via non-interactive `gh skill install`
 #
 # Version pin: FSPURE_ANALYZER_VERSION env, or .devcontainer/fspure-versions.env
 # (synced from e-St/fspure src/scripts/integrations/fstarter/versions.env).
@@ -37,6 +39,8 @@ fi
 FSPURE_ANALYZER_VERSION="${FSPURE_ANALYZER_VERSION:-0.4.0}"
 # gh skill defaults to the latest GitHub Release tag (v0.4.0 has no skill).
 FSPURE_SKILL_REF="${FSPURE_SKILL_REF:-main}"
+# Standalone linux-x64 CLI (GitHub Release tag). Not the analyzer nuget version.
+FSPURE_CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
 
 code_cli_usable() {
   command -v code >/dev/null 2>&1 || return 1
@@ -157,6 +161,50 @@ ensure_github_cli() {
   command -v gh >/dev/null 2>&1 && gh skill --help >/dev/null 2>&1
 }
 
+ensure_local_bin_on_path() {
+  mkdir -p "${HOME}/.local/bin"
+  case ":${PATH}:" in
+    *":${HOME}/.local/bin:"*) ;;
+    *) export PATH="${HOME}/.local/bin:${PATH}" ;;
+  esac
+  local line='export PATH="$HOME/.local/bin:$PATH"'
+  for rc in "${HOME}/.bashrc" "${HOME}/.profile"; do
+    if [[ -f "$rc" ]] && grep -qxF "$line" "$rc" 2>/dev/null; then
+      continue
+    fi
+    printf '\n%s\n' "$line" >>"$rc"
+  done
+}
+
+install_fspure_cli() {
+  ensure_local_bin_on_path
+  if command -v fspure >/dev/null 2>&1 && fspure analyze --help >/dev/null 2>&1; then
+    echo "✅ fspure CLI $(command -v fspure)"
+    return 0
+  fi
+  case "$(uname -m)" in
+    x86_64 | amd64) ;;
+    *)
+      echo "WARNING: no standalone fspure binary for $(uname -m); skip CLI install." >&2
+      return 1
+      ;;
+  esac
+  local dest="${HOME}/.local/bin/fspure"
+  local url="https://github.com/e-St/fspure/releases/download/${FSPURE_CLI_RELEASE}/fspure"
+  echo "==> Installing fspure CLI (${FSPURE_CLI_RELEASE}) → ${dest}"
+  if ! curl -fsSL -o "$dest" "$url"; then
+    echo "WARNING: could not download ${url}" >&2
+    rm -f "$dest"
+    return 1
+  fi
+  chmod +x "$dest"
+  if ! "$dest" analyze --help >/dev/null 2>&1; then
+    echo "WARNING: downloaded fspure is not usable." >&2
+    return 1
+  fi
+  echo "✅ fspure CLI ${dest}"
+}
+
 install_copilot_skill() {
   ensure_github_cli || true
   if ! command -v gh >/dev/null 2>&1; then
@@ -186,9 +234,11 @@ install_copilot_skill() {
   echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network / ref ${FSPURE_SKILL_REF}?)." >&2
 }
 
+install_fspure_cli || true
 install_copilot_skill
 
 echo ""
 echo "✅ fspure setup done."
 echo "   Analyzer: $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll (pin $FSPURE_ANALYZER_VERSION)"
+echo "   CLI: $(command -v fspure 2>/dev/null || echo 'not on PATH — rebuild the container')"
 echo "   If pure/impure labels are missing: Developer: Reload Window"

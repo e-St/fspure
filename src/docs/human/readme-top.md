@@ -61,7 +61,7 @@ gh skill install e-St/fspure fspure-reduce-impurity \
   --agent github-copilot
 ```
 
-Needs GitHub CLI 2.90+. `--agent` is required in Codespaces (otherwise `gh` prompts and the install is cancelled). `--pin` is required until the next official tag: `gh skill` otherwise installs from the latest GitHub Release (`v0.4.0`), which does not contain the skill. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
+Needs GitHub CLI 2.90+. `--agent` is required in Codespaces (otherwise `gh` prompts and the install is cancelled). `--pin` is required until the next official tag: `gh skill` otherwise installs from the latest GitHub Release (`v0.4.0`), which does not contain the skill. The Codespace also installs the standalone `fspure` CLI onto `PATH` (`~/.local/bin`) so the agent does not download releases. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
 
 **Claude Code.** This repo is a plugin marketplace. Add it and install the plugin:
 

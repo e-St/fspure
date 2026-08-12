@@ -51,6 +51,17 @@
           "**/obj": true,
           "**/bin": true,
           "**/.paket": true
+        },
+        "chat.agent.sandbox.enabled": "on",
+        "chat.tools.terminal.enableAutoApprove": true,
+        "chat.tools.global.autoApprove": false,
+        "chat.tools.terminal.blockDetectedFileWrites": "outsideWorkspace",
+        "chat.tools.terminal.autoApprove": {
+          "/^fspure(\\s|$)/": true,
+          "/^dotnet\\s+(build|test)\\b/": true,
+          "/^dotnet\\s+run\\b.*\\sanalyze\\b/": true,
+          "which": true,
+          "command": true
         }
       }
     }
@@ -62,6 +73,8 @@
     "DOTNET_ROLL_FORWARD": "Major",
     "TMPDIR": "/home/vscode/.cache/nuget-tmp",
     "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp"
+    "TMP": "/home/vscode/.cache/nuget-tmp",
+    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}",
+    "FSPURE_ANALYZERS_PATH": "${containerWorkspaceFolder}/analyzers"
   }
 }

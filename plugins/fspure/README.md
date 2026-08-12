@@ -12,7 +12,7 @@ gh skill install e-St/fspure fspure-reduce-impurity \
   --agent github-copilot
 ```
 
-`--agent` is required when there is no TTY (Codespaces / `postCreate`). `--pin main` is required until the next official GitHub Release tag includes `plugins/fspure/skills/` (`v0.4.0` does not). The fspure and fstarter devcontainers run that command on create/attach.
+`--agent` is required when there is no TTY (Codespaces / `postCreate`). `--pin main` is required until the next official GitHub Release tag includes `plugins/fspure/skills/` (`v0.4.0` does not). The fspure and fstarter devcontainers run that command on create/attach, and put `fspure` on `PATH`.
 
 **Claude Code:**
 

@@ -4,6 +4,8 @@
     "DOTNET_ROLL_FORWARD": "Major",
     "TMPDIR": "/home/vscode/.cache/nuget-tmp",
     "TEMP": "/home/vscode/.cache/nuget-tmp",
-    "TMP": "/home/vscode/.cache/nuget-tmp"
+    "TMP": "/home/vscode/.cache/nuget-tmp",
+    "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}",
+    "FSPURE_ANALYZERS_PATH": "${containerWorkspaceFolder}/analyzers"
   }
 }

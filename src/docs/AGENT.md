@@ -22,7 +22,7 @@ gh skill install e-St/fspure fspure-reduce-impurity \
   --agent github-copilot
 ```
 
-`--agent github-copilot` is required without a TTY. `--pin main` is required until the next official tag: `gh skill` otherwise uses the latest GitHub Release (`v0.4.0`), which has no discoverable skill. The Codespace / devcontainer runs this command on create/attach.
+`--agent github-copilot` is required without a TTY. `--pin main` is required until the next official tag: `gh skill` otherwise uses the latest GitHub Release (`v0.4.0`), which has no discoverable skill. The Codespace / devcontainer runs this command on create/attach, and installs the standalone `fspure` CLI to `~/.local/bin` (do not `gh release download` from the agent).
 
 Claude Code:
 
