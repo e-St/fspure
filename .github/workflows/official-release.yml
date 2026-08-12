@@ -157,13 +157,13 @@ jobs:
             git push origin "$TAG"
           fi
           NOTES="$(VER="$VER" python3 - <<'PY'
-import os, pathlib, re
-ver = os.environ["VER"]
-text = pathlib.Path("src/docs/releases/CHANGELOG.fspure-reduce-impurity.md").read_text()
-m = re.search(rf"^## \[{re.escape(ver)}\][\s\S]*?(?=^## \[|\Z)", text, re.M)
-print((m.group(0).strip() if m else f"fspure-reduce-impurity {ver}"))
-PY
-)"
+          import os, pathlib, re
+          ver = os.environ["VER"]
+          text = pathlib.Path("src/docs/releases/CHANGELOG.fspure-reduce-impurity.md").read_text()
+          m = re.search(rf"^## \[{re.escape(ver)}\][\s\S]*?(?=^## \[|\Z)", text, re.M)
+          print((m.group(0).strip() if m else f"fspure-reduce-impurity {ver}"))
+          PY
+          )"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --notes "$NOTES" || true
           else
@@ -186,14 +186,14 @@ PY
         run: |
           set -euo pipefail
           VER="$(python3 - <<'PY'
-import json
-m = json.load(open("src/docs/releases/manifest.json"))
-p = m.get("pending") or {}
-comps = (p.get("components") or {})
-a = comps.get("FSharp.PureAnalyzer") or {}
-print(a.get("to") or m["lastOfficial"]["FSharp.PureAnalyzer"])
-PY
-)"
+          import json
+          m = json.load(open("src/docs/releases/manifest.json"))
+          p = m.get("pending") or {}
+          comps = (p.get("components") or {})
+          a = comps.get("FSharp.PureAnalyzer") or {}
+          print(a.get("to") or m["lastOfficial"]["FSharp.PureAnalyzer"])
+          PY
+          )"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "Docs stable version=$VER → .generated/ (not committed)"
           dotnet run --project src/DocsGenerator -- stable "$VER"
