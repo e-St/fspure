@@ -6,6 +6,8 @@ Official versions are GitHub tags `fspure-reduce-impurity-v{version}`. `gh skill
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-12
+
 ### Added
 
 - For F# aficionados and anyone else.

@@ -1,7 +1,7 @@
 {
   "name": "fspure",
   "description": "Push impurity to the F# application boundary using fspure analyze.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "e-St",
     "url": "https://github.com/e-St/fspure"
@@ -9,5 +9,10 @@
   "homepage": "https://github.com/e-St/fspure",
   "repository": "https://github.com/e-St/fspure",
   "license": "MIT",
-  "keywords": ["fsharp", "purity", "fspure", "analyzer"]
+  "keywords": [
+    "fsharp",
+    "purity",
+    "fspure",
+    "analyzer"
+  ]
 }

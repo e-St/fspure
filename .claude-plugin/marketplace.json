@@ -12,7 +12,7 @@
       "name": "fspure",
       "source": "./plugins/fspure",
       "description": "Push impurity to the F# application boundary using fspure analyze.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "homepage": "https://github.com/e-St/fspure",
       "keywords": [
         "fsharp",
