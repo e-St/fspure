@@ -95,8 +95,9 @@ Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impu
 ```text
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json
      → if exit 1, read impureCalls (facts)
-     → the agent decides which calls to move to the boundary
-     → repeat until exit 0, or remaining calls are <10% and none is reasonably movable
+     → if the report is empty but a function is still impure, read the body
+     → move each effect to the I/O boundary — never delete it
+     → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
 
 ## Wrappers

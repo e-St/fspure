@@ -15,9 +15,11 @@ license: MIT
 fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --fail-on-impure
 ```
 
-`impureCalls[]` is the only truth: `caller`, `callee`, call-site range. Facts, not a move list. You decide.
+`impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. If it is empty but a focused function is still impure (PURE002, or I/O you can see in a `let`), treat those effects as work too.
 
-Loop: `dotnet build` → analyze → on exit 1, decide whether each call belongs in `caller` or at the I/O boundary → edit → repeat. Exit 0 is done. Exit 2/3 is a tool error.
+**Never delete an effect.** Relocate it to the application / I/O boundary (`main`, top-level, host). The program must still do the same visible work (`printf "hello"` stays a `printf "hello"`, just not inside `add`). Do not drop, skip, or "simplify away" side effects to make a function look pure.
+
+Loop: `dotnet build` → analyze → move each effect to the boundary → repeat. Exit 0 and no leftover focused effects is done. Exit 2/3 is a tool error.
 
 Stop when remaining focused calls are ≤ 10% of the first `summary.impureCalls` and none still belong in the core. Cap 25 iterations.
 
