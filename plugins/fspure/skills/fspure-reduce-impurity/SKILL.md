@@ -19,13 +19,17 @@ fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --f
 
 **Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). An effect that only lives in a function body is not executing yet — extract it into its own **impure function** so it still runs only when called. The original function becomes the pure remainder. Do not add live call sites that were not already executing. Show how to compose them only in comments.
 
+Stay idiomatic F#: curried `let add x y`, not tupled `let add (x, y)`. Delay I/O with a `unit` argument (`let hello () = printf "hello"`), not `lazy` (memoizes) and not `do` / file-scope `printf`. If the effect consumes the value, compose at the edge with `|>` (`// add 2 3 |> printfn "%d"`). Independent effects stay a separate function — no class, interface, or computation expression just to split them.
+
 ```
 // before                         // after
-let add x y =                     let greet () = printf "hello"
+let add x y =                     let hello () = printf "hello"
     printf "hello"                let add x y = x + y
     x + y                         // later, if you used to call add and still want the effect:
-                                  // greet ()
+                                  // hello ()
                                   // add 2 3
+                                  // if the effect were on the result:
+                                  // add 2 3 |> printfn "%d"
 ```
 
 Do not write `printf "hello"` at file scope. Do not drop, skip, or "simplify away" the effect.

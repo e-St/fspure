@@ -97,6 +97,7 @@ edit → compile → fspure analyze --fail-on-impure --focus <core> --format jso
      → if exit 1, read impureCalls (facts)
      → if the report is empty but a function is still impure, read the body
      → extract deferred effects into impure functions (do not hoist to top-level, do not delete)
+     → idiomatic F#: curried lets, `let hello () = …` to delay I/O, `|>` at the edge if the effect uses the value
      → do not add executing calls that were not already running; composition examples stay comments
      → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
