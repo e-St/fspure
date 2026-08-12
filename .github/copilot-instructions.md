@@ -1,5 +1,7 @@
 # Copilot Instructions
 
+Purity refactors: load `src/agent/fspure-push-impurity/SKILL.md` and drive the loop with `fspure analyze` (`src/docs/AGENT.md`).
+
 ## Package management
 
 Always use **paket** to install, remove, or update NuGet packages — never `dotnet add package`.

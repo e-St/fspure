@@ -1,0 +1,70 @@
+name: fspure-analyze
+description: Run fspure analyze (PURE002 / PURE003 JSON or SARIF) for agents and CI.
+inputs:
+  project:
+    description: Path to the .fsproj
+    required: true
+  focus:
+    description: Space-separated --focus patterns
+    required: false
+    default: ""
+  ignore:
+    description: Space-separated --ignore patterns
+    required: false
+    default: ""
+  format:
+    description: json or sarif
+    required: false
+    default: json
+  fail-on-impure:
+    description: "If true, fail the step when any focused PURE002 remains"
+    required: false
+    default: "true"
+  analyzers-path:
+    description: Folder containing FSharp.PureAnalyzer.dll
+    required: false
+    default: ""
+  cache-dir:
+    description: Cache directory (empty = no cache)
+    required: false
+    default: ""
+  output:
+    description: Report path
+    required: false
+    default: fspure-analyze.json
+runs:
+  using: composite
+  steps:
+    - name: Run fspure analyze
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARGS=(analyze --project "${{ inputs.project }}" --format "${{ inputs.format }}" --output "${{ inputs.output }}")
+        if [ -n "${{ inputs.focus }}" ]; then
+          # shellcheck disable=SC2206
+          FOCUS=( ${{ inputs.focus }} )
+          ARGS+=(--focus "${FOCUS[@]}")
+        fi
+        if [ -n "${{ inputs.ignore }}" ]; then
+          # shellcheck disable=SC2206
+          IGNORE=( ${{ inputs.ignore }} )
+          ARGS+=(--ignore "${IGNORE[@]}")
+        fi
+        if [ "${{ inputs.fail-on-impure }}" = "true" ]; then
+          ARGS+=(--fail-on-impure)
+        fi
+        if [ -n "${{ inputs.analyzers-path }}" ]; then
+          ARGS+=(--analyzers-path "${{ inputs.analyzers-path }}")
+        fi
+        if [ -n "${{ inputs.cache-dir }}" ]; then
+          ARGS+=(--cache-dir "${{ inputs.cache-dir }}")
+        fi
+
+        if command -v fspure >/dev/null 2>&1; then
+          fspure "${ARGS[@]}"
+        elif [ -f src/fspure/fspure.fsproj ]; then
+          dotnet run --project src/fspure -c Release -- "${ARGS[@]}"
+        else
+          echo "::error::fspure not on PATH and src/fspure is missing. Install the fspure dotnet tool or check out this repo."
+          exit 2
+        fi

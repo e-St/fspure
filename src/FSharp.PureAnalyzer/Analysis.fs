@@ -12,6 +12,14 @@ module Analysis =
 
     type CallGraph = Map<string, string list>
 
+    /// One typed-tree call (or constructor) from an enclosing definition.
+    type CallSite =
+        {
+            Caller: string
+            Callee: string
+            Range: range
+        }
+
     let private isCallable (value: FSharpMemberOrFunctionOrValue) =
         value.IsFunction
         || value.IsMember
@@ -54,11 +62,12 @@ module Analysis =
     let buildCallGraph
         (files: FSharpImplementationFileContents seq)
         (_allSymbolUses: FSharpSymbolUse seq)
-        : CallGraph * Set<string> =
+        : CallGraph * Set<string> * CallSite list =
 
         let edges = Dictionary<string, HashSet<string>>(StringComparer.Ordinal)
         let definitions = HashSet<string>(StringComparer.Ordinal)
         let nonLocalMutation = HashSet<string>(StringComparer.Ordinal)
+        let sites = ResizeArray<CallSite>()
         let current = Stack<string>()
 
         let addEdge (caller: string) (callee: string) =
@@ -73,10 +82,19 @@ module Analysis =
 
                 set.Add(callee) |> ignore
 
-        let recordCall (callee: FSharpMemberOrFunctionOrValue) =
+        let recordCall (callee: FSharpMemberOrFunctionOrValue) (rng: range) =
             if isCallable callee && current.Count > 0 then
                 let caller = current.Peek()
-                addEdge caller (fullName callee)
+                let calleeName = fullName callee
+                addEdge caller calleeName
+
+                sites.Add(
+                    {
+                        Caller = caller
+                        Callee = calleeName
+                        Range = rng
+                    }
+                )
 
         let markNonLocalMutation () =
             if current.Count > 0 then
@@ -85,7 +103,7 @@ module Analysis =
         /// localMutables: `let mutable` keys and local `let r = ref ...` keys
         let rec visitExpr (localMutables: HashSet<string>) (e: FSharpExpr) =
             match e with
-            | Call(objExprOpt, memberOrFunc, _, _, argExprs) ->
+            | Call(objExprOpt, memberOrFunc, _, _, argExprs) as callExpr ->
                 if isColonEquals memberOrFunc then
                     // r := value  — same rule as ValueSet / `<-`
                     match argExprs with
@@ -100,14 +118,14 @@ module Analysis =
 
                     objExprOpt |> Option.iter (visitExpr localMutables)
                 else
-                    recordCall memberOrFunc
+                    recordCall memberOrFunc callExpr.Range
                     objExprOpt |> Option.iter (visitExpr localMutables)
                     argExprs |> List.iter (visitExpr localMutables)
 
             | Value _ -> ()
 
-            | NewObject(objType, _, argExprs) ->
-                recordCall objType
+            | NewObject(objType, _, argExprs) as newExpr ->
+                recordCall objType newExpr.Range
                 argExprs |> List.iter (visitExpr localMutables)
 
             | Let((bindingVar, bindingExpr, _), bodyExpr) ->
@@ -262,7 +280,7 @@ module Analysis =
         let callGraph =
             edges |> Seq.map (fun (KeyValue(k, v)) -> k, v |> Seq.toList) |> Map.ofSeq
 
-        callGraph, (nonLocalMutation |> Set.ofSeq)
+        callGraph, (nonLocalMutation |> Set.ofSeq), (sites |> Seq.toList)
 
     /// isKnownPure: true when the name is in the composed pure index (foundational + library embeds).
     let isPure

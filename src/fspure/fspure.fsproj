@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Fspure.Cli</RootNamespace>
+    <AssemblyName>fspure</AssemblyName>
+    <Nullable>enable</Nullable>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>fspure</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    <PackageId>fspure</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Agent-facing fspure CLI. `fspure analyze` runs FSharp.PureAnalyzer and emits deterministic JSON or SARIF of PURE002 / PURE003 diagnostics.</Description>
+    <PackageTags>fsharp;fspure;pure;analyzer;sarif;dotnet-tool</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/e-St/fspure</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/e-St/fspure</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>e-St</Authors>
+    <Copyright>Copyright (c) e-St and contributors</Copyright>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Paths.fs" />
+    <Compile Include="Filter.fs" />
+    <Compile Include="SarifRead.fs" />
+    <Compile Include="Report.fs" />
+    <Compile Include="Cache.fs" />
+    <Compile Include="Host.fs" />
+    <Compile Include="Analyze.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="fspure-analyze.schema.json" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="schema\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+</Project>

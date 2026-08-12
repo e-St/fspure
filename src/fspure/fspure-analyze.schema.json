@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/e-St/fspure/raw/main/src/fspure/fspure-analyze.schema.json",
+  "title": "fspure analyze report",
+  "description": "Deterministic document produced by `fspure analyze --format json`. Lists impure calls found inside functions (caller, callee, range). Facts only; no move advice.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "tool",
+    "toolVersion",
+    "project",
+    "focus",
+    "ignore",
+    "summary",
+    "impureCalls"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://github.com/e-St/fspure/raw/main/src/fspure/fspure-analyze.schema.json"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.1"
+    },
+    "tool": {
+      "type": "string",
+      "const": "fspure"
+    },
+    "toolVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "description": "Project path relative to the working directory, forward slashes. Empty when --sarif is used without --project."
+    },
+    "focus": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Normalized --focus patterns, sorted."
+    },
+    "ignore": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Normalized --ignore patterns, sorted."
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["impureCalls", "affectedCallers", "failOnImpure"],
+      "properties": {
+        "impureCalls": { "type": "integer", "minimum": 0 },
+        "affectedCallers": { "type": "integer", "minimum": 0 },
+        "failOnImpure": { "type": "boolean" }
+      }
+    },
+    "impureCalls": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/impureCall" }
+    }
+  },
+  "$defs": {
+    "impureCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caller",
+        "callee",
+        "file",
+        "startLine",
+        "startColumn",
+        "endLine",
+        "endColumn",
+        "message"
+      ],
+      "properties": {
+        "caller": {
+          "type": "string",
+          "description": "Full name of the enclosing function. Empty if the host did not name it."
+        },
+        "callee": {
+          "type": "string",
+          "description": "Full name of the impure function that was called."
+        },
+        "file": {
+          "type": "string",
+          "description": "Working-directory-relative path, forward slashes."
+        },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "startColumn": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 },
+        "message": {
+          "type": "string",
+          "description": "Analyzer fact text. Not an instruction."
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ It does that by defining a pure subset and marking everything else as impure.
 | Component | Role |
 |-----------|------|
 | **FSharp.PureAnalyzer** | Classifies definitions (`PURE002` impure / `PURE003` pure) for Ionide & `fsharp-analyzers` |
+| **fspure** | Agent CLI: `fspure analyze --fail-on-impure` → deterministic JSON/SARIF ([AGENT.md](src/docs/AGENT.md)) |
 | **fsharp-pure-decorations** | VS Code extension: end-of-line **pure** / **impure** badges after Ionide LineLens |
 
 | | |
@@ -52,3 +53,4 @@ Maintainer docs:
 - [src/docs/LANGUAGES.md](src/docs/LANGUAGES.md) — F# first  
 - [src/docs/DOCS.md](src/docs/DOCS.md) — docs / human anchors  
 - [src/docs/RELEASING.md](src/docs/RELEASING.md) — release flow  
+- [src/docs/AGENT.md](src/docs/AGENT.md) — `fspure analyze` for agents and CI  

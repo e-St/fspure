@@ -1,0 +1,53 @@
+name: Fspure Analyze CLI CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/fspure/**"
+      - "src/tests/fspure.Tests/**"
+      - "src/agent/**"
+      - "src/docs/AGENT.md"
+      - "fspure.slnx"
+      - ".github/workflows/fspure-analyze-ci.yml"
+      - ".github/actions/fspure-analyze/**"
+  pull_request:
+    paths:
+      - "src/fspure/**"
+      - "src/tests/fspure.Tests/**"
+      - "src/agent/**"
+      - "src/docs/AGENT.md"
+      - "fspure.slnx"
+      - ".github/workflows/fspure-analyze-ci.yml"
+      - ".github/actions/fspure-analyze/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+
+jobs:
+  unit:
+    name: fspure analyze unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Test
+        run: dotnet test src/tests/fspure.Tests/fspure.Tests.fsproj -c Release --nologo
+
+      - name: Pack tool
+        run: |
+          set -euo pipefail
+          dotnet pack src/fspure/fspure.fsproj -c Release -o artifacts/fspure-nupkg --nologo
+          ls -la artifacts/fspure-nupkg

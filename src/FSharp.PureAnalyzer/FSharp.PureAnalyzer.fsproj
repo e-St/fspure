@@ -28,6 +28,7 @@
     <!-- Paths used when packing collector + embed tools -->
     <_FspureCollectorPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-collector-publish\</_FspureCollectorPublish>
     <_FspureEmbedPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-embed-publish\</_FspureEmbedPublish>
+    <_FspureCliPublish>$(MSBuildThisFileDirectory)..\..\artifacts\fspure-publish\</_FspureCliPublish>
   </PropertyGroup>
 
   <ItemGroup>
@@ -77,11 +78,12 @@
     Stage F# tools (collector + embed) into the nupkg before GenerateNuspec.
   -->
   <Target Name="PrepareFspurePackageTools" BeforeTargets="GenerateNuspec;_GetPackageFiles;Pack">
-    <Message Importance="high" Text="Fspure: publishing fspure-collector + fspure-embed for package layout..." />
+    <Message Importance="high" Text="Fspure: publishing fspure-collector + fspure-embed + fspure CLI for package layout..." />
 
-    <MakeDir Directories="$(_FspureCollectorPublish);$(_FspureEmbedPublish)" />
+    <MakeDir Directories="$(_FspureCollectorPublish);$(_FspureEmbedPublish);$(_FspureCliPublish)" />
     <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\fspure-collector\fspure-collector.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCollectorPublish)&quot; --nologo -v q" />
     <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\Fspure.Embed\Fspure.Embed.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureEmbedPublish)&quot; --nologo -v q" />
+    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\fspure\fspure.fsproj&quot; -c $(Configuration) -f net10.0 -o &quot;$(_FspureCliPublish)&quot; --nologo -v q" />
 
     <ItemGroup>
       <_FspureCollectorFiles Include="$(_FspureCollectorPublish)**\*.*" />
@@ -93,6 +95,11 @@
       <None Include="@(_FspureEmbedFiles)"
             Pack="true"
             PackagePath="tools\fspure-embed\%(RecursiveDir)%(Filename)%(Extension)"
+            Visible="false" />
+      <_FspureCliFiles Include="$(_FspureCliPublish)**\*.*" />
+      <None Include="@(_FspureCliFiles)"
+            Pack="true"
+            PackagePath="tools\fspure\%(RecursiveDir)%(Filename)%(Extension)"
             Visible="false" />
     </ItemGroup>
   </Target>

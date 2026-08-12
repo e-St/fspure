@@ -21,6 +21,7 @@ Commands:
   ready-lib-gate
   phase1                    Customer-fixture analyzer baseline e2e
   phase5                    Full phase-5 regression net
+  analyze [args…]           Agent CLI (`src/fspure`, JSON/SARIF)
   assert-golden <path>      ReadyLib pure-methods golden check
   assert-nupkg <nupkg>      ReadyLib nupkg embed check
   help
@@ -74,6 +75,9 @@ let main argv =
         | Some "phase1" -> Phase1.run root
 
         | Some ("phase5" | "phase5-regression") -> Phase5.run root
+
+        | Some "analyze" ->
+            Repo.runProject root "src/fspure/fspure.fsproj" ("analyze" :: (argv |> Array.skip 1 |> Array.toList))
 
         | Some "assert-golden" ->
             match Array.tryItem 1 argv with

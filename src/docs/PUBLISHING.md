@@ -10,6 +10,7 @@ Both distribution channels stay active:
 | VS Code extension | [Open VSX](https://open-vsx.org/) | GitHub Release `.vsix` |
 | F# analyzer (+ MSBuild embed targets) | nuget.org | GitHub Packages + Release assets |
 | fspure-collector (dotnet tool) | nuget.org | GitHub Packages + Release assets |
+| fspure (`analyze` CLI + standalone) | nuget.org | GitHub Packages + `fspure-latest` Release asset |
 
 > **Note:** This project does **not** publish to the Visual Studio Marketplace (that path needs Azure DevOps / an Azure subscription). Open VSX is the default registry.
 

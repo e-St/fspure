@@ -100,6 +100,7 @@ jobs:
           unzip -l "./nupkgs/FSharp.PureAnalyzer.${VERSION}.nupkg" | tee /tmp/analyzer-nupkg.list
           grep -q 'build/FSharp.PureAnalyzer.targets' /tmp/analyzer-nupkg.list
           grep -qE 'tools/(fspure-collector|purity-collector)/' /tmp/analyzer-nupkg.list
+          grep -q 'tools/fspure/' /tmp/analyzer-nupkg.list
 
       - name: Pack fspure-collector tool
         if: ${{ steps.ver.outputs.publish_collector == 'true' && steps.ver.outputs.collector_version != '' }}
@@ -115,6 +116,20 @@ jobs:
             /p:PackageVersion="$VERSION"
           ls -la ./nupkgs
 
+      - name: Pack fspure analyze tool
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.collector_version }}"
+          if [[ -z "$VERSION" ]]; then
+            VERSION="${{ steps.ver.outputs.version }}"
+          fi
+          dotnet pack src/fspure/fspure.fsproj \
+            -c Release \
+            -o src/fspure/nupkgs \
+            /p:Version="$VERSION" \
+            /p:PackageVersion="$VERSION"
+          ls -la src/fspure/nupkgs
+
       - name: Upload nupkg artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -122,6 +137,7 @@ jobs:
           path: |
             src/FSharp.PureAnalyzer/nupkgs/*.nupkg
             src/fspure-collector/nupkgs/*.nupkg
+            src/fspure/nupkgs/*.nupkg
           if-no-files-found: error
 
       # Always ship GitHub Release assets (workflow_dispatch used to skip this and
@@ -148,12 +164,14 @@ jobs:
           | Artifact | Notes |
           |----------|--------|
           | \`FSharp.PureAnalyzer.${VERSION}.nupkg\` | Phase 3 layout: \`build/\` + \`tools/fspure-collector/\` + analyzers |
-          | \`fspure-collector.*.nupkg\` | Optional standalone dotnet tool (same workflow) |
+          | \`fspure-collector.*.nupkg\` | Optional standalone collector tool (same workflow) |
+          | \`fspure.*.nupkg\` | Agent CLI: \`fspure analyze\` |
 
           Install:
           \`\`\`bash
           dotnet add package FSharp.PureAnalyzer --version ${VERSION}
           dotnet tool install -g fspure-collector
+          dotnet tool install -g fspure
           \`\`\`
           "
 
@@ -178,6 +196,13 @@ jobs:
           if [[ -d src/fspure-collector/nupkgs ]] && compgen -G "src/fspure-collector/nupkgs/*.nupkg" >/dev/null; then
             gh release upload "$TAG" \
               src/fspure-collector/nupkgs/*.nupkg \
+              --repo "${{ github.repository }}" \
+              --clobber
+          fi
+
+          if [[ -d src/fspure/nupkgs ]] && compgen -G "src/fspure/nupkgs/*.nupkg" >/dev/null; then
+            gh release upload "$TAG" \
+              src/fspure/nupkgs/*.nupkg \
               --repo "${{ github.repository }}" \
               --clobber
           fi
@@ -212,6 +237,19 @@ jobs:
             --skip-duplicate
           echo "Published to nuget.org: fspure-collector ${{ steps.ver.outputs.collector_version }}"
 
+      - name: Publish fspure CLI to nuget.org
+        run: |
+          set -euo pipefail
+          if [[ ! -d src/fspure/nupkgs ]]; then
+            echo "no fspure nupkg"
+            exit 0
+          fi
+          dotnet nuget push src/fspure/nupkgs/*.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "Published to nuget.org: fspure"
+
       - name: Publish to GitHub Packages
         run: |
           set -euo pipefail
@@ -222,6 +260,12 @@ jobs:
             --skip-duplicate
           if [[ -d src/fspure-collector/nupkgs ]]; then
             dotnet nuget push src/fspure-collector/nupkgs/*.nupkg \
+              --api-key "${{ secrets.GITHUB_TOKEN }}" \
+              --source "$SRC" \
+              --skip-duplicate
+          fi
+          if [[ -d src/fspure/nupkgs ]]; then
+            dotnet nuget push src/fspure/nupkgs/*.nupkg \
               --api-key "${{ secrets.GITHUB_TOKEN }}" \
               --source "$SRC" \
               --skip-duplicate

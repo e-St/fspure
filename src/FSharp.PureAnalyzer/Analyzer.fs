@@ -36,7 +36,9 @@ module Analyzer =
         : Async<Message list> =
         async {
             let isKnownPure name = PureSet.containsIn pureIndex name
-            let callGraph, nonLocalMutation = buildCallGraph implementationFiles allSymbolUses
+            let callGraph, nonLocalMutation, callSites =
+                buildCallGraph implementationFiles allSymbolUses
+
             let nonPure = findNonPure isKnownPure callGraph nonLocalMutation
             let messages = ResizeArray<Message>()
 
@@ -80,20 +82,21 @@ module Analyzer =
                     }
                 )
 
-            // PURE001 – call sites of impure functions
-            for symbolUse in fileSymbolUses do
-                if
-                    not symbolUse.IsFromDefinition
-                    && symbolUse.FileName = fileName
-                    && isCallableSymbol symbolUse.Symbol
-                then
-                    match symbolUse.Symbol with
-                    | :? FSharpMemberOrFunctionOrValue as callee ->
-                        let calleeName = Name.fullNameOfMember callee
+            // PURE001 – impure callees invoked from an enclosing definition.
+            let seenCalls = HashSet<string>(StringComparer.Ordinal)
 
-                        if Set.contains calleeName nonPure then
-                            messages.Add(Diagnostics.impureCall calleeName symbolUse.Range)
-                    | _ -> ()
+            for site in callSites do
+                if site.Range.FileName = fileName && Set.contains site.Callee nonPure then
+                    let key =
+                        sprintf
+                            "%s\t%s\t%d\t%d"
+                            site.Caller
+                            site.Callee
+                            site.Range.StartLine
+                            site.Range.StartColumn
+
+                    if seenCalls.Add(key) then
+                        messages.Add(Diagnostics.impureCallInside site.Callee site.Caller site.Range)
 
             // PURE002 / PURE003 – definitions (at most one diagnostic per name)
             let seenDefs = HashSet<string>(StringComparer.Ordinal)

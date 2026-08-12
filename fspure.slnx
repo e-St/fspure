@@ -6,6 +6,8 @@
   <Project Path="src/tests/fixtures/MultiPureResources/MultiPureResources.fsproj" />
   <Project Path="src/fspure-collector/fspure-collector.fsproj" />
   <Project Path="src/tests/fspure-collector.Tests/fspure-collector.Tests.fsproj" />
+  <Project Path="src/fspure/fspure.fsproj" />
+  <Project Path="src/tests/fspure.Tests/fspure.Tests.fsproj" />
   <Project Path="src/FSharp.PureAnalyzer/FSharp.PureAnalyzer.fsproj" />
   <Project Path="src/tests/FSharp.PureAnalyzer.Tests/FSharp.PureAnalyzer.Tests.fsproj" />
   <Project Path="src/tests/FSharp.PureAnalyzer.Tests/integration/PureLib/PureLib.fsproj" />

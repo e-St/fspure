@@ -1,0 +1,73 @@
+name: Bundle fspure CLI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/fspure/**"
+      - "src/tests/fspure.Tests/**"
+      - ".github/workflows/bundle-fspure.yml"
+  pull_request:
+    paths:
+      - "src/fspure/**"
+      - "src/tests/fspure.Tests/**"
+      - ".github/workflows/bundle-fspure.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Test
+        run: dotnet test src/tests/fspure.Tests/fspure.Tests.fsproj -c Release --nologo
+
+      - name: PublishSingleFile linux-x64
+        run: |
+          set -euo pipefail
+          cd src/fspure
+          if command -v bundlef >/dev/null 2>&1; then
+            BINARY_PATH=$(bundlef -p | tail -n 1)
+          else
+            dotnet publish -r linux-x64 --self-contained true -c Release -p:PublishSingleFile=true --nologo
+            BINARY_PATH=$(find bin/Release -path "*/linux-x64/publish/fspure" -type f | head -1)
+          fi
+          echo "Binary: $BINARY_PATH"
+          mkdir -p ../../artifacts
+          cp "$BINARY_PATH" ../../artifacts/fspure
+          chmod +x ../../artifacts/fspure
+          ../../artifacts/fspure --help
+          ../../artifacts/fspure analyze --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fspure-linux-x64
+          path: artifacts/fspure
+          if-no-files-found: error
+
+      - name: Publish standalone on main
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: fspure-latest
+          name: fspure (latest standalone)
+          files: artifacts/fspure
+          prerelease: true
+          generate_release_notes: false
+          body: |
+            Standalone `fspure` linux-x64 single-file executable (`bundlef` / PublishSingleFile).
+            Agent contract: `fspure analyze --project <fsproj> --format json --fail-on-impure`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

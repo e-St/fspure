@@ -21,6 +21,14 @@ module Diagnostics =
     let impureCall (calleeName: string) (range: range) : Message =
         mkMessage "PURE001" Severity.Hint $"Call to '%s{calleeName}' is not known to be pure." range
 
+    /// PURE001 with the enclosing definition (facts for the agent CLI).
+    let impureCallInside (calleeName: string) (callerName: string) (range: range) : Message =
+        mkMessage
+            "PURE001"
+            Severity.Hint
+            $"Call to '%s{calleeName}' inside '%s{callerName}' is not known to be pure."
+            range
+
     /// PURE002: a declared function is not transitively pure.
     let impureFunction (functionName: string) (range: range) : Message =
         mkMessage "PURE002" Severity.Hint $"Function '%s{functionName}' is not transitively pure." range
