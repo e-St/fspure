@@ -1,7 +1,7 @@
 # Keep the published marketplace catalog aligned with plugins/fspure.
 #
 # Canonical skill: plugins/fspure/skills/fspure-reduce-impurity/SKILL.md
-# Copilot install: gh skill install (user scope, in the devcontainer)
+# Copilot install: gh skill install --scope user --pin <ref> --agent github-copilot
 #
 # On skill edits to main: bump the plugin version so marketplace clients
 # refresh. Bot commits are skipped to avoid a loop.
@@ -14,12 +14,18 @@ on:
       - "plugins/fspure/**"
       - ".claude-plugin/marketplace.json"
       - "src/scripts/update-fspure-plugin.sh"
+      - "src/devcontainer/install-fspure-skill.sh"
+      - "src/devcontainer/install-github-cli.sh"
+      - "src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh"
       - ".github/workflows/update-fspure-plugin.yml"
   pull_request:
     paths:
       - "plugins/fspure/**"
       - ".claude-plugin/marketplace.json"
       - "src/scripts/update-fspure-plugin.sh"
+      - "src/devcontainer/install-fspure-skill.sh"
+      - "src/devcontainer/install-github-cli.sh"
+      - "src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh"
       - ".github/workflows/update-fspure-plugin.yml"
   workflow_dispatch:
     inputs:
@@ -47,6 +53,29 @@ jobs:
 
       - name: Check lockstep
         run: bash src/scripts/update-fspure-plugin.sh --check
+
+  install:
+    name: Non-interactive gh skill install
+    if: github.repository == 'e-St/fspure' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install GitHub CLI 2.90+
+        run: bash src/devcontainer/install-github-cli.sh
+
+      - name: Install skill without a TTY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PROMPT_DISABLED: "1"
+          GIT_TERMINAL_PROMPT: "0"
+          FSPURE_SKILL_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          bash src/devcontainer/install-fspure-skill.sh
+          gh skill list --agent github-copilot --scope user
+          test -f "$HOME/.copilot/skills/fspure-reduce-impurity/SKILL.md"
 
   update:
     name: Sync catalog and bump version

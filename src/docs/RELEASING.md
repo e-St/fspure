@@ -66,7 +66,8 @@ Triggers **Official release**:
 2. Pack + publish selected packages
 3. GitHub Release assets (`v{version}`, mark Latest for analyzer)
 4. Promote `pending` → `lastOfficial`, clear `pending`
-5. **apply-version-pins**: fsproj / package.json / sample / fstarter `versions.env` / READMEs
+5. **apply-version-pins**: fsproj / package.json / sample / fstarter `versions.env` / READMEs  
+   (`FSPURE_SKILL_REF` becomes `v{analyzer}` — `gh skill` must find `plugins/fspure/skills/` on that tag)
 6. Commit pin updates to `main`
 7. Dispatch **Sync fspure-ready-lib** + **PR fspure updates to fstarter**
 
@@ -93,7 +94,7 @@ You may keep the existing policy for `nuget_publish.yml` as a manual fallback.
 | `src/editor/vscode-extension/package.json` | `version` |
 | `src/samples/fspure-ready-lib/Directory.Packages.props` | `FspureAnalyzerVersion` |
 | `src/samples/fspure-ready-lib/src/scripts/resolve-fspure-analyzer-version.sh` | fallback |
-| `src/scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION` |
+| `src/scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF=v{analyzer}` |
 | Sample / root README examples | version strings |
 
 ready-lib satellite is refreshed by **Sync fspure-ready-lib** (push).  

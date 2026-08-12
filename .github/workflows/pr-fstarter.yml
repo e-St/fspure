@@ -93,8 +93,13 @@ jobs:
             echo "Using versions.env / nuget.org: $VER"
           fi
 
-          # Keep monorepo versions.env in sync for the next local edit (committed only if changed via separate PR path — write for apply script)
-          echo "FSPURE_ANALYZER_VERSION=${VER}" > src/scripts/integrations/fstarter/versions.env
+          # Working copy for prepare-fstarter-update.sh (not committed).
+          # Keep FSPURE_SKILL_REF so gh skill install does not fall back to latest tag.
+          SKILL_REF="${FSPURE_SKILL_REF:-main}"
+          {
+            echo "FSPURE_ANALYZER_VERSION=${VER}"
+            echo "FSPURE_SKILL_REF=${SKILL_REF}"
+          } > src/scripts/integrations/fstarter/versions.env
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
       - name: Clone fstarter

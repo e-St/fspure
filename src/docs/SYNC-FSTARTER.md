@@ -28,7 +28,7 @@ flowchart LR
 |------------------|--------|
 | `.devcontainer/setup-fspure.sh` | `src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
 | `.devcontainer/devcontainer.json` | overlay (fspure Ionide / decorations settings) |
-| `.devcontainer/fspure-versions.env` | generated pin (`FSPURE_ANALYZER_VERSION=…`) |
+| `.devcontainer/fspure-versions.env` | generated pins (`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`) |
 | `Directory.Build.props` | strict compiler rules (FS0025, TreatWarningsAsErrors, Nullable) |
 | `.fspure-sync-source` | sync metadata |
 | `.gitignore` | ensures `**/analyzers/` is ignored |
@@ -37,7 +37,7 @@ flowchart LR
 
 ## Version pin
 
-`FSPURE_ANALYZER_VERSION` is written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`, which installs that exact package from nuget.org.
+`FSPURE_ANALYZER_VERSION` and `FSPURE_SKILL_REF` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin installs that exact package from nuget.org. The skill ref is passed to `gh skill install --pin` with `--agent github-copilot` (no TTY). Do not omit `--agent`: `gh` then prompts and Codespaces cancel. `v0.4.0` has no skill; keep `FSPURE_SKILL_REF=main` until the next official tag.
 
 Priority when resolving the pin:
 

@@ -61,9 +61,15 @@ sub1(
     rf"\g<1>{analyzer}\g<2>",
 )
 sub1(
-    root / "integrations" / "fstarter" / "versions.env",
+    root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
     r"(FSPURE_ANALYZER_VERSION=).*",
     rf"\g<1>{analyzer}",
+)
+# gh skill install --pin: next official tag includes the skill (v0.4.0 does not).
+sub1(
+    root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
+    r"(FSPURE_SKILL_REF=).*",
+    rf"\g<1>v{analyzer}",
 )
 
 readme = root / "samples" / "fspure-ready-lib" / "README.md"

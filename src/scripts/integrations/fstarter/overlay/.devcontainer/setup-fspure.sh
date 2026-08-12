@@ -35,6 +35,8 @@ fi
 
 # Default keeps templates working if the versions file is missing.
 FSPURE_ANALYZER_VERSION="${FSPURE_ANALYZER_VERSION:-0.4.0}"
+# gh skill defaults to the latest GitHub Release tag (v0.4.0 has no skill).
+FSPURE_SKILL_REF="${FSPURE_SKILL_REF:-main}"
 
 code_cli_usable() {
   command -v code >/dev/null 2>&1 || return 1
@@ -165,15 +167,23 @@ install_copilot_skill() {
     echo "WARNING: gh skill is unavailable (need GitHub CLI 2.90+); skip fspure Copilot skill." >&2
     return 0
   fi
-  if gh skill install e-St/fspure fspure-reduce-impurity --scope user; then
-    echo "✅ Copilot skill fspure-reduce-impurity (user scope)"
+  # Non-interactive: without --agent, gh prompts and Codespaces cancel.
+  # --pin: latest GitHub Release tag (v0.4.0) does not contain the skill.
+  export GH_PROMPT_DISABLED=1
+  export GIT_TERMINAL_PROMPT=0
+  if gh skill install e-St/fspure fspure-reduce-impurity \
+    --scope user \
+    --pin "$FSPURE_SKILL_REF" \
+    --force \
+    --agent github-copilot; then
+    echo "✅ Copilot skill fspure-reduce-impurity (user scope, pin ${FSPURE_SKILL_REF})"
     return 0
   fi
-  if gh skill update fspure-reduce-impurity; then
+  if gh skill update fspure-reduce-impurity --agent github-copilot; then
     echo "✅ Updated Copilot skill fspure-reduce-impurity"
     return 0
   fi
-  echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network?)." >&2
+  echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network / ref ${FSPURE_SKILL_REF}?)." >&2
 }
 
 install_copilot_skill

@@ -2,7 +2,9 @@
 # Keep the Claude marketplace catalog aligned with plugins/fspure.
 #
 # Canonical skill: plugins/fspure/skills/fspure-reduce-impurity/SKILL.md
-# Copilot install: gh skill install e-St/fspure fspure-reduce-impurity --scope user
+# Copilot install (non-interactive; pin a ref that contains the skill):
+#   gh skill install e-St/fspure fspure-reduce-impurity \
+#     --scope user --pin main --force --agent github-copilot
 #
 # Usage:
 #   bash src/scripts/update-fspure-plugin.sh --check
@@ -101,12 +103,28 @@ else:
         Path(market_path).write_text(json.dumps(market, indent=2) + "\n")
         print(f"synced {market_path}")
 
+skill = Path("plugins/fspure/skills/fspure-reduce-impurity/SKILL.md")
+if not skill.is_file():
+    errors.append(f"missing canonical skill {skill}")
+
+required_flags = ("--agent github-copilot", "--scope user", "--pin")
+for rel in (
+    "src/devcontainer/install-fspure-skill.sh",
+    "src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh",
+):
+    text = Path(rel).read_text()
+    for flag in required_flags:
+        if flag not in text:
+            errors.append(f"{rel}: missing {flag!r} (needed for non-interactive gh skill install)")
+
+if errors:
+    for e in errors:
+        print(e, file=sys.stderr)
+    sys.exit(1)
+
 if mode == "check":
-    if errors:
-        for e in errors:
-            print(e, file=sys.stderr)
-        sys.exit(1)
     print("marketplace catalog matches plugins/fspure")
+    print("Copilot install scripts pass --agent github-copilot and --pin")
     sys.exit(0)
 
 if not changed and mode != "bump":

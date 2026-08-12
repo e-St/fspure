@@ -12,7 +12,17 @@ The document is **facts only**: which impure function was called, inside which f
 dotnet tool install -g fspure
 ```
 
-GitHub Copilot (VS Code agent mode, Copilot CLI, coding agent): the Codespace / devcontainer runs `gh skill install e-St/fspure fspure-reduce-impurity --scope user`. Same command works outside the container (GitHub CLI 2.90+).
+GitHub Copilot (VS Code agent mode, Copilot CLI, coding agent). Non-interactive install (GitHub CLI 2.90+):
+
+```bash
+gh skill install e-St/fspure fspure-reduce-impurity \
+  --scope user \
+  --pin main \
+  --force \
+  --agent github-copilot
+```
+
+`--agent github-copilot` is required without a TTY. `--pin main` is required until the next official tag: `gh skill` otherwise uses the latest GitHub Release (`v0.4.0`), which has no discoverable skill. The Codespace / devcontainer runs this command on create/attach.
 
 Claude Code:
 
