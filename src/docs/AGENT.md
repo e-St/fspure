@@ -97,7 +97,7 @@ edit → compile → fspure analyze --fail-on-impure --focus <core> --format jso
      → if exit 1, read impureCalls (facts)
      → if the report is empty but a function is still impure, read the body
      → extract deferred effects into impure functions (do not hoist to top-level, do not delete)
-     → callers / host invoke the impure function when the effect should run, and the pure remainder for the value
+     → do not add executing calls that were not already running; composition examples stay comments
      → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
 
