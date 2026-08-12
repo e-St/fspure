@@ -6,5 +6,51 @@
     "fspure-collector": "0.1.0",
     "fsharp-pure-decorations": "0.2.5"
   },
-  "pending": null
+  "pending": {
+    "preparedAtUtc": "2026-08-12T21:10:01Z",
+    "preparedBy": "e-St",
+    "instructions": "Edit each component's `to` version and `publish` flag. Edit the matching CHANGELOG.* Unreleased section. Merge this PR to trigger official publish.",
+    "components": {
+      "FSharp.PureAnalyzer": {
+        "from": "0.4.0",
+        "to": "0.4.1",
+        "publish": true,
+        "paths": [
+          "src/FSharp.PureAnalyzer/",
+          "src/FSharp.PureSchema/",
+          "src/Fspure.Embed/"
+        ],
+        "changelog": "src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md"
+      },
+      "fspure-collector": {
+        "from": "0.1.0",
+        "to": "0.1.1",
+        "publish": true,
+        "paths": [
+          "src/fspure-collector/",
+          "src/FSharp.PureSchema/"
+        ],
+        "changelog": "src/docs/releases/CHANGELOG.fspure-collector.md"
+      },
+      "fsharp-pure-decorations": {
+        "from": "0.2.5",
+        "to": "0.2.6",
+        "publish": false,
+        "paths": [
+          "src/editor/vscode-extension/"
+        ],
+        "changelog": "src/docs/releases/CHANGELOG.fsharp-pure-decorations.md"
+      },
+      "fspure-reduce-impurity": {
+        "from": "0.1.0",
+        "to": "0.1.1",
+        "publish": true,
+        "paths": [
+          "plugins/fspure/"
+        ],
+        "changelog": "src/docs/releases/CHANGELOG.fspure-reduce-impurity.md",
+        "tag": "fspure-reduce-impurity-v0.1.1"
+      }
+    }
+  }
 }

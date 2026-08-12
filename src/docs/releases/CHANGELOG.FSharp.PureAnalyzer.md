@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-<!-- Filled by Prepare release PR from git log — edit freely before merge. -->
+### Draft (from git log — edit freely)
+
+- Add fspure analyze CLI that lists impure calls inside functions. (741abeb)
+- Fix analyzer pack path for NOTICE after docs moved to src/docs. (2deee37)
+- Restructure repo: editable sources under src/, generated under .generated/ (896b9e3)
+- Prefer F# and Nix: drop C#, Python generators, and Dockerfiles. (8813938)
+- Minimize monorepo root: move docs, assets, and NOTICE under docs/. (8f42b9a)
+- Restructure monorepo into src/tests/editor/docs/scripts. (0fd0a59)
 
 ## [0.4.0] — 2026-08-10
 
