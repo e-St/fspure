@@ -154,7 +154,7 @@ for name, (clog, path, from_ver, extra) in path_map.items():
     draft = f"## [Unreleased]\n\n### Draft (from git log — edit freely)\n\n{commits}\n\n"
     if re.search(r"^## \[Unreleased\]", text, re.M):
         text = re.sub(
-            r"^## \[Unreleased\][\s\S]*?(?=^## \[)",
+            r"^## \[Unreleased\][\s\S]*?(?=^## \[|\Z)",
             draft,
             text,
             count=1,
