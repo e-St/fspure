@@ -62,5 +62,7 @@
   "image": "ghcr.io/e-st/fstarter:latest",
   "postCreateCommand": "bash src/devcontainer/setup-fspure-ide.sh",
   "postAttachCommand": "bash src/devcontainer/setup-fspure-ide.sh",
-  "features": {}
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  }
 }

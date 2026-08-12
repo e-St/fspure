@@ -55,7 +55,9 @@
       }
     }
   },
-  "features": {},
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
   "remoteEnv": {
     "DOTNET_ROLL_FORWARD": "Major",
     "TMPDIR": "/home/vscode/.cache/nuget-tmp",

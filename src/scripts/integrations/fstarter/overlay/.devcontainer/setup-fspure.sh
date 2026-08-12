@@ -123,7 +123,40 @@ else
   echo "WARNING: VS Code 'code' CLI not usable; skip extension install." >&2
 fi
 
+ensure_github_cli() {
+  if command -v gh >/dev/null 2>&1 && gh skill --help >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "==> Installing GitHub CLI (gh skill needs 2.90+)"
+  local arch ver deb run=""
+  case "$(uname -m)" in
+    x86_64 | amd64) arch=amd64 ;;
+    aarch64 | arm64) arch=arm64 ;;
+    *)
+      echo "WARNING: unsupported architecture $(uname -m) for gh." >&2
+      return 1
+      ;;
+  esac
+  [[ "$(id -u)" -eq 0 ]] || run="sudo"
+  ver="$(
+    curl -fsSL https://api.github.com/repos/cli/cli/releases/latest \
+      | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'].lstrip('v'))"
+  )" || return 1
+  deb="$(mktemp --suffix=.deb)"
+  curl -fsSL -o "$deb" "https://github.com/cli/cli/releases/download/v${ver}/gh_${ver}_linux_${arch}.deb" || {
+    rm -f "$deb"
+    return 1
+  }
+  if ! $run dpkg -i "$deb"; then
+    $run apt-get update -qq
+    $run apt-get install -y -f -qq
+  fi
+  rm -f "$deb"
+  command -v gh >/dev/null 2>&1 && gh skill --help >/dev/null 2>&1
+}
+
 install_copilot_skill() {
+  ensure_github_cli || true
   if ! command -v gh >/dev/null 2>&1; then
     echo "WARNING: gh not on PATH; skip fspure Copilot skill." >&2
     return 0

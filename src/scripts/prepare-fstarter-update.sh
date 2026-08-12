@@ -86,7 +86,7 @@ fi
 echo "Prepared fstarter update in: $FSTARTER"
 echo "  FSPURE_ANALYZER_VERSION=$ANALYZER_VERSION"
 echo "  files:"
-echo "    .devcontainer/setup-fspure.sh"
+echo "    .devcontainer/setup-fspure.sh  (installs gh + Copilot skill if needed)"
 echo "    .devcontainer/devcontainer.json"
 echo "    .devcontainer/fspure-versions.env"
 echo "    Directory.Build.props (strict F# / C# compiler rules)"

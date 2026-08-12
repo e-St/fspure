@@ -3,6 +3,10 @@
 # User scope so it is not written into the repository.
 set -euo pipefail
 
+# shellcheck source=install-github-cli.sh
+source "$(dirname "$0")/install-github-cli.sh"
+ensure_github_cli || true
+
 if ! command -v gh >/dev/null 2>&1; then
   echo "WARNING: gh not on PATH; skip fspure Copilot skill." >&2
   exit 0

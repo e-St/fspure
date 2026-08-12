@@ -57,7 +57,7 @@ End-user install (analyzer + extension + settings) is generated **below** this h
 gh skill install e-St/fspure fspure-reduce-impurity --scope user
 ```
 
-Needs GitHub CLI 2.90+. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
+Needs GitHub CLI 2.90+. The fstarter / fspure Codespace installs `gh` if it is missing, then runs that command. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
 
 **Claude Code.** This repo is a plugin marketplace. Add it and install the plugin:
 
