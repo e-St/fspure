@@ -129,3 +129,9 @@ GITHUB_TOKEN=… bash src/scripts/release/publish-beta.sh
 | `OVSX_PAT` | Extension Open VSX (if publishing extension) |
 | `FSPURE_READY_LIB_PUSH_TOKEN` | ready-lib sync |
 | `FSPURE_FSTARTER_TOKEN` | fstarter PR |
+| `FSPURE_RELEASE_PR_TOKEN` | Prepare release PR (optional). Fine-grained PAT on **e-St/fspure**: Contents + Pull requests read/write. Needed when the default `GITHUB_TOKEN` is not allowed to create PRs. |
+
+If **Prepare release PR** fails with `GitHub Actions is not permitted to create or approve pull requests`, either:
+
+1. Repo (or org) **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**, or
+2. Add secret **`FSPURE_RELEASE_PR_TOKEN`**.

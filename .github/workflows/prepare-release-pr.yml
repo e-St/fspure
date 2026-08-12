@@ -66,6 +66,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # PAT bypasses "Actions cannot create PRs". Falls back to GITHUB_TOKEN
+          # if the secret is unset (needs the repo Actions setting enabled).
+          token: ${{ secrets.FSPURE_RELEASE_PR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Prepare pending release + changelog drafts
         env:
@@ -103,7 +106,7 @@ jobs:
 
       - name: Create branch and PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.FSPURE_RELEASE_PR_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           chmod +x src/scripts/release/create-release-pr.sh

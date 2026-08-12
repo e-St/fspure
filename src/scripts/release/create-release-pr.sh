@@ -59,17 +59,38 @@ Editable versions and changelogs under src/docs/releases/. Merge to publish."
 
 git push -u origin "HEAD:${BRANCH}" --force
 
+REPO="${GITHUB_REPOSITORY:-e-St/fspure}"
+COMPARE="https://github.com/${REPO}/compare/main...${BRANCH}?expand=1"
+
+fail_pr() {
+  echo "ERROR: could not create or update the Release PR." >&2
+  echo "Branch is on origin: ${BRANCH}" >&2
+  echo "Open it: ${COMPARE}" >&2
+  echo >&2
+  echo "The default GITHUB_TOKEN cannot create PRs unless the repo (or org) has" >&2
+  echo "  Settings → Actions → General → Workflow permissions →" >&2
+  echo "  Allow GitHub Actions to create and approve pull requests" >&2
+  echo "Or set secret FSPURE_RELEASE_PR_TOKEN (fine-grained PAT on this repo:" >&2
+  echo "  Contents read/write + Pull requests read/write)." >&2
+  exit 1
+}
+
 EXISTING="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
 if [[ -n "$EXISTING" ]]; then
-  gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+  gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY" || fail_pr
   gh pr edit "$EXISTING" --add-label "release" 2>/dev/null || true
   echo "Updated PR #$EXISTING"
-else
-  gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY" || true
-  NUM="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
-  if [[ -n "$NUM" ]]; then
-    gh pr edit "$NUM" --add-label "release" 2>/dev/null || \
-      gh label create release --description "Official release PR" --color "0E8A16" 2>/dev/null || true
-    gh pr edit "$NUM" --add-label "release" 2>/dev/null || true
-  fi
+  exit 0
 fi
+
+if ! gh pr create --base main --head "$BRANCH" --title "$TITLE" --body "$BODY"; then
+  fail_pr
+fi
+NUM="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
+if [[ -z "$NUM" ]]; then
+  fail_pr
+fi
+gh pr edit "$NUM" --add-label "release" 2>/dev/null || \
+  gh label create release --description "Official release PR" --color "0E8A16" 2>/dev/null || true
+gh pr edit "$NUM" --add-label "release" 2>/dev/null || true
+echo "Created PR #$NUM"
