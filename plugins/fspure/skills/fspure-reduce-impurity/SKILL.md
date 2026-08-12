@@ -17,13 +17,13 @@ fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --f
 
 `impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. If it is empty but a focused function is still impure (PURE002, or I/O you can see in a `let`), treat those effects as work too.
 
-**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). If a function body contains an impure call, keep the function's name and make it **higher-order**: take the impurity as a function argument (dependencies first). Name that parameter by use case, not the old callee — `write`, `read`, `send`, `log`, … Define the outsourced effect as a real example function with the same name.
+**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). If a function body contains an impure call, keep the function's name and make it **higher-order**: take the impurity as a function argument (dependencies first). Name that parameter by use case — `write`, `read`, `send`, `log`, … Define the outsourced effect as a real example function whose name is **factual** (`printfHello`, `readConfigFile`, …). Never give the example the same name as the parameter.
 
 Stay idiomatic F#: curried `let add write x y`, not tupled, not an interface/`type`/class just to inject I/O. Tests can pass `ignore`. Do not add live call sites that were not already executing.
 
 ```
 // before                         // after
-let add x y =                     let write s = printf "%s" s
+let add x y =                     let printfHello s = printf "%s" s
     printf "hello"                let add write x y =
     x + y                             write "hello"
                                       x + y
