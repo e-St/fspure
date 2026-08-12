@@ -18,6 +18,7 @@ on:
       - "src/scripts/prepare-fstarter-update.sh"
       - ".github/workflows/pr-fstarter.yml"
       - "src/docs/SYNC-FSTARTER.md"
+      - "plugins/fspure/skills/**"
   workflow_dispatch:
     inputs:
       analyzer_version:

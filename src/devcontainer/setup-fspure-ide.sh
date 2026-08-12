@@ -25,6 +25,7 @@ source "$(dirname "$0")/nuget-tmp-env.sh"
 cd "$(dirname "$0")"
 bash install-analyzer-nuget.sh
 bash install-openvsx-extension.sh
+bash install-fspure-skill.sh
 
 echo ""
 echo "✅ fspure IDE setup done."

@@ -123,6 +123,28 @@ else
   echo "WARNING: VS Code 'code' CLI not usable; skip extension install." >&2
 fi
 
+install_copilot_skill() {
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "WARNING: gh not on PATH; skip fspure Copilot skill." >&2
+    return 0
+  fi
+  if ! gh skill --help >/dev/null 2>&1; then
+    echo "WARNING: gh skill is unavailable (need GitHub CLI 2.90+); skip fspure Copilot skill." >&2
+    return 0
+  fi
+  if gh skill install e-St/fspure fspure-reduce-impurity --scope user; then
+    echo "✅ Copilot skill fspure-reduce-impurity (user scope)"
+    return 0
+  fi
+  if gh skill update fspure-reduce-impurity; then
+    echo "✅ Updated Copilot skill fspure-reduce-impurity"
+    return 0
+  fi
+  echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network?)." >&2
+}
+
+install_copilot_skill
+
 echo ""
 echo "✅ fspure setup done."
 echo "   Analyzer: $WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll (pin $FSPURE_ANALYZER_VERSION)"

@@ -1,0 +1,24 @@
+{
+  "name": "fspure",
+  "owner": {
+    "name": "e-St",
+    "url": "https://github.com/e-St"
+  },
+  "metadata": {
+    "description": "Agent skills for fspure \u2014 F# purity analysis."
+  },
+  "plugins": [
+    {
+      "name": "fspure",
+      "source": "./plugins/fspure",
+      "description": "Push impurity to the F# application boundary using fspure analyze.",
+      "version": "0.1.0",
+      "homepage": "https://github.com/e-St/fspure",
+      "keywords": [
+        "fsharp",
+        "purity",
+        "fspure"
+      ]
+    }
+  ]
+}

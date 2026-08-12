@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-Purity refactors: load `src/agent/fspure-push-impurity/SKILL.md` and drive the loop with `fspure analyze` (`src/docs/AGENT.md`).
+Purity refactors: use the `fspure-reduce-impurity` skill (`gh skill install e-St/fspure fspure-reduce-impurity --scope user`) and `fspure analyze`. CLI: `src/docs/AGENT.md`.
 
 ## Package management
 

@@ -36,6 +36,10 @@ src/tests/e2e/phase2/.devcontainer/devcontainer.json
 # Dev container / local Ionide drop of FSharp.PureAnalyzer.dll
 analyzers/
 
+# Agent skill installs (use `gh skill install --scope user`, do not commit copies)
+.github/skills/
+.grok/skills/
+
 # E2E / editor local artifacts
 src/tests/e2e/.artifacts/
 src/tests/e2e/customer-fixture/analyzers/

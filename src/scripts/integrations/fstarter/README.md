@@ -59,7 +59,7 @@ src/scripts/integrations/fstarter/
     Directory.Build.props      # same strict F# rules as fspure monorepo
     .devcontainer/
       devcontainer.json        # fspure-enabled Codespace settings
-      setup-fspure.sh          # install analyzer + decorations
+      setup-fspure.sh          # analyzer, decorations, `gh skill install`
 ```
 
 ## Optional: newf package reference

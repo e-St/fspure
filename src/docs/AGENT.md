@@ -12,6 +12,17 @@ The document is **facts only**: which impure function was called, inside which f
 dotnet tool install -g fspure
 ```
 
+GitHub Copilot (VS Code agent mode, Copilot CLI, coding agent): the Codespace / devcontainer runs `gh skill install e-St/fspure fspure-reduce-impurity --scope user`. Same command works outside the container (GitHub CLI 2.90+).
+
+Claude Code:
+
+```text
+/plugin marketplace add e-St/fspure
+/plugin install fspure@fspure
+```
+
+The skill body is `plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`. Edits on `main` run **Update fspure plugin**, which bumps the marketplace plugin version.
+
 Standalone linux-x64 (fstarter `bundlef` / PublishSingleFile):
 
 ```bash
@@ -69,7 +80,7 @@ The JSON (and SARIF) document is **byte-identical** for the same inputs: sorted 
 
 ## Agent loop
 
-Defined for humans here; the executable skill at [`src/agent/fspure-push-impurity/SKILL.md`](../agent/fspure-push-impurity/SKILL.md) is what agents should load.
+Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`](../plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
 
 ```text
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json

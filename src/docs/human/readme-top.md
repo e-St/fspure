@@ -34,6 +34,7 @@ It does that by defining a pure subset and marking everything else as impure.
 | `src/docs/human/` | Hand-authored prose for generated docs (this file leads the README) |
 | `.generated/` | Generated outputs (gitignored) |
 | `.github/` | CI |
+| `plugins/fspure/` | Published agent skill / Claude marketplace plugin |
 | `flake.nix` | Optional .NET SDK shell only |
 
 ## Quick start (maintainers)
@@ -47,6 +48,25 @@ dotnet run --project src/DevcontainerGen
 ```
 
 End-user install (analyzer + extension + settings) is generated **below** this human section, and on **[fspure.net](https://fspure.net)**.
+
+## Agent skill
+
+**GitHub Copilot.** The Codespace / devcontainer installs the published skill into your user profile (not the repo):
+
+```text
+gh skill install e-St/fspure fspure-reduce-impurity --scope user
+```
+
+Needs GitHub CLI 2.90+. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
+
+**Claude Code.** This repo is a plugin marketplace. Add it and install the plugin:
+
+```text
+/plugin marketplace add e-St/fspure
+/plugin install fspure@fspure
+```
+
+Then run `/fspure:fspure-reduce-impurity`, or let Claude pick the skill from the task. The skill lives in [`plugins/fspure/`](plugins/fspure/).
 
 Maintainer docs:
 

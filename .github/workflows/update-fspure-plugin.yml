@@ -1,0 +1,112 @@
+# Keep the published marketplace catalog aligned with plugins/fspure.
+#
+# Canonical skill: plugins/fspure/skills/fspure-reduce-impurity/SKILL.md
+# Copilot install: gh skill install (user scope, in the devcontainer)
+#
+# On skill edits to main: bump the plugin version so marketplace clients
+# refresh. Bot commits are skipped to avoid a loop.
+name: Update fspure plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/fspure/**"
+      - ".claude-plugin/marketplace.json"
+      - "src/scripts/update-fspure-plugin.sh"
+      - ".github/workflows/update-fspure-plugin.yml"
+  pull_request:
+    paths:
+      - "plugins/fspure/**"
+      - ".claude-plugin/marketplace.json"
+      - "src/scripts/update-fspure-plugin.sh"
+      - ".github/workflows/update-fspure-plugin.yml"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Semver component to bump on main"
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-fspure-plugin
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Marketplace catalog matches plugin
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check lockstep
+        run: bash src/scripts/update-fspure-plugin.sh --check
+
+  update:
+    name: Sync catalog and bump version
+    if: >
+      github.repository == 'e-St/fspure' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect skill change
+        id: skill
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git rev-parse HEAD^ >/dev/null 2>&1 \
+            && git diff --name-only HEAD^ HEAD -- plugins/fspure/skills/ plugins/fspure/README.md plugins/fspure/.claude-plugin/plugin.json \
+            | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync and bump
+        run: |
+          set -euo pipefail
+          chmod +x src/scripts/update-fspure-plugin.sh
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            bash src/scripts/update-fspure-plugin.sh --bump "${{ github.event.inputs.bump }}"
+          elif [[ "${{ steps.skill.outputs.changed }}" == "true" ]]; then
+            bash src/scripts/update-fspure-plugin.sh --bump patch
+          else
+            bash src/scripts/update-fspure-plugin.sh --sync
+          fi
+
+      - name: Commit if needed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            plugins/fspure/.claude-plugin/plugin.json \
+            .claude-plugin/marketplace.json
+
+          if git diff --staged --quiet; then
+            echo "Marketplace plugin already up to date."
+            exit 0
+          fi
+
+          VER="$(python3 -c "import json; print(json.load(open('plugins/fspure/.claude-plugin/plugin.json'))['version'])")"
+          git commit -m "chore(plugin): publish fspure skill ${VER}
+
+          Bumps the marketplace plugin so Copilot (gh skill install) and Claude Code pick up the new SKILL.md."
+          git push
+          echo "Pushed plugin ${VER}"
