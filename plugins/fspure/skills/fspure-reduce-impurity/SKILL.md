@@ -2,12 +2,15 @@
 name: fspure-reduce-impurity
 description: >
   Push side effects out of F# core logic with `fspure analyze`.
+  For F# aficionados and anyone else.
   Use when making F# purer, fixing impure-in-pure, or the user mentions
   fspure analyze, PURE001, or PURE002.
 license: MIT
 ---
 
 # fspure-reduce-impurity
+
+For F# aficionados and anyone else.
 
 `fspure` is already on PATH in fspure / fstarter Codespaces. Do **not** download GitHub releases, search nuget, clone trees, or inspect `~/.nuget`. If `command -v fspure` fails, stop and tell the user to rebuild the container.
 
