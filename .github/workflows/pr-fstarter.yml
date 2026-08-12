@@ -77,12 +77,17 @@ jobs:
             fi
           fi
 
+          # Always load pack pins first so a skill/CLI pin is not dropped when
+          # the analyzer version comes from a release tag or workflow input.
+          # shellcheck disable=SC1091
+          set -a
+          source src/scripts/integrations/fstarter/versions.env
+          set +a
+
           if [[ -n "${INPUT}" ]]; then
             VER="$INPUT"
             echo "Using explicit/release version: $VER"
           else
-            # shellcheck disable=SC1091
-            source src/scripts/integrations/fstarter/versions.env
             VER="${FSPURE_ANALYZER_VERSION:-}"
             if [[ -z "$VER" || "$VER" == "latest" ]]; then
               VER="$(
@@ -93,16 +98,11 @@ jobs:
             echo "Using versions.env / nuget.org: $VER"
           fi
 
-          # Working copy for prepare-fstarter-update.sh (not committed).
-          # Keep FSPURE_SKILL_REF so gh skill install does not fall back to latest tag.
           SKILL_REF="${FSPURE_SKILL_REF:-main}"
           CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
-          {
-            echo "FSPURE_ANALYZER_VERSION=${VER}"
-            echo "FSPURE_SKILL_REF=${SKILL_REF}"
-            echo "FSPURE_CLI_RELEASE=${CLI_RELEASE}"
-          } > src/scripts/integrations/fstarter/versions.env
           echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "skill_ref=$SKILL_REF" >> "$GITHUB_OUTPUT"
+          echo "cli_release=$CLI_RELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Clone fstarter
         env:
@@ -116,6 +116,8 @@ jobs:
       - name: Apply integration pack
         env:
           FSPURE_ANALYZER_VERSION: ${{ steps.ver.outputs.version }}
+          FSPURE_SKILL_REF: ${{ steps.ver.outputs.skill_ref }}
+          FSPURE_CLI_RELEASE: ${{ steps.ver.outputs.cli_release }}
         run: |
           set -euo pipefail
           bash src/scripts/prepare-fstarter-update.sh \
@@ -135,8 +137,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           SHORT_SHA="${GITHUB_SHA:0:7}"
-          SKILL_REF="$(grep -E '^FSPURE_SKILL_REF=' .devcontainer/fspure-versions.env | cut -d= -f2- || true)"
-          SKILL_REF="${SKILL_REF:-main}"
+          SUBJECT="$(git -C "${GITHUB_WORKSPACE}" log -1 --pretty=%s 2>/dev/null || true)"
           BRANCH="fspure/sync-${ANALYZER_VERSION}-${SHORT_SHA}"
 
           git checkout -B "$BRANCH"
@@ -144,24 +145,24 @@ jobs:
 
           if git diff --staged --quiet; then
             echo "No file changes in fstarter vs current main — nothing to PR."
-            # Still report success; optional comment for visibility
             exit 0
           fi
 
-          MSG="chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})
+          DESCRIBE="$(python3 "${GITHUB_WORKSPACE}/src/scripts/describe-fstarter-pr.py" \
+            --fstarter . \
+            --fspure-sha "${GITHUB_SHA}" \
+            --fspure-repo "${GITHUB_REPOSITORY}" \
+            --server-url "${GITHUB_SERVER_URL}" \
+            --run-id "${GITHUB_RUN_ID}" \
+            --event "${GITHUB_EVENT_NAME}" \
+            --subject "${SUBJECT}" \
+            --ref-name "${GITHUB_REF_NAME}")"
+          TITLE="$(printf '%s\n' "$DESCRIBE" | head -n 1)"
+          BODY="$(printf '%s\n' "$DESCRIBE" | tail -n +3)"
 
-          Source: e-St/fspure@${SHORT_SHA}
-          Path: src/scripts/integrations/fstarter
-          Monorepo: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}
+          git commit -m "${TITLE}
 
-          Updates:
-          - .devcontainer/setup-fspure.sh
-          - .devcontainer/devcontainer.json (fspure Ionide / decorations settings)
-          - .devcontainer/fspure-versions.env (FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION})
-          - Directory.Build.props (strict compiler: TreatWarningsAsErrors, FS0025)
-          "
-
-          git commit -m "$MSG"
+          ${BODY}"
 
           if [[ "${DRY_RUN}" == "true" ]]; then
             echo "Dry run: not pushing. Commit:"
@@ -171,37 +172,14 @@ jobs:
 
           git push -u origin "HEAD:${BRANCH}" --force
 
-          # Open or update PR
           EXISTING="$(gh pr list --repo e-St/fstarter --head "$BRANCH" --json number --jq '.[0].number // empty')"
-          BODY="## fspure → fstarter sync
-
-          Automated update from [e-St/fspure](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}) (\`${SHORT_SHA}\`).
-
-          | | |
-          |--|--|
-          | **FSharp.PureAnalyzer** | \`${ANALYZER_VERSION}\` (nuget.org) |
-          | **Skill pin** | \`${SKILL_REF}\` (\`gh skill install --pin\`) |
-          | **Source path** | \`src/scripts/integrations/fstarter/\` |
-          | **Workflow** | [run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |
-
-          ### Files
-          - \`.devcontainer/setup-fspure.sh\` — install pin + mirror for Ionide
-          - \`.devcontainer/devcontainer.json\` — analyzers path, pure decorations, LineLens
-          - \`.devcontainer/fspure-versions.env\` — \`FSPURE_ANALYZER_VERSION=${ANALYZER_VERSION}\`, \`FSPURE_SKILL_REF=${SKILL_REF}\`
-          - \`Directory.Build.props\` — strict F# compiler rules (same as fspure monorepo)
-
-          Does **not** overwrite \`Dockerfile\`, \`newf.sh\`, or other fstarter-owned tooling.
-
-          After merge: open a Codespace / rebuild container so \`setup-fspure.sh\` picks up the new pin.
-          "
-
           if [[ -n "$EXISTING" ]]; then
-            gh pr edit "$EXISTING" --repo e-St/fstarter --title "chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})" --body "$BODY"
-            echo "Updated existing PR #$EXISTING"
+            gh pr edit "$EXISTING" --repo e-St/fstarter --title "$TITLE" --body "$BODY"
+            echo "Updated existing PR #$EXISTING — $TITLE"
           else
             gh pr create --repo e-St/fstarter \
               --base main \
               --head "$BRANCH" \
-              --title "chore(fspure): sync integration pack (analyzer ${ANALYZER_VERSION})" \
+              --title "$TITLE" \
               --body "$BODY"
           fi

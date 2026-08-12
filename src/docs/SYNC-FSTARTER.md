@@ -12,7 +12,7 @@ Target:
 https://github.com/e-St/fstarter
 ```
 
-Unlike `fspure-ready-lib` (force-push satellite), **fstarter** receives a **pull request** so template maintainers can review devcontainer and version pin changes.
+Unlike `fspure-ready-lib` (force-push satellite), **fstarter** receives a **pull request** so template maintainers can review pin and setup changes. The title names the actual change (`fspure: pin skill main → fspure-reduce-impurity-v0.1.1`, `fspure: update Codespace setup`, …); the body shows old → new pins and only the files that differ from fstarter `main`.
 
 ```mermaid
 flowchart LR
