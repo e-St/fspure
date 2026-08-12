@@ -2,7 +2,7 @@
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
   Channel: stable | Ref: v0.4.0 | Version: 0.4.0
-  Generated: 2026-08-10T20:36:22Z
+  Generated: 2026-08-12T21:37:11Z
 -->
 
 # Using fspure (get started)
@@ -109,6 +109,17 @@ Recommended extras (LineLens + hide grey diagnostic noise) — full Ionide block
     "**/obj": true,
     "**/bin": true,
     "**/.paket": true
+  },
+  "chat.agent.sandbox.enabled": "on",
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.global.autoApprove": false,
+  "chat.tools.terminal.blockDetectedFileWrites": "outsideWorkspace",
+  "chat.tools.terminal.autoApprove": {
+    "/^fspure(\\s|$)/": true,
+    "/^dotnet\\s\u002B(build|test)\\b/": true,
+    "/^dotnet\\s\u002Brun\\b.*\\sanalyze\\b/": true,
+    "which": true,
+    "command": true
   }
 }
 ```
