@@ -17,9 +17,20 @@ fspure analyze --project <fsproj> --focus <core> --ignore <io> --format json --f
 
 `impureCalls[]` is the call-site report: `caller`, `callee`, range. Facts, not a move list. If it is empty but a focused function is still impure (PURE002, or I/O you can see in a `let`), treat those effects as work too.
 
-**Never delete an effect.** Relocate it to the application / I/O boundary (`main`, top-level, host). The program must still do the same visible work (`printf "hello"` stays a `printf "hello"`, just not inside `add`). Do not drop, skip, or "simplify away" side effects to make a function look pure.
+**Never delete an effect. Never hoist a deferred effect to top-level** (that would run it at module load). An effect that only lives in a function body is not executing yet — extract it into its own **impure function** so it still runs only when called. The original function becomes the pure remainder. Later, callers (or the host) compose them: call the impure function when the effect should happen, and call the pure function for the value.
 
-Loop: `dotnet build` → analyze → move each effect to the boundary → repeat. Exit 0 and no leftover focused effects is done. Exit 2/3 is a tool error.
+```
+// before                         // after
+let add x y =                     let greet () = printf "hello"
+    printf "hello"                let add x y = x + y
+    x + y                         // at former add call sites / host:
+                                  greet ()
+                                  add 2 3
+```
+
+Do not write `printf "hello"` at file scope. Do not drop, skip, or "simplify away" the effect.
+
+Loop: `dotnet build` → analyze → extract deferred effects into impure functions → repeat. Exit 0 and no leftover focused effects is done. Exit 2/3 is a tool error.
 
 Stop when remaining focused calls are ≤ 10% of the first `summary.impureCalls` and none still belong in the core. Cap 25 iterations.
 

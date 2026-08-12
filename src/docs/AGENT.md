@@ -96,7 +96,8 @@ Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impu
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json
      → if exit 1, read impureCalls (facts)
      → if the report is empty but a function is still impure, read the body
-     → move each effect to the I/O boundary — never delete it
+     → extract deferred effects into impure functions (do not hoist to top-level, do not delete)
+     → callers / host invoke the impure function when the effect should run, and the pure remainder for the value
      → repeat until exit 0, or remaining calls are <10% and none still belongs in the core
 ```
 
