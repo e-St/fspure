@@ -7,7 +7,7 @@
     "fsharp-pure-decorations": "0.2.5"
   },
   "pending": {
-    "preparedAtUtc": "2026-08-12T21:06:30Z",
+    "preparedAtUtc": "2026-08-12T21:22:13Z",
     "preparedBy": "e-St",
     "instructions": "Edit each component's `to` version and `publish` flag. Edit the matching CHANGELOG.* Unreleased section. Merge this PR to trigger official publish.",
     "components": {
