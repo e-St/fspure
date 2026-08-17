@@ -166,6 +166,7 @@ module Render =
                     Path.Combine(docsSrc, "assets", "fspure.png"), "fspure.png"
                     Path.Combine(docsSrc, "assets", "fspure.png"), Path.Combine("assets", "fspure.png")
                     Path.Combine(docsSrc, "assets", "image.png"), Path.Combine("assets", "image.png")
+                    Path.Combine(docsSrc, "assets", "home.js"), "home.js"
                     Path.Combine(docsSrc, ".nojekyll"), ".nojekyll"
                 ]
 

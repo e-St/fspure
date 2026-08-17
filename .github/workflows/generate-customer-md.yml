@@ -10,6 +10,7 @@ on:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
       - "src/docs/human/**"
+      - "src/docs/assets/**"
       - "src/devcontainer/fragments/**"
       - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
@@ -18,6 +19,7 @@ on:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
       - "src/docs/human/**"
+      - "src/docs/assets/**"
       - "src/devcontainer/fragments/**"
       - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
@@ -44,4 +46,11 @@ jobs:
           grep -q "Using the fspure skill" .generated/site/preview/ci-check/README.md
           grep -q "Using the fspure skill" .generated/site/preview/ci-check/customer.md
           grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html
+          grep -q "aria-label=\"GitHub\"" .generated/site/preview/ci-check/index.html
+          grep -q "aria-label=\"Releases\"" .generated/site/preview/ci-check/index.html
+          grep -q "Get Started" .generated/site/preview/ci-check/index.html
+          grep -q "the \"hard\" way" .generated/site/preview/ci-check/index.html
+          grep -q "with your AI agents" .generated/site/preview/ci-check/index.html
+          grep -q "home.js" .generated/site/preview/ci-check/index.html
+          test -f .generated/site/preview/ci-check/home.js
           echo "OK: docs generator rendered preview artifacts under .generated/"
