@@ -68,7 +68,7 @@ Maintainer docs:
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-17T19:06:33Z
+  Generated: 2026-08-17T20:18:26Z
 -->
 
 

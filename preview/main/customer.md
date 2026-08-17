@@ -2,7 +2,7 @@
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-17T19:06:33Z
+  Generated: 2026-08-17T20:18:26Z
 -->
 
 # Using fspure (get started)
@@ -102,6 +102,7 @@ Recommended extras (LineLens + hide grey diagnostic noise) — full Ionide block
   "FSharp.codeLenses.references.enabled": false,
   "editor.formatOnSave": true,
   "fsharpPureDecorations.enabled": true,
+  "livePreview.defaultPreviewPath": "/.generated/site/index.html",
   "workbench.colorCustomizations": {
     "editorHint.foreground": "#00000000",
     "editorHint.border": "#00000000",
