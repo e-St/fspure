@@ -21,11 +21,184 @@
       Stable: <a href="https://fspure.net/">fspure.net</a>
     </p>
 
-    <nav class="links" aria-label="Project links">
-      <a href="https://github.com/e-St/fspure">GitHub</a>
-      <a href="README.md">Get started</a>
-      <a href="https://github.com/e-St/fspure/releases">Releases</a>
+    <nav class="icon-links" aria-label="Project links">
+      <a class="icon-link" href="https://github.com/e-St/fspure" title="GitHub" aria-label="GitHub">
+        <svg viewBox="0 0 16 16" width="32" height="32" aria-hidden="true">
+          <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+      <a class="icon-link" href="https://github.com/e-St/fspure/releases" title="Releases" aria-label="Releases">
+        <svg viewBox="0 0 16 16" width="32" height="32" aria-hidden="true">
+          <path fill="currentColor" d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/>
+        </svg>
+      </a>
     </nav>
+
+    <section class="start-graph" aria-label="Get started">
+      <div id="start-graph"></div>
+      <div id="start-fallback" class="start-fallback">
+        <p class="start-root-label">Get Started ...</p>
+        <div class="start-fallback-row">
+          <button type="button" data-panel="hard" aria-pressed="false">the "hard" way</button>
+          <button type="button" data-panel="agents" aria-pressed="false">with your AI agents</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-hard" class="expand-panel legal" hidden>
+      <h2>the "hard" way</h2>
+      <p class="lead">
+        You already write F#. You want <strong>pure</strong> / <strong>impure</strong> labels
+        on your functions in the editor — two small pieces plus Ionide.
+      </p>
+      <ol>
+        <li><strong>Analyzer</strong> — decides pure vs impure</li>
+        <li><strong>Extension</strong> — draws the badges at end of line</li>
+      </ol>
+
+      <h3>1. Add the analyzer to your project</h3>
+      <figure class="codebox" data-lang="shell">
+        <figcaption>Command line</figcaption>
+        <pre><code>dotnet add package FSharp.PureAnalyzer --version 0.4.0</code></pre>
+      </figure>
+      <p>Or with Paket:</p>
+      <figure class="codebox" data-lang="shell">
+        <figcaption>Paket</figcaption>
+        <pre><code>nuget FSharp.PureAnalyzer 0.4.0</code></pre>
+      </figure>
+      <p>
+        Copy the package’s <code>analyzers/dotnet/fs/</code> folder into a workspace folder named
+        <code>analyzers</code> (next to your solution). Ionide needs a real path — not <code>~</code>
+        and not VS Code variables.
+      </p>
+
+      <h3>2. Install the editor pieces</h3>
+      <ul>
+        <li><strong>Ionide for F#</strong> — if you don’t already use it</li>
+        <li><strong>F# Pure Analyzer Decorations</strong> (<code>e-st.fsharp-pure-decorations</code>) from
+          <a href="https://open-vsx.org/extension/e-st/fsharp-pure-decorations">Open VSX</a>
+          (or the <code>.vsix</code> from
+          <a href="https://github.com/e-St/fspure/releases">GitHub Releases</a>)</li>
+      </ul>
+
+      <h3>3. Turn on analyzers in the workspace</h3>
+      <p>Create or edit <code>.vscode/settings.json</code>:</p>
+      <figure class="codebox" data-lang="json">
+        <figcaption>Workspace settings</figcaption>
+        <pre><code>{
+  "FSharp.enableAnalyzers": true,
+  "FSharp.analyzersPath": [
+    "analyzers",
+    "packages/Analyzers"
+  ],
+  "fsharpPureDecorations.enabled": true,
+  "FSharp.lineLens.enabled": "replaceCodeLens",
+  "FSharp.lineLens.prefix": "  // ",
+  "workbench.colorCustomizations": {
+    "editorHint.foreground": "#00000000",
+    "editorHint.border": "#00000000",
+    "editorOverviewRuler.hintForeground": "#00000000"
+  }
+}</code></pre>
+      </figure>
+
+      <h3>4. Open a file and wait a moment</h3>
+      <p>
+        Open your solution, open any <code>.fs</code> file, wait for Ionide to load.
+        Definitions should show end-of-line badges:
+      </p>
+      <ul>
+        <li><strong>pure</strong> — only pure callees (safe subset)</li>
+        <li><strong>impure</strong> — touches I/O, mutation, randomness, or other impurity</li>
+      </ul>
+      <p>
+        That is the default experience. You do not need the collector, ready-lib, or monorepo tooling
+        for everyday app code.
+      </p>
+
+      <h3>If nothing shows up</h3>
+      <ul>
+        <li>Is Ionide running? (F# language features work?)</li>
+        <li>Is <code>FSharp.enableAnalyzers</code> true?</li>
+        <li>Does <code>analyzers/</code> (or your <code>FSharp.analyzersPath</code>) exist and contain the DLL?</li>
+        <li>Reload the window after installing the extension</li>
+      </ul>
+
+      <h3>Optional: empty project that already has fspure</h3>
+      <p>
+        Prefer a ready-made Codespace / dev container instead of wiring a package yourself?
+        Try <a href="https://github.com/e-St/fstarter">e-St/fstarter</a> — open it and write F#.
+      </p>
+    </section>
+
+    <section id="panel-agents" class="expand-panel legal" hidden>
+      <h2 id="agent-skill">with your AI agents</h2>
+      <p class="lead">
+        The <strong>fspure-reduce-impurity</strong> skill teaches your coding agent to push
+        side effects out of F# core logic. You describe what should stay pure; the agent
+        runs <code>fspure analyze</code> and rewrites each impure call so the effect is
+        passed in as a function argument. The original I/O is not deleted — it moves to
+        the boundary of the application.
+      </p>
+
+      <h3>Install the skill</h3>
+      <p>
+        <strong>GitHub Copilot</strong> (VS Code agent mode, Copilot CLI, or coding agent).
+        Needs <a href="https://cli.github.com/">GitHub CLI</a> 2.90+:
+      </p>
+      <figure class="codebox" data-lang="shell">
+        <figcaption>GitHub Copilot</figcaption>
+        <pre><code>gh skill install e-St/fspure fspure-reduce-impurity \
+  --scope user \
+  --pin main \
+  --agent github-copilot</code></pre>
+      </figure>
+      <p>
+        An <a href="https://github.com/e-St/fspure">fspure</a> or
+        <a href="https://github.com/e-St/fstarter">fstarter</a> Codespace already does this
+        on create. After the first official skill release you can pin a tag
+        (<code>fspure-reduce-impurity-v*</code>) instead of <code>main</code>.
+      </p>
+      <p><strong>Claude Code:</strong></p>
+      <figure class="codebox" data-lang="shell">
+        <figcaption>Claude Code</figcaption>
+        <pre><code>/plugin marketplace add e-St/fspure
+/plugin install fspure@fspure</code></pre>
+      </figure>
+      <p>
+        Then run <code>/fspure:fspure-reduce-impurity</code>, or just describe the task
+        and let Claude pick the skill.
+      </p>
+
+      <h3>How to use it</h3>
+      <ol>
+        <li>Add the analyzer to the project (the "hard" way above, or a Codespace) so the agent can run <code>fspure analyze</code>.</li>
+        <li>
+          Point the agent at the code that should stay pure, for example:
+          <em>Make <code>src/Core</code> purer. Ignore <code>src/Host</code>.</em>
+          You can also say “fix this PURE002” or “push I/O out of this function.”
+        </li>
+        <li>The agent loops: build → <code>fspure analyze --fail-on-impure</code> → rewrite → repeat.</li>
+        <li>It is done when the report is clean, or when only a little impurity remains and it belongs at the edge of the app.</li>
+      </ol>
+
+      <h3>What a rewrite looks like</h3>
+      <figure class="codebox" data-lang="fsharp">
+        <figcaption>Shape only — same rewrite for every effect</figcaption>
+        <pre><code>// before                         // after
+let add x y =                     let printfHello s = printf "%s" s
+    printf "hello"                let add write x y =
+    x + y                             write "hello"
+                                      x + y</code></pre>
+      </figure>
+      <p>
+        The function keeps its name. Each effect becomes a parameter named for the
+        <strong>role</strong> it plays (<code>write</code>, not <code>printf</code>).
+        The original call is kept as a small example function you can pass in at the
+        boundary. Tests can pass <code>ignore</code>.
+      </p>
+    </section>
+
     <div class="starter-banner" role="note">
       New to F#? Try our <a href="https://github.com/e-St/fstarter">Starter</a>!
     </div>
@@ -37,5 +210,7 @@
       </nav>
     </footer>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="home.js"></script>
 </body>
 </html>

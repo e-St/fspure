@@ -1,15 +1,6 @@
-<!--
-  GENERATED FILE — do not edit by hand.
-  Template: docs/templates/README.md.scriban
-  Generator: src/DocsGenerator (F# + Scriban)
-  Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-10T18:39:52Z
-  Snippets are pulled from real source via <docs-snippet id="…"> markers.
-  Main-branch Markdown is only committed on stable releases.
--->
-
+<!-- <human id="readme-top"> -->
 <p align="center">
-  <img src="docs/assets/fspure.png" alt="fspure logo" width="520" />
+  <img src="src/docs/assets/fspure.png" alt="fspure logo" width="520" />
 </p>
 
 > Typically, interactions with the outside world occur at the boundary of your application.  
@@ -17,16 +8,129 @@
 
 # fspure
 
-**See which F# functions are pure. Push the impure stuff to the edge.**
+This project explores how an **F# analyzer** and **VS Code extension** can help you push impurity to the boundary of your application.
 
-Install one NuGet package + one VS Code extension. Open a file. Done.
+It does that by defining a pure subset and marking everything else as impure.
 
-![pure / impure decorations in the editor](docs/assets/image.png)
+![pure / impure decorations in the editor](src/docs/assets/image.png)
+
+| Component | Role |
+|-----------|------|
+| **FSharp.PureAnalyzer** | Classifies definitions (`PURE002` impure / `PURE003` pure) for Ionide & `fsharp-analyzers` |
+| **fspure** | Agent CLI: `fspure analyze --fail-on-impure` → deterministic JSON/SARIF ([AGENT.md](src/docs/AGENT.md)) |
+| **fspure-reduce-impurity** | Copilot / Claude skill that uses that CLI to push I/O to the boundary |
+| **fsharp-pure-decorations** | VS Code extension: end-of-line **pure** / **impure** badges after Ionide LineLens |
+
+| | |
+|---|---|
+| **Product site** | [https://fspure.net](https://fspure.net) (updated only on official release) |
+| **Doc previews** | [github.io/fspure/preview](https://e-st.github.io/fspure/preview/) |
+| **Source** | Everything you edit lives under [`src/`](src/) |
+
+## Layout
+
+| Path | Role |
+|------|------|
+| `src/` | Hand-authored source: products, tests, samples, docs, **F# tools** |
+| `src/Fspure.Tasks/` | **F# monorepo task runner** (docs, security, gates, e2e phase1/5) |
+| `src/docs/human/` | Hand-authored prose for generated docs (this file leads the README) |
+| `.generated/` | Generated outputs (gitignored) |
+| `.github/` | CI |
+| `plugins/fspure/` | Published agent skill / Claude marketplace plugin |
+| `flake.nix` | Optional .NET SDK shell only |
+
+## Quick start (maintainers)
+
+```text
+dotnet run --project src/Fspure.Tasks -- help
+dotnet run --project src/Fspure.Tasks -- docs preview
+dotnet run --project src/Fspure.Tasks -- docs sync-readme
+dotnet run --project src/Fspure.Tasks -- security
+dotnet run --project src/Fspure.Tasks -- ready-lib-gate
+dotnet run --project src/DevcontainerGen
+```
+
+End-user install (analyzer + extension + settings) is generated **below** this human section, and on **[fspure.net](https://fspure.net)**.
+
+The **fspure-reduce-impurity** agent skill (Copilot / Claude) is documented in the next section.
+
+Maintainer docs:
+
+- [src/docs/LANGUAGES.md](src/docs/LANGUAGES.md) — F# first  
+- [src/docs/DOCS.md](src/docs/DOCS.md) — docs / human anchors  
+- [src/docs/RELEASING.md](src/docs/RELEASING.md) — release flow  
+- [src/docs/AGENT.md](src/docs/AGENT.md) — `fspure analyze` for agents and CI
+<!-- </human> -->
+
+
+<!--
+  GENERATED below this line — do not hand-edit.
+  Template: src/docs/templates/README.md.scriban
+  Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
+  Channel: preview | Ref: main | Version: 0.4.0
+  Generated: 2026-08-17T18:52:42Z
+-->
 
 
 > **Preview docs** for `main` (0.4.0).  
 > Stable install guide always lives on [main / fspure.net](https://fspure.net).  
-> This page: https://fspure.net/preview/main
+> This page: https://e-st.github.io/fspure/preview/main
+
+
+<!-- <human id="skill-usage"> -->
+## Using the fspure skill
+
+The **fspure-reduce-impurity** skill teaches your coding agent to push side effects out of F# core logic. You describe what should stay pure; the agent runs `fspure analyze` and rewrites each impure call so the effect is passed in as a function argument.
+
+The original I/O is not deleted. It moves to the boundary of the application.
+
+### Install the skill
+
+**GitHub Copilot** (VS Code agent mode, Copilot CLI, or coding agent). Needs [GitHub CLI](https://cli.github.com/) 2.90+:
+
+```text
+gh skill install e-St/fspure fspure-reduce-impurity \
+  --scope user \
+  --pin main \
+  --agent github-copilot
+```
+
+An [fspure](https://github.com/e-St/fspure) or [fstarter](https://github.com/e-St/fstarter) Codespace already does this on create. After the first official skill release you can pin a tag (`fspure-reduce-impurity-v*`) instead of `main`.
+
+**Claude Code:**
+
+```text
+/plugin marketplace add e-St/fspure
+/plugin install fspure@fspure
+```
+
+Then run `/fspure:fspure-reduce-impurity`, or just describe the task and let Claude pick the skill.
+
+### How to use it
+
+1. Add the analyzer to the project so the agent can run `fspure analyze` (the 60-second install on this page, or [fspure.net/get-started](https://fspure.net/get-started.html)).
+2. Point the agent at the code that should stay pure, for example:
+
+   > Make `src/Core` purer. Ignore `src/Host`.
+
+   You can also say “fix this PURE002” or “push I/O out of this function.”
+3. The agent loops: build → `fspure analyze --fail-on-impure` → rewrite → repeat.
+4. It is done when the report is clean, or when only a little impurity remains and it belongs at the edge of the app.
+
+### What a rewrite looks like
+
+```fsharp
+// before                         // after
+let add x y =                     let printfHello s = printf "%s" s
+    printf "hello"                let add write x y =
+    x + y                             write "hello"
+                                      x + y
+```
+
+The function keeps its name. Each effect becomes a parameter named for the **role** it plays (`write`, not `printf`). The original call is kept as a small example function you can pass in at the boundary. Tests can pass `ignore`.
+
+CLI flags, JSON schema, and CI: [src/docs/AGENT.md](src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
+<!-- </human> -->
 
 
 ---
@@ -41,7 +145,7 @@ dotnet add package FSharp.PureAnalyzer --version 0.4.0
 
 Paket:
 
-```
+```paket
 nuget FSharp.PureAnalyzer 0.4.0
 ```
 
@@ -52,8 +156,7 @@ Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named
 Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [Open VSX](https://open-vsx.org/extension/e-st/fsharp-pure-decorations), **and** [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp).
 
 ```bash
-# Open VSX / VSCodium / many code-server setups:
-# Extensions UI → search “F# Pure Analyzer Decorations”
+# Extensions UI → search “F# Pure Analyzer Decorations” (Open VSX / VSCodium / code-server)
 ```
 
 ### 3. Workspace settings
@@ -83,7 +186,7 @@ Open an F# file, wait for Ionide. You should see:
 - **pure** badges on clean functions  
 - **impure** badges on anything that touches I/O, mutation, randomness, etc.
 
-Full end-user guide (dev containers, fstarter, troubleshooting): **[docs/customer.md](docs/customer.md)**.
+Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
 
 ---
 
@@ -93,6 +196,8 @@ Full end-user guide (dev containers, fstarter, troubleshooting): **[docs/custome
 |-------|----------------|
 | **FSharp.PureAnalyzer** | Marks definitions `PURE003` (pure) / `PURE002` (impure) |
 | **fsharp-pure-decorations** | Turns those into end-of-line **pure** / **impure** badges |
+| **fspure** | Agent/CI CLI: `fspure analyze --fail-on-impure` |
+| **fspure-reduce-impurity** | Copilot / Claude skill that uses that CLI to push I/O to the boundary |
 | **fspure-collector** (optional tool) | Builds pure-method lists from assemblies for libraries |
 
 If a function only calls pure things, it is pure. If it (or anything it calls) does I/O or mutation, it is impure. You keep the messy stuff at the boundary of your app.
@@ -147,7 +252,7 @@ let purePipeline (x: int) =
     x |> double |> fun n -> add n 0 |> List.sum
 ```
 
-Source: `tests/e2e/customer-fixture/Program.fs`
+Source: `src/tests/e2e/customer-fixture/Program.fs`
 
 ### Library one-liner (embed pure.json in your DLL)
 
@@ -160,7 +265,7 @@ Source: `tests/e2e/customer-fixture/Program.fs`
     <PackageReference Include="FSharp.PureAnalyzer" Version="$(FspureAnalyzerVersion)" PrivateAssets="all" />
 ```
 
-Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
+Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
 
 ```fsharp
     // --- Pure (collector should classify as pure) ---
@@ -199,21 +304,22 @@ Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
         System.Console.WriteLine(message)
 ```
 
-Source: `samples/fspure-ready-lib/src/Fspure.ReadyLib/Library.fs`
+Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Library.fs`
 
-More: **[samples/fspure-ready-lib](samples/fspure-ready-lib/)**.
+More: **[src/samples/fspure-ready-lib](src/samples/fspure-ready-lib/)**.
 
 ---
 
 ## Repo map
 
 ```text
-src/       analyzer, schema, collector, MSBuild tasks
-tests/     unit + e2e
-samples/   fspure-ready-lib template
-editor/    VS Code extension
-docs/      guides, templates, generated pages, assets
-scripts/   CI / release helpers
+src/              analyzer, schema, collector, embed, F# tools
+src/Fspure.Tasks  monorepo CLI (docs, security, gates, phase1/5)
+src/tests/        unit + e2e
+src/samples/      fspure-ready-lib template
+src/editor/       VS Code extension
+src/docs/         hand docs, human/ partials, templates, releases
+.generated/       docs site + markdown (gitignored)
 ```
 
 ---
@@ -222,32 +328,24 @@ scripts/   CI / release helpers
 
 | Channel | When | Where |
 |---------|------|--------|
-| **Stable** | Official release only | This README on `main` + [fspure.net](https://fspure.net) |
-| **Preview** | Every branch / PR / beta | `https://fspure.net/preview/<branch>/` |
+| **Stable** | **Official release only** | **[fspure.net](https://fspure.net)** (+ generated site under `.generated/`) |
+| **Preview** | Any branch (including `main`) / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
 
-Templates: `docs/templates/`. Generator: `src/DocsGenerator` (F# + Scriban).
+Templates: `src/docs/templates/`. Human prose: `src/docs/human/`. Generator: `src/DocsGenerator`. Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
 
-```bash
-# Preview (does not rewrite main-branch Markdown)
-dotnet run --project src/DocsGenerator -- \
-  --channel preview --ref "$(git branch --show-current)" \
-  --site-out "_site/preview/$(git branch --show-current)" \
-  --base-url "https://fspure.net/preview/$(git branch --show-current)"
-
-# Stable (release pipeline only)
-dotnet run --project src/DocsGenerator -- \
-  --channel stable --ref v0.4.0 --version 0.4.0 \
-  --write-repo-files --site-out _site --base-url https://fspure.net
+```text
+dotnet run --project src/Fspure.Tasks -- docs preview
+dotnet run --project src/Fspure.Tasks -- docs stable 0.4.0
 ```
 
 ---
 
 ## Links
 
-- [Customer / install guide](docs/customer.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Releasing](docs/RELEASING.md)
-- [Security](docs/SECURITY.md)
+- [Customer / install guide](customer.md)
+- [Agent CLI](src/docs/AGENT.md)
+- [Releasing](src/docs/RELEASING.md)
+- [Security](src/docs/SECURITY.md)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)
 

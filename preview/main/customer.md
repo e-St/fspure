@@ -1,8 +1,8 @@
 <!--
   GENERATED FILE — do not edit by hand.
-  Template: docs/templates/customer.md.scriban
+  Template: src/docs/templates/customer.md.scriban
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-10T18:39:52Z
+  Generated: 2026-08-17T18:52:42Z
 -->
 
 # Using fspure (get started)
@@ -38,7 +38,7 @@ dotnet add package FSharp.PureAnalyzer --version 0.4.0
 
 Paket:
 
-```
+```paket
 nuget FSharp.PureAnalyzer 0.4.0
 ```
 
@@ -111,6 +111,17 @@ Recommended extras (LineLens + hide grey diagnostic noise) — full Ionide block
     "**/obj": true,
     "**/bin": true,
     "**/.paket": true
+  },
+  "chat.agent.sandbox.enabled": "on",
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.global.autoApprove": false,
+  "chat.tools.terminal.blockDetectedFileWrites": "outsideWorkspace",
+  "chat.tools.terminal.autoApprove": {
+    "/^fspure(\\s|$)/": true,
+    "/^dotnet\\s\u002B(build|test)\\b/": true,
+    "/^dotnet\\s\u002Brun\\b.*\\sanalyze\\b/": true,
+    "which": true,
+    "command": true
   }
 }
 ```
@@ -165,6 +176,64 @@ let purePipeline (x: int) =
 
 ---
 
+<!-- <human id="skill-usage"> -->
+## Using the fspure skill
+
+The **fspure-reduce-impurity** skill teaches your coding agent to push side effects out of F# core logic. You describe what should stay pure; the agent runs `fspure analyze` and rewrites each impure call so the effect is passed in as a function argument.
+
+The original I/O is not deleted. It moves to the boundary of the application.
+
+### Install the skill
+
+**GitHub Copilot** (VS Code agent mode, Copilot CLI, or coding agent). Needs [GitHub CLI](https://cli.github.com/) 2.90+:
+
+```text
+gh skill install e-St/fspure fspure-reduce-impurity \
+  --scope user \
+  --pin main \
+  --agent github-copilot
+```
+
+An [fspure](https://github.com/e-St/fspure) or [fstarter](https://github.com/e-St/fstarter) Codespace already does this on create. After the first official skill release you can pin a tag (`fspure-reduce-impurity-v*`) instead of `main`.
+
+**Claude Code:**
+
+```text
+/plugin marketplace add e-St/fspure
+/plugin install fspure@fspure
+```
+
+Then run `/fspure:fspure-reduce-impurity`, or just describe the task and let Claude pick the skill.
+
+### How to use it
+
+1. Add the analyzer to the project so the agent can run `fspure analyze` (the 60-second install on this page, or [fspure.net/get-started](https://fspure.net/get-started.html)).
+2. Point the agent at the code that should stay pure, for example:
+
+   > Make `src/Core` purer. Ignore `src/Host`.
+
+   You can also say “fix this PURE002” or “push I/O out of this function.”
+3. The agent loops: build → `fspure analyze --fail-on-impure` → rewrite → repeat.
+4. It is done when the report is clean, or when only a little impurity remains and it belongs at the edge of the app.
+
+### What a rewrite looks like
+
+```fsharp
+// before                         // after
+let add x y =                     let printfHello s = printf "%s" s
+    printf "hello"                let add write x y =
+    x + y                             write "hello"
+                                      x + y
+```
+
+The function keeps its name. Each effect becomes a parameter named for the **role** it plays (`write`, not `printf`). The original call is kept as a small example function you can pass in at the boundary. Tests can pass `ignore`.
+
+CLI flags, JSON schema, and CI: [src/docs/AGENT.md](src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
+<!-- </human> -->
+
+
+---
+
 ## Library authors (one line)
 
 Ship pure metadata inside your DLL so consumers get labels without re-running the collector:
@@ -178,7 +247,7 @@ Ship pure metadata inside your DLL so consumers get labels without re-running th
     <PackageReference Include="FSharp.PureAnalyzer" Version="$(FspureAnalyzerVersion)" PrivateAssets="all" />
 ```
 
-See [samples/fspure-ready-lib](../samples/fspure-ready-lib/).
+See [src/samples/fspure-ready-lib](../src/samples/fspure-ready-lib/).
 
 ---
 

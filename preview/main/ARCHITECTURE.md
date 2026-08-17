@@ -1,7 +1,7 @@
 <!--
   GENERATED FILE — do not edit by hand.
-  Template: docs/templates/ARCHITECTURE.md.scriban
-  Channel: preview | Ref: main | Generated: 2026-08-10T18:39:52Z
+  Template: src/docs/templates/ARCHITECTURE.md.scriban
+  Channel: preview | Ref: main | Generated: 2026-08-17T18:52:42Z
 -->
 
 # fspure architecture (short)
@@ -14,6 +14,7 @@ How pure/impure labels are decided for vanilla fspure (analyzer + VS Code extens
 |-------|------|
 | **fspure-collector** | Scans assemblies (IL) → writes a `PureFile` (`.pure.json`) whitelist |
 | **FSharp.PureAnalyzer** | Builds a pure set, labels defs (`PURE002` impure / `PURE003` pure) |
+| **fspure analyze** | Agent/CI CLI: same analyser, deterministic JSON/SARIF, `--fail-on-impure` |
 | **fsharp-pure-decorations** | End-of-line badges from those diagnostics |
 | **MSBuild targets** (in the analyzer package) | After build: collect → optional `pure-extra.json` → embed `{AssemblyName}.pure.json` |
 
@@ -90,6 +91,7 @@ Sample API (from the ready-lib):
 1. Reference `FSharp.PureAnalyzer`  
 2. Optional: VS Code extension  
 3. Optional: `fspure.overrides.json` in the **app** project  
+4. Agents/CI: `fspure analyze --fail-on-impure --focus <core>` (see `src/docs/AGENT.md`)  
 
 ## TFM
 
@@ -98,4 +100,4 @@ Purity infrastructure targets **net10.0** only.
 ## Docs generation
 
 Markdown is generated with **F# + Scriban** (`src/DocsGenerator`). Code samples use `<docs-snippet id="…">` markers in real source.  
-Stable Markdown on `main` is refreshed **only on official releases**. Preview: `https://fspure.net/preview/main`.
+Stable Markdown on `main` is refreshed **only on official releases**. Preview: `https://e-st.github.io/fspure/preview/main`.

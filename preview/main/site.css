@@ -62,10 +62,17 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1.75rem;
-  padding: 2rem 1.25rem 4rem;
+  padding: 2.5rem 1.25rem 4rem;
   text-align: center;
+}
+
+@media (min-height: 720px) {
+  .home:not(.home-open) {
+    justify-content: center;
+    min-height: 100vh;
+  }
 }
 
 .home main {
@@ -103,6 +110,166 @@ a:focus-visible {
   justify-content: center;
   font-size: 0.95rem;
   font-weight: 500;
+}
+
+.icon-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  border-bottom: none;
+  opacity: 0.78;
+  padding: 0.2rem;
+  border-radius: 0.35rem;
+}
+
+.icon-link:hover,
+.icon-link:focus-visible {
+  color: var(--desert-blue-deep);
+  border-bottom: none;
+  opacity: 1;
+}
+
+.icon-link svg {
+  display: block;
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+.start-graph {
+  width: min(40rem, 100%);
+}
+
+#start-graph {
+  width: 100%;
+}
+
+#start-graph:empty {
+  display: none;
+}
+
+.start-svg {
+  display: block;
+  overflow: visible;
+}
+
+.start-links line {
+  stroke: var(--desert-blue);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.start-node rect {
+  fill: var(--code-paper);
+  stroke: var(--desert-blue);
+  stroke-width: 1.25;
+}
+
+.start-node text {
+  fill: var(--text);
+  font-size: 0.92rem;
+  font-weight: 550;
+  pointer-events: none;
+}
+
+.start-node--root rect {
+  fill: transparent;
+  stroke: var(--text);
+  stroke-width: 1.35;
+}
+
+.start-node--root text {
+  font-weight: 650;
+}
+
+.start-node--leaf:hover rect,
+.start-node--leaf:focus-visible rect {
+  stroke: var(--desert-blue-deep);
+  stroke-width: 1.6;
+}
+
+.start-node.is-selected rect {
+  fill: var(--desert-blue);
+  stroke: var(--desert-blue-deep);
+}
+
+.start-node.is-selected text {
+  fill: #fbf7f0;
+}
+
+.start-node:focus-visible {
+  outline: none;
+}
+
+.start-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.start-root-label {
+  padding: 0.45rem 1rem;
+  border: 1.35px solid var(--text);
+  border-radius: 1.1rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.start-fallback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+}
+
+.start-fallback-row button {
+  appearance: none;
+  font: inherit;
+  font-weight: 550;
+  color: var(--text);
+  background: var(--code-paper);
+  border: 1.25px solid var(--desert-blue);
+  border-radius: 1rem;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+.start-fallback-row button:hover,
+.start-fallback-row button:focus-visible {
+  border-color: var(--desert-blue-deep);
+  outline: none;
+}
+
+.start-fallback-row button.is-selected {
+  background: var(--desert-blue);
+  border-color: var(--desert-blue-deep);
+  color: #fbf7f0;
+}
+
+.expand-panel {
+  width: min(40rem, 100%);
+  text-align: left;
+  padding-top: 0.25rem;
+  padding-bottom: 0;
+  scroll-margin-top: 1.25rem;
+}
+
+.expand-panel.legal {
+  margin: 0;
+}
+
+.home .expand-panel h2 {
+  margin-top: 0;
 }
 
 .starter-banner {
@@ -152,7 +319,7 @@ a:focus-visible {
   margin-top: 0.5rem;
 }
 
-/* Legal pages */
+/* Legal / get-started article pages */
 .legal {
   position: relative;
   z-index: 1;
@@ -181,6 +348,13 @@ a:focus-visible {
   font-size: 1.05rem;
   font-weight: 650;
   margin: 1.5rem 0 0.5rem;
+  scroll-margin-top: 1.25rem;
+}
+
+.legal h3 {
+  font-size: 0.98rem;
+  font-weight: 650;
+  margin: 1.15rem 0 0.4rem;
 }
 
 .legal p,
@@ -193,6 +367,7 @@ a:focus-visible {
   margin-top: 0.65rem;
 }
 
+.legal ol,
 .legal ul {
   margin: 0.5rem 0 0 1.2rem;
 }
@@ -207,7 +382,7 @@ a:focus-visible {
 }
 
 .legal .note {
-  margin-top: 1.5rem;
+  margin: 0 0 1.25rem;
   padding: 0.85rem 1rem;
   border-radius: 0.5rem;
   background: rgba(255, 248, 235, 0.65);
@@ -223,8 +398,148 @@ a:focus-visible {
   font-weight: 500;
 }
 
+.legal code {
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.legal p code,
+.legal li code {
+  padding: 0.12em 0.4em;
+  border-radius: 0.3rem;
+  background: rgba(74, 52, 40, 0.09);
+  border: 1px solid rgba(74, 52, 40, 0.1);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ---------- Code boxes (academic / print-like) ---------- */
+:root {
+  --code-paper: #fbf7f0;
+  --code-paper-edge: #e8dcc8;
+  --code-ink: #2c241e;
+  --code-caption: #6b5646;
+  --code-rule: #c4b09a;
+  --code-rule-strong: #8a735c;
+}
+
+/* Labeled listing: plain caption + ruled paper panel (no window chrome) */
+.codebox {
+  position: relative;
+  margin: 1.15rem 0 1.5rem;
+  border: 1px solid var(--code-rule);
+  border-left: 3px solid var(--code-rule-strong);
+  border-radius: 2px;
+  background: var(--code-paper);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.codebox figcaption,
+.codebox .codebox-label {
+  display: block;
+  margin: 0;
+  padding: 0.4rem 0.85rem 0.35rem;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--code-caption);
+  background: transparent;
+  border-bottom: 1px solid var(--code-paper-edge);
+}
+
+/* no decorative dots / traffic lights */
+.codebox figcaption::before,
+.codebox .codebox-label::before {
+  content: none;
+  display: none;
+}
+
+.codebox[data-lang="shell"] figcaption::after,
+.codebox[data-lang="bash"] figcaption::after {
+  content: " · shell";
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.65;
+  font-size: 0.72rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.codebox[data-lang="json"] figcaption::after {
+  content: " · json";
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.65;
+  font-size: 0.72rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.codebox[data-lang="fsharp"] figcaption::after,
+.codebox[data-lang="xml"] figcaption::after {
+  content: none;
+}
+
+.codebox pre,
+.legal pre {
+  margin: 0;
+  padding: 0.75rem 0.9rem 0.9rem;
+  overflow-x: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-family: "Latin Modern Mono", "Courier New", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--code-ink);
+  tab-size: 2;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Bare pre still matches the listing style */
+.legal > pre,
+.legal p + pre,
+.legal h2 + pre {
+  margin: 1.15rem 0 1.5rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--code-rule);
+  border-left: 3px solid var(--code-rule-strong);
+  border-radius: 2px;
+  background: var(--code-paper);
+  box-shadow: none;
+  color: var(--code-ink);
+}
+
+.codebox pre code,
+.legal pre code {
+  display: block;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  white-space: pre;
+  word-break: normal;
+}
+
 .placeholder {
   background: rgba(184, 125, 82, 0.18);
   border-radius: 0.2em;
   padding: 0 0.2em;
+}
+
+@media (max-width: 520px) {
+  .codebox pre,
+  .legal pre {
+    font-size: 0.78rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
 }
