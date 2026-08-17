@@ -48,7 +48,7 @@ jobs:
           grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html
           grep -q "aria-label=\"GitHub\"" .generated/site/preview/ci-check/index.html
           grep -q "aria-label=\"Releases\"" .generated/site/preview/ci-check/index.html
-          grep -q "start-choice" .generated/site/preview/ci-check/index.html
+          grep -q "start-pick" .generated/site/preview/ci-check/index.html
           grep -q "the \"hard\" way" .generated/site/preview/ci-check/index.html
           grep -q "with your AI agents" .generated/site/preview/ci-check/index.html
           grep -q "home.js" .generated/site/preview/ci-check/index.html

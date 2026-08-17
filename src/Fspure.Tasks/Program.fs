@@ -15,7 +15,7 @@ Commands:
   info
   build [args…]
   test [args…]
-  docs [args…]              DocsGenerator (preview | stable | sync-readme | …)
+  docs [args…]              DocsGenerator (preview | stable | sync-readme | serve | …)
   devcontainer [args…]
   security
   ready-lib-gate

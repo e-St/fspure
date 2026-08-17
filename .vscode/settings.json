@@ -6,6 +6,7 @@
     "packages/Analyzers"
   ],
   "fsharpPureDecorations.enabled": true,
+  "livePreview.defaultPreviewPath": "/.generated/site/index.html",
   "workbench.colorCustomizations": {
     "editorHint.foreground": "#00000000",
     "editorHint.border": "#00000000",

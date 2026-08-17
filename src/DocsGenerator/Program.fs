@@ -33,6 +33,8 @@ High-level (preferred — no shell orchestration):
   fspure-docs stable [version]           → .generated/docs + .generated/site  (fspure.net)
   fspure-docs sync-readme [version]      → stable + write repo-root README.md from human/templates
   fspure-docs sync-readme --check        → exit 1 if root README.md is stale
+  fspure-docs serve [--port N]           → generate fspure.net + markdown, watch, serve locally
+                                           (VS Code: Tasks → docs: serve local fspure.net)
 
 Low-level flags (also accepted after preview|stable):
   --root PATH              Monorepo root (default: walk to fspure.slnx / cwd)
@@ -297,7 +299,22 @@ let private parseArgs (argv: string[]) : Args =
             eprintf "%s" (usage ())
             exit 2
 
-let private run (args: Args) : int =
+let private parsePort (argv: string[]) : int =
+    let rec loop i =
+        if i + 1 >= argv.Length then
+            5500
+        elif argv[i] = "--port" then
+            match Int32.TryParse argv[i + 1] with
+            | true, p when p > 0 && p < 65536 -> p
+            | _ ->
+                eprintfn "ERROR: invalid --port %s" argv[i + 1]
+                exit 2
+        else
+            loop (i + 1)
+
+    loop 0
+
+let private generate (args: Args) : int =
     if args.WriteMarkdown && args.Channel <> "stable" then
         eprintfn "ERROR: --write-markdown requires --channel stable."
         1
@@ -348,10 +365,49 @@ let private run (args: Args) : int =
             printfn "OK"
             0
 
+let private serve (argv: string[]) : int =
+    let root = findRepoRoot (Directory.GetCurrentDirectory())
+    let port = parsePort argv
+    let args = expandHighLevel root "stable" None
+    let siteRoot = defaultArg args.SiteOut (Path.Combine(root, ".generated", "site"))
+
+    let rebuild () =
+        try
+            printfn "==> regenerate local fspure.net + markdown"
+            generate args |> ignore
+        with ex ->
+            eprintfn "generate failed: %s" ex.Message
+
+    match generate args with
+    | 0 ->
+        printfn "==> local fspure.net   http://127.0.0.1:%d/" port
+        printfn "==> local markdown     %s" (Path.GetRelativePath(root, args.MarkdownOut).Replace('\\', '/'))
+        printfn "    (VS Code: open that folder and preview README.md / customer.md)"
+        printfn "    watching src/docs — Ctrl+C to stop"
+
+        use _watch =
+            Serve.watch
+                [
+                    Path.Combine(root, "src", "docs")
+                    Path.Combine(root, "src", "devcontainer", "fragments")
+                ]
+                rebuild
+
+        Console.CancelKeyPress.Add(fun ev ->
+            ev.Cancel <- true
+            printfn "stopping"
+            Environment.Exit 0)
+
+        Serve.listen port siteRoot
+        0
+    | code -> code
+
 [<EntryPoint>]
 let main argv =
     try
-        run (parseArgs argv)
+        match Array.tryHead argv with
+        | Some "serve" -> serve argv
+        | _ -> generate (parseArgs argv)
     with ex ->
         eprintfn "ERROR: %s" ex.Message
 

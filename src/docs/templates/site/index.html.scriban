@@ -34,23 +34,15 @@
       </a>
     </nav>
 
-    <section class="start-pick">
-      <label for="start-choice">Get started</label>
-      <select id="start-choice">
-        <option value="">Choose a path…</option>
-        <option value="hard">the "hard" way</option>
-        <option value="agents">with your AI agents</option>
-      </select>
-      <noscript>
-        <p>
-          <a href="#hard">the "hard" way</a>
-          ·
-          <a href="#agents">with your AI agents</a>
-        </p>
-      </noscript>
-    </section>
+    <nav class="start-pick" aria-label="Get started">
+      <p class="start-pick-label">Get started</p>
+      <p class="start-pick-ways">
+        <a href="#hard" data-way="hard">the "hard" way</a>
+        <a href="#agents" data-way="agents">with your AI agents</a>
+      </p>
+    </nav>
 
-    <section id="hard" class="expand-panel legal" hidden>
+    <section id="hard" class="expand-panel legal">
       <h2>the "hard" way</h2>
       <p class="lead">
         Add the analyzer to an existing F# project and get
@@ -123,7 +115,7 @@
       </p>
     </section>
 
-    <section id="agents" class="expand-panel legal" hidden>
+    <section id="agents" class="expand-panel legal">
       <h2 id="agent-skill">with your AI agents</h2>
       <p class="lead">
         The <strong>fspure-reduce-impurity</strong> skill teaches your coding agent to push

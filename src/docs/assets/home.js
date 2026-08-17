@@ -1,6 +1,6 @@
 (() => {
-  const select = document.getElementById("start-choice");
   const home = document.querySelector("body.home");
+  const links = Array.from(document.querySelectorAll("[data-way]"));
   const panels = {
     hard: document.getElementById("hard"),
     agents: document.getElementById("agents"),
@@ -13,30 +13,36 @@
     return "";
   }
 
-  function show(id, opts) {
-    const setHash = !opts || opts.hash !== false;
+  function show(id) {
     const next = id || "";
 
     Object.entries(panels).forEach(([key, el]) => {
       if (!el) return;
-      const on = key === next;
-      el.hidden = !on;
-      el.classList.toggle("is-open", on);
+      el.classList.toggle("is-open", key === next);
+    });
+
+    links.forEach((a) => {
+      const on = a.getAttribute("data-way") === next;
+      a.classList.toggle("is-current", on);
+      if (on) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
     });
 
     if (home) home.classList.toggle("home-open", Boolean(next));
-    if (select && select.value !== next) select.value = next;
-
-    if (setHash) {
-      const url = next ? `#${next}` : `${location.pathname}${location.search}`;
-      history.replaceState(null, "", url);
-    }
   }
 
-  if (select) {
-    select.addEventListener("change", () => show(select.value));
-  }
+  links.forEach((a) => {
+    a.addEventListener("click", () => {
+      const way = a.getAttribute("data-way") || "";
+      // Let the hash update, then reveal. :target also covers no-JS.
+      window.setTimeout(() => {
+        show(way);
+        const panel = panels[way];
+        if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    });
+  });
 
-  show(parseHash(), { hash: false });
-  window.addEventListener("hashchange", () => show(parseHash(), { hash: false }));
+  show(parseHash());
+  window.addEventListener("hashchange", () => show(parseHash()));
 })();

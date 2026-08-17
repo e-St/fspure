@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docs: generate local",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "src/DocsGenerator", "--", "stable"],
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false
+      }
+    },
+    {
+      "label": "docs: serve local fspure.net",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "src/DocsGenerator", "--", "serve"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "fspure-docs-serve",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "^listening on "
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      }
+    },
+    {
+      "label": "docs: open generated README",
+      "type": "shell",
+      "command": "code",
+      "args": ["-r", ".generated/docs/README.md"],
+      "dependsOn": ["docs: generate local"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      }
+    }
+  ]
+}

@@ -26,6 +26,14 @@ Hand-authored prose for generated docs. **Edit these files** — never the gener
 - Generated banners / install pins / snippets go **below** human anchors.
 - Missing `{{ human "id" }}` fails generation (use `human_opt` only if optional).
 
+To preview the generated site and Markdown **without pushing**:
+
+```text
+dotnet run --project src/DocsGenerator -- serve
+```
+
+Then open http://127.0.0.1:5500/ (Simple Browser) and `.generated/docs/` (Markdown preview). See [DOCS.md](../DOCS.md).
+
 ## Current partials
 
 | File | Used by |

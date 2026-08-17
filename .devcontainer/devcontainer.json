@@ -16,7 +16,8 @@
         "ionide.ionide-fsharp",
         "ionide.ionide-paket",
         "ionide.ionide-fantomas",
-        "ms-dotnettools.csharp"
+        "ms-dotnettools.csharp",
+        "ms-vscode.live-preview"
       ],
       "settings": {
         "editor.inlineSuggest.enabled": false,
@@ -45,6 +46,7 @@
         "FSharp.codeLenses.references.enabled": false,
         "editor.formatOnSave": true,
         "fsharpPureDecorations.enabled": true,
+        "livePreview.defaultPreviewPath": "/.generated/site/index.html",
         "workbench.colorCustomizations": {
           "editorHint.foreground": "#00000000",
           "editorHint.border": "#00000000",

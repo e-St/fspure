@@ -29,6 +29,29 @@ After the first **Official release** (or a one-time manual publish of `.generate
 
 ## Channels
 
+### Local (VS Code — no push)
+
+Generate the same site and markdown that official release would publish, then preview them in the editor:
+
+```text
+dotnet run --project src/DocsGenerator -- serve
+# or:  dotnet run --project src/Fspure.Tasks -- docs serve
+# or:  VS Code → Terminal → Run Task… → docs: serve local fspure.net
+```
+
+| What | Where |
+|------|--------|
+| **fspure.net (local)** | http://127.0.0.1:5500/ — Command Palette → **Simple Browser: Show** and paste that URL, or Live Preview on `.generated/site/index.html` |
+| **Generated Markdown** | `.generated/docs/README.md`, `customer.md`, `ARCHITECTURE.md` — open and **Markdown: Open Preview** |
+| **Watch** | Edits under `src/docs/` regenerate both automatically |
+
+This does **not** write the GitHub landing `README.md` (use `sync-readme` when you want that) and does **not** publish fspure.net.
+
+```text
+dotnet run --project src/DocsGenerator -- stable          # one-shot generate
+dotnet run --project src/DocsGenerator -- serve --port 5500
+```
+
 ### Preview (github.io only)
 
 ```text
