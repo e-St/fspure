@@ -144,124 +144,56 @@ a:focus-visible {
   height: 1.85rem;
 }
 
-.start-graph {
-  width: min(40rem, 100%);
-}
-
-#start-graph {
-  width: 100%;
-}
-
-#start-graph:empty {
-  display: none;
-}
-
-.start-svg {
-  display: block;
-  overflow: visible;
-}
-
-.start-links line {
-  stroke: var(--desert-blue);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  opacity: 0.7;
-}
-
-.start-node rect {
-  fill: var(--code-paper);
-  stroke: var(--desert-blue);
-  stroke-width: 1.25;
-}
-
-.start-node text {
-  fill: var(--text);
-  font-size: 0.92rem;
-  font-weight: 550;
-  pointer-events: none;
-}
-
-.start-node--root rect {
-  fill: transparent;
-  stroke: var(--text);
-  stroke-width: 1.35;
-}
-
-.start-node--root text {
-  font-weight: 650;
-}
-
-.start-node--leaf:hover rect,
-.start-node--leaf:focus-visible rect {
-  stroke: var(--desert-blue-deep);
-  stroke-width: 1.6;
-}
-
-.start-node.is-selected rect {
-  fill: var(--desert-blue);
-  stroke: var(--desert-blue-deep);
-}
-
-.start-node.is-selected text {
-  fill: #fbf7f0;
-}
-
-.start-node:focus-visible {
-  outline: none;
-}
-
-.start-fallback {
+.start-pick {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.1rem;
+  align-items: stretch;
+  gap: 0.45rem;
+  width: min(22rem, 100%);
+  text-align: left;
 }
 
-.start-root-label {
-  padding: 0.45rem 1rem;
-  border: 1.35px solid var(--text);
-  border-radius: 1.1rem;
+.start-pick label {
+  font-size: 0.95rem;
   font-weight: 650;
   color: var(--text);
 }
 
-.start-fallback-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  justify-content: center;
-}
-
-.start-fallback-row button {
-  appearance: none;
+.start-pick select {
+  appearance: auto;
+  width: 100%;
   font: inherit;
-  font-weight: 550;
+  font-size: 0.95rem;
   color: var(--text);
-  background: var(--code-paper);
-  border: 1.25px solid var(--desert-blue);
-  border-radius: 1rem;
-  padding: 0.45rem 0.9rem;
-  cursor: pointer;
+  background: #fbf7f0;
+  border: 1px solid var(--desert-blue);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.7rem;
 }
 
-.start-fallback-row button:hover,
-.start-fallback-row button:focus-visible {
+.start-pick select:hover,
+.start-pick select:focus-visible {
   border-color: var(--desert-blue-deep);
   outline: none;
 }
 
-.start-fallback-row button.is-selected {
-  background: var(--desert-blue);
-  border-color: var(--desert-blue-deep);
-  color: #fbf7f0;
+.start-pick noscript p {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
 }
 
 .expand-panel {
+  display: none;
   width: min(40rem, 100%);
   text-align: left;
   padding-top: 0.25rem;
   padding-bottom: 0;
   scroll-margin-top: 1.25rem;
+}
+
+.expand-panel.is-open,
+.expand-panel:target {
+  display: block;
 }
 
 .expand-panel.legal {

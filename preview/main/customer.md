@@ -2,7 +2,7 @@
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-17T18:52:42Z
+  Generated: 2026-08-17T19:06:33Z
 -->
 
 # Using fspure (get started)
