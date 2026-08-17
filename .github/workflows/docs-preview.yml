@@ -1,14 +1,15 @@
-# Preview docs for branches / PRs / beta tags.
+# Preview docs for branches (including main) / PRs / beta tags.
 #
 # Published ONLY under the default GitHub Pages host:
 #   https://e-st.github.io/fspure/preview/<ref>/
+#   https://e-st.github.io/fspure/preview/main/   ← latest main, not fspure.net
 #
 # Never updates fspure.net (custom domain). That happens only in Official release.
 name: Docs preview
 
 on:
   push:
-    branches-ignore: [gh-pages, main]
+    branches-ignore: [gh-pages]
     tags:
       - "*-beta*"
       - "*-rc*"

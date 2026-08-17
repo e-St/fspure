@@ -5,7 +5,7 @@
 | Surface | When it updates | URL |
 |---------|-----------------|-----|
 | **fspure.net** | **Only** when **Official release** finishes successfully | https://fspure.net/ |
-| **GitHub Pages (github.io)** previews | Branch pushes (not `main`), beta/RC tags, manual “Docs preview” | https://e-st.github.io/fspure/preview/&lt;ref&gt;/ |
+| **GitHub Pages (github.io)** previews | Pushes to any branch (including `main`), beta/RC tags, manual “Docs preview” | https://e-st.github.io/fspure/preview/&lt;ref&gt;/ |
 | **GitHub `main` README** | Regenerated from `src/docs/human/` + templates on official release and when those files change | https://github.com/e-St/fspure |
 
 Everyday commits and PRs **must not** change fspure.net.

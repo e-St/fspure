@@ -122,7 +122,7 @@ src/docs/         hand docs, human/ partials, templates, releases
 | Channel | When | Where |
 |---------|------|--------|
 | **Stable** | **Official release only** | **[fspure.net](https://fspure.net)** (+ generated site under `.generated/`) |
-| **Preview** | Feature branches / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
+| **Preview** | Any branch (including `main`) / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
 
 Templates: `src/docs/templates/`. Human prose: `src/docs/human/`. Generator: `src/DocsGenerator`. Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
 
