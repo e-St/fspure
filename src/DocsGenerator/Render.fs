@@ -2,6 +2,7 @@ namespace Fspure.DocsGenerator
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 open Scriban
 open Scriban.Runtime
 
@@ -44,9 +45,7 @@ module Render =
 
         if template.HasErrors then
             let msgs =
-                template.Messages
-                |> Seq.map (fun m -> m.ToString())
-                |> String.concat "\n"
+                template.Messages |> Seq.map (fun m -> m.ToString()) |> String.concat "\n"
 
             failwith $"Scriban parse errors:\n{msgs}"
 
@@ -55,7 +54,41 @@ module Render =
         let result = template.Render ctx
         result.TrimEnd() + "\n"
 
-    type OutputFile = { RelativePath: string; Content: string }
+    type OutputFile =
+        {
+            RelativePath: string
+            Content: string
+        }
+
+    /// Strip the volatile generate timestamp so committed README diffs stay stable.
+    let normalizeRepoMarkdown (text: string) : string =
+        let re =
+            Regex(@"^(\s*Generated:\s*)\d{4}-\d{2}-\d{2}T[^\r\n]*$", RegexOptions.Multiline)
+
+        re.Replace(text, "${1}(synced)").TrimEnd() + "\n"
+
+    let tryFindOutput (outputs: OutputFile list) (relativePath: string) : OutputFile option =
+        outputs
+        |> List.tryFind (fun o -> o.RelativePath.Equals(relativePath, StringComparison.OrdinalIgnoreCase))
+
+    let repoReadmePath (repoRoot: string) = Path.Combine(repoRoot, "README.md")
+
+    /// Write the generated product README to the repo root (GitHub landing page).
+    let writeRepoReadme (repoRoot: string) (content: string) : string =
+        let dest = repoReadmePath repoRoot
+        let body = normalizeRepoMarkdown content
+        File.WriteAllText(dest, body)
+        dest
+
+    /// True when the committed root README matches the generated body (timestamps ignored).
+    let repoReadmeMatches (repoRoot: string) (content: string) : bool =
+        let expected = normalizeRepoMarkdown content
+        let path = repoReadmePath repoRoot
+
+        if not (File.Exists path) then
+            false
+        else
+            normalizeRepoMarkdown (File.ReadAllText path) = expected
 
     let renderAll (templatesDir: string) (model: DocsModel) : OutputFile list =
         if not (Directory.Exists templatesDir) then
@@ -72,7 +105,11 @@ module Render =
                     rel
 
             let content = renderTemplate (File.ReadAllText path) model
-            { RelativePath = outName; Content = content })
+
+            {
+                RelativePath = outName
+                Content = content
+            })
         |> Seq.toList
 
     let writeOutputs
@@ -81,8 +118,7 @@ module Render =
         (siteOut: string option)
         (writeMarkdown: bool)
         (outputs: OutputFile list)
-        : unit
-        =
+        : unit =
         let write (root: string) (rel: string) (content: string) =
             let dest = Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar))
 
@@ -142,8 +178,7 @@ module Render =
 
             for src, destRel in withCname do
                 if File.Exists src then
-                    let dest =
-                        Path.Combine(siteRoot, destRel.Replace('/', Path.DirectorySeparatorChar))
+                    let dest = Path.Combine(siteRoot, destRel.Replace('/', Path.DirectorySeparatorChar))
 
                     match Path.GetDirectoryName dest |> Option.ofObj with
                     | Some dir when dir <> "" -> Directory.CreateDirectory dir |> ignore

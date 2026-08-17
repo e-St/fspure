@@ -18,6 +18,10 @@ type private Args =
         SiteOut: string option
         MarkdownOut: string
         Templates: string
+        /// Also write generated README.md to the repo root (GitHub landing page).
+        WriteRepoReadme: bool
+        /// Compare generated README.md to the committed root file; do not write it.
+        CheckRepoReadme: bool
     }
 
 let private usage () =
@@ -27,6 +31,8 @@ fspure-docs — generate Markdown / static site from Scriban templates (F#).
 High-level (preferred — no shell orchestration):
   fspure-docs preview [ref]              → .generated/site/preview/<ref>/  (github.io)
   fspure-docs stable [version]           → .generated/docs + .generated/site  (fspure.net)
+  fspure-docs sync-readme [version]      → stable + write repo-root README.md from human/templates
+  fspure-docs sync-readme --check        → exit 1 if root README.md is stale
 
 Low-level flags (also accepted after preview|stable):
   --root PATH              Monorepo root (default: walk to fspure.slnx / cwd)
@@ -47,8 +53,10 @@ Env (high-level modes):
 
 let private findRepoRoot (start: string) : string =
     let rec walk d n =
-        if n > 10 then start
-        elif File.Exists(Path.Combine(d, "fspure.slnx")) then d
+        if n > 10 then
+            start
+        elif File.Exists(Path.Combine(d, "fspure.slnx")) then
+            d
         else
             match Directory.GetParent d with
             | null -> start
@@ -85,7 +93,10 @@ let private tryGitBranch () : string option =
             let o = p.StandardOutput.ReadToEnd().Trim()
             p.WaitForExit(5_000) |> ignore
 
-            if p.ExitCode = 0 && o <> "" && o <> "HEAD" then Some o else None
+            if p.ExitCode = 0 && o <> "" && o <> "HEAD" then
+                Some o
+            else
+                None
     with _ ->
         None
 
@@ -98,10 +109,7 @@ let private lastOfficialAnalyzer (root: string) : string =
         try
             use doc = JsonDocument.Parse(File.ReadAllText path)
 
-            doc.RootElement
-                .GetProperty("lastOfficial")
-                .GetProperty("FSharp.PureAnalyzer")
-                .GetString()
+            doc.RootElement.GetProperty("lastOfficial").GetProperty("FSharp.PureAnalyzer").GetString()
             |> Option.ofObj
             |> Option.defaultValue "0.0.0"
         with _ ->
@@ -136,6 +144,8 @@ let private expandHighLevel (root: string) (mode: string) (arg: string option) :
             SiteOut = Some site
             MarkdownOut = Path.Combine(root, ".generated", "docs")
             Templates = Path.Combine(root, "src", "docs", "templates")
+            WriteRepoReadme = false
+            CheckRepoReadme = false
         }
 
     | "stable" ->
@@ -160,6 +170,8 @@ let private expandHighLevel (root: string) (mode: string) (arg: string option) :
             SiteOut = Some site
             MarkdownOut = md
             Templates = Path.Combine(root, "src", "docs", "templates")
+            WriteRepoReadme = false
+            CheckRepoReadme = false
         }
 
     | other ->
@@ -245,6 +257,8 @@ let private parseLowLevel (argv: string[]) (start: int) (root0: string) : Args =
         SiteOut = siteOut
         MarkdownOut = markdownOut
         Templates = templates
+        WriteRepoReadme = false
+        CheckRepoReadme = false
     }
 
 let private parseArgs (argv: string[]) : Args =
@@ -259,16 +273,24 @@ let private parseArgs (argv: string[]) : Args =
             printf "%s" (usage ())
             exit 0
         | "preview"
-        | "stable" as mode ->
-            let arg =
-                if argv.Length > 1 && not (argv[1].StartsWith("-", StringComparison.Ordinal)) then
-                    Some argv[1]
-                else
-                    None
+        | "stable"
+        | "sync-readme" as mode ->
+            let rest = argv |> Array.skip 1
+            let check = rest |> Array.exists (fun a -> a = "--check")
+            let writeRepo = mode = "sync-readme" && not check
 
-            // Allow extra flags after high-level mode; currently high-level wins.
-            // (Low-level overrides can be added later if needed.)
-            expandHighLevel root0 mode arg
+            let arg =
+                rest
+                |> Array.tryFind (fun a -> not (a.StartsWith("-", StringComparison.Ordinal)))
+
+            // sync-readme is stable generation plus a committed root README.md.
+            let expanded =
+                expandHighLevel root0 (if mode = "sync-readme" then "stable" else mode) arg
+
+            { expanded with
+                WriteRepoReadme = writeRepo
+                CheckRepoReadme = mode = "sync-readme" && check
+            }
         | _ when argv[0].StartsWith("-", StringComparison.Ordinal) -> parseLowLevel argv 0 root0
         | other ->
             eprintfn "Unknown command: %s" other
@@ -285,6 +307,8 @@ let private run (args: Args) : int =
         printfn "  channel      = %s" args.Channel
         printfn "  ref          = %s" args.RefName
         printfn "  writeMarkdown= %b" args.WriteMarkdown
+        printfn "  writeRepoReadme= %b" args.WriteRepoReadme
+        printfn "  checkRepoReadme= %b" args.CheckRepoReadme
         printfn "  markdownOut  = %s" args.MarkdownOut
         printfn "  siteOut      = %s" (defaultArg (args.SiteOut |> Option.map string) "(none)")
 
@@ -301,8 +325,28 @@ let private run (args: Args) : int =
         printfn "  templates = %d" outputs.Length
 
         Render.writeOutputs args.Root args.MarkdownOut args.SiteOut args.WriteMarkdown outputs
-        printfn "OK"
-        0
+
+        match Render.tryFindOutput outputs "README.md" with
+        | None when args.WriteRepoReadme || args.CheckRepoReadme ->
+            eprintfn "ERROR: README.md.scriban did not produce README.md"
+            1
+        | Some readme when args.CheckRepoReadme ->
+            if Render.repoReadmeMatches args.Root readme.Content then
+                printfn "OK: root README.md matches generated human+templates"
+                0
+            else
+                eprintfn "ERROR: root README.md is stale."
+                eprintfn "Run: dotnet run --project src/DocsGenerator -- sync-readme"
+                eprintfn "Source of truth: src/docs/human/ + src/docs/templates/README.md.scriban"
+                1
+        | Some readme when args.WriteRepoReadme ->
+            let dest = Render.writeRepoReadme args.Root readme.Content
+            printfn "  wrote %s" (Path.GetRelativePath(args.Root, dest).Replace('\\', '/'))
+            printfn "OK"
+            0
+        | _ ->
+            printfn "OK"
+            0
 
 [<EntryPoint>]
 let main argv =

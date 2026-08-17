@@ -181,6 +181,13 @@ a:focus-visible {
   font-size: 1.05rem;
   font-weight: 650;
   margin: 1.5rem 0 0.5rem;
+  scroll-margin-top: 1.25rem;
+}
+
+.legal h3 {
+  font-size: 0.98rem;
+  font-weight: 650;
+  margin: 1.15rem 0 0.4rem;
 }
 
 .legal p,

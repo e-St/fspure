@@ -31,3 +31,4 @@ Hand-authored prose for generated docs. **Edit these files** — never the gener
 | File | Used by |
 |------|---------|
 | `readme-top.md` | `templates/README.md.scriban` — title, links table, layout, quick start |
+| `skill-usage.md` | `templates/README.md.scriban`, `templates/customer.md.scriban` — how to install and use the agent skill |

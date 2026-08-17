@@ -9,6 +9,7 @@ on:
     paths:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
+      - "src/docs/human/**"
       - "src/devcontainer/fragments/**"
       - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
@@ -16,6 +17,7 @@ on:
     paths:
       - "src/DocsGenerator/**"
       - "src/docs/templates/**"
+      - "src/docs/human/**"
       - "src/devcontainer/fragments/**"
       - "flake.nix"
       - ".github/workflows/generate-customer-md.yml"
@@ -39,4 +41,7 @@ jobs:
           dotnet run --project src/DocsGenerator -- preview "ci-check"
           test -f .generated/site/preview/ci-check/README.md
           test -f .generated/site/preview/ci-check/customer.md
+          grep -q "Using the fspure skill" .generated/site/preview/ci-check/README.md
+          grep -q "Using the fspure skill" .generated/site/preview/ci-check/customer.md
+          grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html
           echo "OK: docs generator rendered preview artifacts under .generated/"

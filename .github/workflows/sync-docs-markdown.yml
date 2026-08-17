@@ -1,0 +1,108 @@
+# Keep the GitHub landing README in lockstep with src/docs/human/ + templates.
+#
+# Source of truth:  src/docs/human/*.md  and  src/docs/templates/*.scriban
+# Committed output: README.md
+# Site HTML:        generated on Official release (fspure.net) and Docs preview (github.io)
+#
+# PRs: regenerate and push README.md onto the PR branch (forks: fail if stale).
+# main / official release / dispatch: regenerate and commit to the branch.
+name: Sync docs markdown
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "src/docs/human/**"
+      - "src/docs/templates/**"
+      - "src/DocsGenerator/**"
+      - ".github/workflows/sync-docs-markdown.yml"
+  pull_request:
+    paths:
+      - "src/docs/human/**"
+      - "src/docs/templates/**"
+      - "src/DocsGenerator/**"
+      - ".github/workflows/sync-docs-markdown.yml"
+  workflow_call:
+    inputs:
+      version:
+        description: "Stable version label (optional; default lastOfficial analyzer)"
+        required: false
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Stable version label (optional; default lastOfficial analyzer)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-docs-markdown-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync root README.md from human files
+    runs-on: ubuntu-latest
+    if: github.repository == 'e-St/fspure'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Generate and write README.md
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${INPUT_VERSION:-}" ]]; then
+            dotnet run --project src/DocsGenerator -- sync-readme "$INPUT_VERSION"
+          else
+            dotnet run --project src/DocsGenerator -- sync-readme
+          fi
+
+      - name: Commit README.md if changed
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add README.md
+
+          if git diff --staged --quiet; then
+            echo "README.md already matches src/docs/human/ + templates."
+            exit 0
+          fi
+
+          if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
+            echo "::error::README.md is stale relative to src/docs/human/ and templates."
+            echo "Run locally: dotnet run --project src/DocsGenerator -- sync-readme"
+            echo "Then commit README.md"
+            git --no-pager diff --cached --stat
+            exit 1
+          fi
+
+          git commit -m "docs: sync README.md from human files
+
+          Automated by Sync docs markdown. Source: src/docs/human/ + src/docs/templates/."
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git push origin "HEAD:${{ github.head_ref }}"
+          else
+            git push
+          fi
+          echo "Pushed regenerated README.md."

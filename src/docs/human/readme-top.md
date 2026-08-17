@@ -17,6 +17,7 @@ It does that by defining a pure subset and marking everything else as impure.
 |-----------|------|
 | **FSharp.PureAnalyzer** | Classifies definitions (`PURE002` impure / `PURE003` pure) for Ionide & `fsharp-analyzers` |
 | **fspure** | Agent CLI: `fspure analyze --fail-on-impure` → deterministic JSON/SARIF ([AGENT.md](src/docs/AGENT.md)) |
+| **fspure-reduce-impurity** | Copilot / Claude skill that uses that CLI to push I/O to the boundary |
 | **fsharp-pure-decorations** | VS Code extension: end-of-line **pure** / **impure** badges after Ionide LineLens |
 
 | | |
@@ -42,6 +43,7 @@ It does that by defining a pure subset and marking everything else as impure.
 ```text
 dotnet run --project src/Fspure.Tasks -- help
 dotnet run --project src/Fspure.Tasks -- docs preview
+dotnet run --project src/Fspure.Tasks -- docs sync-readme
 dotnet run --project src/Fspure.Tasks -- security
 dotnet run --project src/Fspure.Tasks -- ready-lib-gate
 dotnet run --project src/DevcontainerGen
@@ -49,28 +51,7 @@ dotnet run --project src/DevcontainerGen
 
 End-user install (analyzer + extension + settings) is generated **below** this human section, and on **[fspure.net](https://fspure.net)**.
 
-## Agent skill
-
-**GitHub Copilot.** The Codespace / devcontainer installs the published skill into your user profile (not the repo):
-
-```text
-gh skill install e-St/fspure fspure-reduce-impurity \
-  --scope user \
-  --pin fspure-reduce-impurity-vX.Y.Z \
-  --force \
-  --agent github-copilot
-```
-
-Needs GitHub CLI 2.90+. `--agent` is required in Codespaces (otherwise `gh` prompts and the install is cancelled). `--pin` is the official skill tag (`fspure-reduce-impurity-v*`). Until that tag exists, Codespaces pin `main` because GitHub Release `v0.4.0` has no skill. The pin is `FSPURE_SKILL_REF` in the fstarter pack. The Codespace also installs the standalone `fspure` CLI onto `PATH` (`~/.local/bin`) so the agent does not download releases. After that, Copilot loads `fspure-reduce-impurity` when you talk about purity, `fspure analyze`, or PURE001.
-
-**Claude Code.** This repo is a plugin marketplace. Add it and install the plugin:
-
-```text
-/plugin marketplace add e-St/fspure
-/plugin install fspure@fspure
-```
-
-Then run `/fspure:fspure-reduce-impurity`, or let Claude pick the skill from the task. The skill lives in [`plugins/fspure/`](plugins/fspure/).
+The **fspure-reduce-impurity** agent skill (Copilot / Claude) is documented in the next section.
 
 Maintainer docs:
 

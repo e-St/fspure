@@ -90,7 +90,7 @@ The JSON (and SARIF) document is **byte-identical** for the same inputs: sorted 
 
 ## Agent loop
 
-Defined for humans here; the skill is [`plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`](../plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
+User-facing install and usage: [README — Using the fspure skill](../../README.md#using-the-fspure-skill) and [fspure.net/get-started.html#agent-skill](https://fspure.net/get-started.html#agent-skill). The skill body is [`plugins/fspure/skills/fspure-reduce-impurity/SKILL.md`](../plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
 
 ```text
 edit → compile → fspure analyze --fail-on-impure --focus <core> --format json

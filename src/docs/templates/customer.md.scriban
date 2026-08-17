@@ -76,6 +76,10 @@ Real pure/impure examples (from our e2e fixture):
 
 ---
 
+{{ human "skill-usage" }}
+
+---
+
 ## Library authors (one line)
 
 Ship pure metadata inside your DLL so consumers get labels without re-running the collector:

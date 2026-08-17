@@ -14,6 +14,8 @@
 > This page: {{ BaseUrl }}
 {{ end }}
 
+{{ human "skill-usage" }}
+
 ---
 
 ## 60-second install
@@ -63,6 +65,8 @@ Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md]
 |-------|----------------|
 | **FSharp.PureAnalyzer** | Marks definitions `PURE003` (pure) / `PURE002` (impure) |
 | **fsharp-pure-decorations** | Turns those into end-of-line **pure** / **impure** badges |
+| **fspure** | Agent/CI CLI: `fspure analyze --fail-on-impure` |
+| **fspure-reduce-impurity** | Copilot / Claude skill that uses that CLI to push I/O to the boundary |
 | **fspure-collector** (optional tool) | Builds pure-method lists from assemblies for libraries |
 
 If a function only calls pure things, it is pure. If it (or anything it calls) does I/O or mutation, it is impure. You keep the messy stuff at the boundary of your app.
@@ -132,6 +136,7 @@ dotnet run --project src/Fspure.Tasks -- docs stable {{ AnalyzerVersion }}
 ## Links
 
 - [Customer / install guide](customer.md)
+- [Agent CLI](src/docs/AGENT.md)
 - [Releasing](src/docs/RELEASING.md)
 - [Security](src/docs/SECURITY.md)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)

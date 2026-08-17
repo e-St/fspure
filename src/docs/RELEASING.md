@@ -72,7 +72,9 @@ Triggers **Official release**:
 5. **apply-version-pins**: fsproj / package.json / sample / fstarter `versions.env` / READMEs  
    (`FSPURE_SKILL_REF` becomes `fspure-reduce-impurity-v{skill}` when that component is published)
 6. Commit pin updates to `main`
-7. Dispatch **Sync fspure-ready-lib** + **PR fspure updates to fstarter**
+7. `sync-readme`: regenerate root `README.md` from `src/docs/human/` + templates, commit if needed
+8. Publish **fspure.net** from `.generated/site`
+9. Dispatch **Sync fspure-ready-lib** + **PR fspure updates to fstarter**
 
 ### Trusted Publishing (required once)
 
