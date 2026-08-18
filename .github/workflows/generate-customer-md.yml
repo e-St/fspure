@@ -52,9 +52,9 @@ jobs:
           grep -q "Agentic Setup" .generated/site/preview/ci-check/customer.md
           grep -q "https://github.com/e-St/fspure/blob/main/src/docs/EXAMPLES.md" .generated/site/preview/ci-check/README.md
           grep -q "get-started.html" .generated/site/preview/ci-check/README.md
-          if grep -E -q '\]\((customer\.md|src/docs/[^)]+)\)' .generated/site/preview/ci-check/README.md; then
+          if grep -E -q '\]\((customer\.md|src/docs/[^)]+\.md)\)' .generated/site/preview/ci-check/README.md; then
             echo "README must not use relative repo paths that break on GitHub or the site" >&2
-            grep -n -E '\]\((customer\.md|src/docs/[^)]+)\)' .generated/site/preview/ci-check/README.md >&2
+            grep -n -E '\]\((customer\.md|src/docs/[^)]+\.md)\)' .generated/site/preview/ci-check/README.md >&2
             exit 1
           fi
           grep -q "Real code, real labels" .generated/site/preview/ci-check/EXAMPLES.md
