@@ -2,7 +2,7 @@
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-18T18:21:59Z
+  Generated: 2026-08-18T20:45:28Z
 -->
 
 # Using fspure (get started)
@@ -178,7 +178,7 @@ let purePipeline (x: int) =
 ---
 
 <!-- <human id="skill-usage"> -->
-## Using the fspure skill
+## Agent based usage of fspure
 
 The **fspure-reduce-impurity** skill teaches your coding agent to push side effects out of F# core logic. You describe what should stay pure; the agent runs `fspure analyze` and rewrites each impure call so the effect is passed in as a function argument.
 
