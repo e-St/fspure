@@ -47,4 +47,4 @@ let add x y =                     let printfHello s = printf "%s" s
 
 The function keeps its name. Each effect becomes a parameter named for the **role** it plays (`write`, not `printf`). The original call is kept as a small example function you can pass in at the boundary. Tests can pass `ignore`.
 
-CLI flags, JSON schema, and CI: [src/docs/AGENT.md](src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
+CLI flags, JSON schema, and CI: [src/docs/AGENT.md](https://github.com/e-St/fspure/blob/main/src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](https://github.com/e-St/fspure/blob/main/plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).

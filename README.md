@@ -85,7 +85,7 @@ Open an F# file, wait for Ionide. You should see:
 - **pure** badges on clean functions  
 - **impure** badges on anything that touches I/O, mutation, randomness, etc.
 
-Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
+Full end-user guide (dev containers, fstarter, troubleshooting): **[get started](https://fspure.net/get-started.html)**.
 
 ### Agentic Setup
 
@@ -139,7 +139,7 @@ let add x y =                     let printfHello s = printf "%s" s
 
 The function keeps its name. Each effect becomes a parameter named for the **role** it plays (`write`, not `printf`). The original call is kept as a small example function you can pass in at the boundary. Tests can pass `ignore`.
 
-CLI flags, JSON schema, and CI: [src/docs/AGENT.md](src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
+CLI flags, JSON schema, and CI: [src/docs/AGENT.md](https://github.com/e-St/fspure/blob/main/src/docs/AGENT.md). The skill body is [plugins/fspure/skills/fspure-reduce-impurity/SKILL.md](https://github.com/e-St/fspure/blob/main/plugins/fspure/skills/fspure-reduce-impurity/SKILL.md).
 <!-- </human> -->
 
 
@@ -157,12 +157,12 @@ CLI flags, JSON schema, and CI: [src/docs/AGENT.md](src/docs/AGENT.md). The skil
 
 If a function only calls pure things, it is pure. If it (or anything it calls) does I/O or mutation, it is impure. You keep the messy stuff at the boundary of your app.
 
-- [Real code, real labels](src/docs/EXAMPLES.md)
-- [Customer / install guide](customer.md)
-- [Agent CLI](src/docs/AGENT.md)
-- [Contributing / repo map](src/docs/CONTRIBUTING.md)
-- [Releasing](src/docs/RELEASING.md)
-- [Security](src/docs/SECURITY.md)
+- [Real code, real labels](https://github.com/e-St/fspure/blob/main/src/docs/EXAMPLES.md)
+- [Customer / install guide](https://fspure.net/get-started.html)
+- [Agent CLI](https://github.com/e-St/fspure/blob/main/src/docs/AGENT.md)
+- [Contributing / repo map](https://github.com/e-St/fspure/blob/main/src/docs/CONTRIBUTING.md)
+- [Releasing](https://github.com/e-St/fspure/blob/main/src/docs/RELEASING.md)
+- [Security](https://github.com/e-St/fspure/blob/main/src/docs/SECURITY.md)
 - [Product site](https://fspure.net)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)

@@ -55,7 +55,7 @@ Open an F# file, wait for Ionide. You should see:
 - **pure** badges on clean functions  
 - **impure** badges on anything that touches I/O, mutation, randomness, etc.
 
-Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
+Full end-user guide (dev containers, fstarter, troubleshooting): **[get started]({{ BaseUrl }}/get-started.html)**.
 
 ### Agentic Setup
 
@@ -75,12 +75,12 @@ Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md]
 
 If a function only calls pure things, it is pure. If it (or anything it calls) does I/O or mutation, it is impure. You keep the messy stuff at the boundary of your app.
 
-- [Real code, real labels](src/docs/EXAMPLES.md)
-- [Customer / install guide](customer.md)
-- [Agent CLI](src/docs/AGENT.md)
-- [Contributing / repo map](src/docs/CONTRIBUTING.md)
-- [Releasing](src/docs/RELEASING.md)
-- [Security](src/docs/SECURITY.md)
+- [Real code, real labels](https://github.com/e-St/fspure/blob/main/src/docs/EXAMPLES.md)
+- [Customer / install guide]({{ BaseUrl }}/get-started.html)
+- [Agent CLI](https://github.com/e-St/fspure/blob/main/src/docs/AGENT.md)
+- [Contributing / repo map](https://github.com/e-St/fspure/blob/main/src/docs/CONTRIBUTING.md)
+- [Releasing](https://github.com/e-St/fspure/blob/main/src/docs/RELEASING.md)
+- [Security](https://github.com/e-St/fspure/blob/main/src/docs/SECURITY.md)
 - [Product site](https://fspure.net)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)
