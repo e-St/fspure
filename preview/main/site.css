@@ -144,22 +144,21 @@ a:focus-visible {
   height: 1.85rem;
 }
 
-.start-pick {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.55rem;
-}
-
 .home-prose {
   width: min(40rem, 100%);
   text-align: left;
 }
 
 .home-prose h2 {
+  font-family: inherit;
   font-size: 1.05rem;
   font-weight: 650;
-  margin: 1.25rem 0 0.45rem;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text);
+  margin: 1.5rem 0 0.5rem;
+  scroll-margin-top: 1.25rem;
 }
 
 .home-prose h2:first-child {
@@ -177,31 +176,21 @@ a:focus-visible {
 
 .home-shot {
   display: block;
-  width: 100%;
+  width: 70%;
   height: auto;
-  margin: 0.85rem 0 0;
+  margin: 0.85rem auto 0;
   border-radius: 0.35rem;
 }
 
-.start-pick-label {
-  font-size: 0.78rem;
-  font-weight: 550;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.start-pick-intro {
-  max-width: 36rem;
-  font-size: 0.95rem;
-  color: var(--muted);
-  text-align: center;
+.home-prose .start-pick {
+  display: block;
+  margin-top: 0.65rem;
 }
 
 .start-pick-ways {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: baseline;
   gap: 0.15rem 0.15rem;
   font-size: 1.02rem;

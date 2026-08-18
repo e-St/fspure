@@ -34,12 +34,12 @@
       </a>
     </nav>
 
-    <section class="home-prose" aria-label="Why and how">
+    <section class="home-prose" aria-label="Why, how, and how to use it">
       <h2>Why should I care?</h2>
       <p>
         Effects at the boundary leave you a core that is deterministic: same inputs, same outputs,
         no hidden I/O or mutation. That code is easier to test, review, and change. Getting there
-        is not a single rewrite. It is a non-deterministic process — find an impure call, decide
+        is not a single rewrite. It is a creative process — find an impure call, decide
         whether it belongs in the core, push it out, repeat. The analyzer reports what is still
         impure, the VS Code extension shows it on the function you are looking at, and an AI agent
         using the fspure skill can do the mechanical rewrites so you spend your time on those
@@ -55,19 +55,18 @@
         only F# core and the BCL.
       </p>
       <img class="home-shot" src="assets/image.png" alt="pure / impure decorations in the editor" />
-    </section>
-
-    <nav class="start-pick" aria-label="How can I use it?">
-      <p class="start-pick-label">How can I use it?</p>
-      <p class="start-pick-intro">
+      <h2>How can I use it?</h2>
+      <p>
         You can wire the analyzer and badges into your editor yourself, or let an agent run the
         same loop from the skill. Both paths use the same purity labels.
       </p>
-      <p class="start-pick-ways">
-        <a href="#traditional" data-way="traditional">Traditional Setup</a>
-        <a href="#agentic" data-way="agentic">Agentic Setup</a>
-      </p>
-    </nav>
+      <nav class="start-pick" aria-label="How can I use it?">
+        <p class="start-pick-ways">
+          <a href="#traditional" data-way="traditional">Traditional Setup</a>
+          <a href="#agentic" data-way="agentic">Agentic Setup</a>
+        </p>
+      </nav>
+    </section>
 
     <section id="traditional" class="expand-panel legal">
       <h2>Traditional Setup</h2>
@@ -224,17 +223,10 @@ let add x y =                     let printfHello s = printf "%s" s
       </p>
     </section>
 
-    <nav class="home-more" aria-label="More">
-      <a href="https://github.com/e-St/fspure/blob/main/src/docs/EXAMPLES.md">Real code, real labels</a>
-      <a href="get-started.html">Customer / install guide</a>
-      <a href="https://github.com/e-St/fspure/blob/main/src/docs/AGENT.md">Agent CLI</a>
+    <nav class="home-more" aria-label="Packages">
       <a href="https://www.nuget.org/packages/FSharp.PureAnalyzer">NuGet</a>
       <a href="https://open-vsx.org/extension/e-st/fsharp-pure-decorations">Open VSX</a>
     </nav>
-
-    <div class="starter-banner" role="note">
-      New to F#? Try our <a href="https://github.com/e-St/fstarter">Starter</a>!
-    </div>
     <footer>
       Open source · MIT · docs preview @ 0.4.0
       <nav aria-label="Legal">

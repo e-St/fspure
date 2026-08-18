@@ -12,7 +12,7 @@ This project explores how an **F# analyzer** and **VS Code extension** can help 
 
 ## Why should I care?
 
-Effects at the boundary leave you a core that is deterministic: same inputs, same outputs, no hidden I/O or mutation. That code is easier to test, review, and change. Getting there is not a single rewrite. It is a non-deterministic process — find an impure call, decide whether it belongs in the core, push it out, repeat. The analyzer reports what is still impure, the VS Code extension shows it on the function you are looking at, and an AI agent using the fspure skill can do the mechanical rewrites so you spend your time on those decisions.
+Effects at the boundary leave you a core that is deterministic: same inputs, same outputs, no hidden I/O or mutation. That code is easier to test, review, and change. Getting there is not a single rewrite. It is a creative process — find an impure call, decide whether it belongs in the core, push it out, repeat. The analyzer reports what is still impure, the VS Code extension shows it on the function you are looking at, and an AI agent using the fspure skill can do the mechanical rewrites so you spend your time on those decisions.
 
 ## How does it work?
 
@@ -25,7 +25,7 @@ It does that by defining a pure subset and marking everything else as impure. Th
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-18T21:12:08Z
+  Generated: 2026-08-18T21:38:15Z
 -->
 
 
