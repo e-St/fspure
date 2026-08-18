@@ -14,10 +14,6 @@
 > This page: {{ BaseUrl }}
 {{ end }}
 
-{{ human "skill-usage" }}
-
----
-
 ## 60-second install
 
 ### 1. Analyzer (NuGet)
@@ -56,6 +52,10 @@ Open an F# file, wait for Ionide. You should see:
 - **impure** badges on anything that touches I/O, mutation, randomness, etc.
 
 Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
+
+---
+
+{{ human "skill-usage" }}
 
 ---
 
@@ -103,42 +103,14 @@ More: **[src/samples/fspure-ready-lib](src/samples/fspure-ready-lib/)**.
 
 ---
 
-## Repo map
-
-```text
-src/              analyzer, schema, collector, embed, F# tools
-src/Fspure.Tasks  monorepo CLI (docs, security, gates, phase1/5)
-src/tests/        unit + e2e
-src/samples/      fspure-ready-lib template
-src/editor/       VS Code extension
-src/docs/         hand docs, human/ partials, templates, releases
-.generated/       docs site + markdown (gitignored)
-```
-
----
-
-## Docs channels
-
-| Channel | When | Where |
-|---------|------|--------|
-| **Stable** | **Official release only** | **[fspure.net](https://fspure.net)** (+ generated site under `.generated/`) |
-| **Preview** | Any branch (including `main`) / beta tags | **[github.io](https://e-st.github.io/fspure/preview/)** only — not fspure.net |
-
-Templates: `src/docs/templates/`. Human prose: `src/docs/human/`. Generator: `src/DocsGenerator`. Policy: [src/docs/DOCS.md](src/docs/DOCS.md).
-
-```text
-dotnet run --project src/Fspure.Tasks -- docs preview
-dotnet run --project src/Fspure.Tasks -- docs stable {{ AnalyzerVersion }}
-```
-
----
-
 ## Links
 
 - [Customer / install guide](customer.md)
 - [Agent CLI](src/docs/AGENT.md)
+- [Contributing / repo map](src/docs/CONTRIBUTING.md)
 - [Releasing](src/docs/RELEASING.md)
 - [Security](src/docs/SECURITY.md)
+- [Product site](https://fspure.net)
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)
 

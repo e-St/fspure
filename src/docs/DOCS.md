@@ -94,17 +94,18 @@ Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (ge
 
 ## Human anchors
 
-Human instructions must stay above generated install noise where it matters.
+The product README is: human prologue (intro + screenshot) → generated **60-second install** → human **skill usage** → remaining generated sections.
 
 1. Edit `src/docs/human/readme-top.md` (or add `src/docs/human/<id>.md`).
-2. In the Scriban template, put the human block **first**:
+2. In the Scriban template, keep install immediately under the screenshot:
 
 ```scriban
 {{ human "readme-top" }}
 
-<!-- generated sections below -->
 ## 60-second install
 …
+
+{{ human "skill-usage" }}
 ```
 
 3. Output looks like:
@@ -112,10 +113,14 @@ Human instructions must stay above generated install noise where it matters.
 ```markdown
 <!-- <human id="readme-top"> -->
 # fspure
-…
+…screenshot…
 <!-- </human> -->
 
 ## 60-second install
+…
+
+<!-- <human id="skill-usage"> -->
+## Using the fspure skill
 …
 ```
 
@@ -123,7 +128,7 @@ Human instructions must stay above generated install noise where it matters.
 - `{{ human_opt "id" }}` — optional empty.  
 - Source of truth is always `src/docs/human/`, not the generated file.
 
-Root `README.md` on GitHub is the **generated product README** (human prologue + install + skill usage). It is written by:
+Root `README.md` on GitHub is the **generated product README** (prologue + 60-second install + skill usage). Maintainer layout lives in [CONTRIBUTING.md](CONTRIBUTING.md). It is written by:
 
 ```text
 dotnet run --project src/DocsGenerator -- sync-readme
