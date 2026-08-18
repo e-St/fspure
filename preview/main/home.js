@@ -2,14 +2,24 @@
   const home = document.querySelector("body.home");
   const links = Array.from(document.querySelectorAll("[data-way]"));
   const panels = {
-    hard: document.getElementById("hard"),
-    agents: document.getElementById("agents"),
+    traditional: document.getElementById("traditional"),
+    agentic: document.getElementById("agentic"),
   };
 
   function parseHash() {
     const raw = (location.hash || "").replace(/^#/, "");
-    if (raw === "hard" || raw === "the-hard-way") return "hard";
-    if (raw === "agents" || raw === "ai-agents" || raw === "agent-skill") return "agents";
+    if (raw === "traditional" || raw === "traditional-setup" || raw === "hard" || raw === "the-hard-way") {
+      return "traditional";
+    }
+    if (
+      raw === "agentic" ||
+      raw === "agentic-setup" ||
+      raw === "agents" ||
+      raw === "ai-agents" ||
+      raw === "agent-skill"
+    ) {
+      return "agentic";
+    }
     return "";
   }
 

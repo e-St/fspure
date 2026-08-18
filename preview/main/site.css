@@ -69,7 +69,7 @@ a:focus-visible {
 }
 
 @media (min-height: 720px) {
-  .home:not(.home-open) {
+  .home:not(.home-open):not(.has-prose) {
     justify-content: center;
     min-height: 100vh;
   }
@@ -151,12 +151,51 @@ a:focus-visible {
   gap: 0.55rem;
 }
 
+.home-prose {
+  width: min(40rem, 100%);
+  text-align: left;
+}
+
+.home-prose h2 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin: 1.25rem 0 0.45rem;
+}
+
+.home-prose h2:first-child {
+  margin-top: 0;
+}
+
+.home-prose p {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.home-prose p + p {
+  margin-top: 0.65rem;
+}
+
+.home-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.85rem 0 0;
+  border-radius: 0.35rem;
+}
+
 .start-pick-label {
   font-size: 0.78rem;
   font-weight: 550;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.start-pick-intro {
+  max-width: 36rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  text-align: center;
 }
 
 .start-pick-ways {
@@ -249,6 +288,16 @@ a:focus-visible {
   font-size: 0.8rem;
   color: var(--muted);
   opacity: 0.9;
+}
+
+.home-more {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1rem;
+  max-width: 40rem;
+  font-size: 0.88rem;
+  font-weight: 500;
 }
 
 .home footer nav,
