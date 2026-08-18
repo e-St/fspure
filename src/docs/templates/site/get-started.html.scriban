@@ -26,6 +26,37 @@
     </p>
 {{ end }}
 
+    <h2>Why should I care?</h2>
+    <p>
+      Effects at the boundary leave you a core that is deterministic: same inputs, same outputs,
+      no hidden I/O or mutation. That code is easier to test, review, and change. Getting there
+      is not a single rewrite. It is a non-deterministic process — find an impure call, decide
+      whether it belongs in the core, push it out, repeat. The analyzer reports what is still
+      impure, the VS Code extension shows it on the function you are looking at, and an AI agent
+      using the fspure skill can do the mechanical rewrites so you spend your time on those
+      decisions.
+    </p>
+
+    <h2>How does it work?</h2>
+    <p>
+      It does that by defining a pure subset and marking everything else as impure. The analyzer
+      checks your F# code and labels each definition. The VS Code extension visualizes those
+      labels as end-of-line <strong>pure</strong> / <strong>impure</strong> badges. An agent can
+      use the same analyzer output to rewrite functions toward purity automatically. You can join
+      the ecosystem by shipping purity information for your own libraries, instead of covering
+      only F# core and the BCL.
+    </p>
+    <p>
+      <img src="assets/image.png" alt="pure / impure decorations in the editor" style="width:100%;height:auto;border-radius:0.35rem" />
+    </p>
+
+    <h2>How can I use it?</h2>
+    <p>
+      You can wire the analyzer and badges into your editor yourself, or let an agent run the
+      same loop from the skill. Both paths use the same purity labels.
+    </p>
+
+    <h2>Traditional Setup</h2>
     <p>
       You need two small pieces plus Ionide (the usual F# language support for VS Code):
     </p>
@@ -34,7 +65,7 @@
       <li><strong>Extension</strong> — draws the badges at end of line</li>
     </ol>
 
-    <h2>1. Add the analyzer to your project</h2>
+    <h3>1. Add the analyzer to your project</h3>
     <figure class="codebox" data-lang="shell">
       <figcaption>Command line</figcaption>
       <pre><code>dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}</code></pre>
@@ -50,7 +81,7 @@
       and not VS Code variables.
     </p>
 
-    <h2>2. Install the editor pieces</h2>
+    <h3>2. Install the editor pieces</h3>
     <ul>
       <li><strong>Ionide for F#</strong> — if you don’t already use it</li>
       <li><strong>F# Pure Analyzer Decorations</strong> (<code>e-st.fsharp-pure-decorations</code>) from
@@ -59,14 +90,14 @@
         <a href="https://github.com/e-St/fspure/releases">GitHub Releases</a>)</li>
     </ul>
 
-    <h2>3. Turn on analyzers in the workspace</h2>
+    <h3>3. Turn on analyzers in the workspace</h3>
     <p>Create or edit <code>.vscode/settings.json</code>:</p>
     <figure class="codebox" data-lang="json">
       <figcaption>Workspace settings</figcaption>
       <pre><code>{{ MinimalSettingsJson }}</code></pre>
     </figure>
 
-    <h2>4. Open a file and wait a moment</h2>
+    <h3>4. Open a file and wait a moment</h3>
     <p>
       Open your solution, open any <code>.fs</code> file, wait for Ionide to load.
       Definitions should show end-of-line badges:

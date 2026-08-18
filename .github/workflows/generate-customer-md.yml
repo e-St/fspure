@@ -60,14 +60,19 @@ jobs:
           grep -q "Real code, real labels" .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "let pureAdd" .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html
+          grep -q "Why should I care?" .generated/site/preview/ci-check/index.html
+          grep -q "How does it work?" .generated/site/preview/ci-check/index.html
+          grep -q "How can I use it?" .generated/site/preview/ci-check/index.html
+          grep -q "Traditional Setup" .generated/site/preview/ci-check/index.html
+          grep -q "Agentic Setup" .generated/site/preview/ci-check/index.html
+          grep -q "Why should I care?" .generated/site/preview/ci-check/get-started.html
+          grep -q "Traditional Setup" .generated/site/preview/ci-check/get-started.html
           grep -q "aria-label=\"GitHub\"" .generated/site/preview/ci-check/index.html
           grep -q "aria-label=\"Releases\"" .generated/site/preview/ci-check/index.html
           grep -q "start-pick" .generated/site/preview/ci-check/index.html
-          grep -q "the \"hard\" way" .generated/site/preview/ci-check/index.html
-          grep -q "with your AI agents" .generated/site/preview/ci-check/index.html
           grep -q "home.js" .generated/site/preview/ci-check/index.html
-          grep -q 'id="hard"' .generated/site/preview/ci-check/index.html
-          grep -q 'id="agents"' .generated/site/preview/ci-check/index.html
+          grep -q 'id="traditional"' .generated/site/preview/ci-check/index.html
+          grep -q 'id="agentic"' .generated/site/preview/ci-check/index.html
           test -f .generated/site/preview/ci-check/home.js
           if grep -q "d3" .generated/site/preview/ci-check/index.html; then
             echo "D3 must not appear on the homepage" >&2
