@@ -14,9 +14,13 @@
 > This page: {{ BaseUrl }}
 {{ end }}
 
-## 60-second install
+## How can I use it?
 
-### 1. Analyzer (NuGet)
+You can wire the analyzer and badges into your editor yourself, or let an agent run the same loop from the skill. Both paths use the same purity labels.
+
+### Traditional Setup
+
+#### 1. Analyzer (NuGet)
 
 ```bash
 dotnet add package FSharp.PureAnalyzer --version {{ AnalyzerVersion }}
@@ -30,7 +34,7 @@ nuget FSharp.PureAnalyzer {{ AnalyzerVersion }}
 
 Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named `analyzers` (Ionide needs a **real path** — no `~` or `${userHome}`).
 
-### 2. VS Code extension
+#### 2. VS Code extension
 
 Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [Open VSX](https://open-vsx.org/extension/e-st/fsharp-pure-decorations), **and** [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp).
 
@@ -38,7 +42,7 @@ Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [
 # Extensions UI → search “F# Pure Analyzer Decorations” (Open VSX / VSCodium / code-server)
 ```
 
-### 3. Workspace settings
+#### 3. Workspace settings
 
 Paste into `.vscode/settings.json`:
 
@@ -53,7 +57,7 @@ Open an F# file, wait for Ionide. You should see:
 
 Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
 
----
+### Agentic Setup
 
 {{ human "skill-usage" }}
 

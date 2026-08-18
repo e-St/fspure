@@ -15,7 +15,7 @@ You want pure/impure labels in the editor. You need **two** things:
 Plus **Ionide for F#**.
 
 {{ if Channel != "stable" }}
-> Preview docs for `{{ RefName }}`. Stable guide: [fspure.net](https://fspure.net) / [main README](https://github.com/e-St/fspure#60-second-install).
+> Preview docs for `{{ RefName }}`. Stable guide: [fspure.net](https://fspure.net) / [main README](https://github.com/e-St/fspure#traditional-setup).
 {{ end }}
 
 ---
@@ -75,6 +75,8 @@ Real pure/impure examples (from our e2e fixture):
 ```
 
 ---
+
+## Agentic Setup
 
 {{ human "skill-usage" }}
 

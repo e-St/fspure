@@ -46,8 +46,10 @@ jobs:
           test -f .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "Why should I care?" .generated/site/preview/ci-check/README.md
           grep -q "How does it work?" .generated/site/preview/ci-check/README.md
-          grep -q "Agent based usage of fspure" .generated/site/preview/ci-check/README.md
-          grep -q "Agent based usage of fspure" .generated/site/preview/ci-check/customer.md
+          grep -q "How can I use it?" .generated/site/preview/ci-check/README.md
+          grep -q "Traditional Setup" .generated/site/preview/ci-check/README.md
+          grep -q "Agentic Setup" .generated/site/preview/ci-check/README.md
+          grep -q "Agentic Setup" .generated/site/preview/ci-check/customer.md
           grep -q "Real code, real labels" .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "let pureAdd" .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html

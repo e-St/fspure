@@ -30,9 +30,13 @@ It does that by defining a pure subset and marking everything else as impure. Th
 
 
 
-## 60-second install
+## How can I use it?
 
-### 1. Analyzer (NuGet)
+You can wire the analyzer and badges into your editor yourself, or let an agent run the same loop from the skill. Both paths use the same purity labels.
+
+### Traditional Setup
+
+#### 1. Analyzer (NuGet)
 
 ```bash
 dotnet add package FSharp.PureAnalyzer --version 0.4.0
@@ -46,7 +50,7 @@ nuget FSharp.PureAnalyzer 0.4.0
 
 Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named `analyzers` (Ionide needs a **real path** — no `~` or `${userHome}`).
 
-### 2. VS Code extension
+#### 2. VS Code extension
 
 Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [Open VSX](https://open-vsx.org/extension/e-st/fsharp-pure-decorations), **and** [Ionide for F#](https://open-vsx.org/extension/Ionide/Ionide-fsharp).
 
@@ -54,7 +58,7 @@ Install **F# Pure Analyzer Decorations** (`e-st.fsharp-pure-decorations`) from [
 # Extensions UI → search “F# Pure Analyzer Decorations” (Open VSX / VSCodium / code-server)
 ```
 
-### 3. Workspace settings
+#### 3. Workspace settings
 
 Paste into `.vscode/settings.json`:
 
@@ -83,16 +87,14 @@ Open an F# file, wait for Ionide. You should see:
 
 Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md](customer.md)**.
 
----
+### Agentic Setup
 
 <!-- <human id="skill-usage"> -->
-## Agent based usage of fspure
-
 The **fspure-reduce-impurity** skill teaches your coding agent to push side effects out of F# core logic. You describe what should stay pure; the agent runs `fspure analyze` and rewrites each impure call so the effect is passed in as a function argument.
 
 The original I/O is not deleted. It moves to the boundary of the application.
 
-### Install the skill
+#### Install the skill
 
 **GitHub Copilot** (VS Code agent mode, Copilot CLI, or coding agent). Needs [GitHub CLI](https://cli.github.com/) 2.90+:
 
@@ -114,9 +116,9 @@ An [fspure](https://github.com/e-St/fspure) or [fstarter](https://github.com/e-S
 
 Then run `/fspure:fspure-reduce-impurity`, or just describe the task and let Claude pick the skill.
 
-### How to use it
+#### How to use it
 
-1. Add the analyzer to the project so the agent can run `fspure analyze` (the 60-second install on this page, or [fspure.net/get-started](https://fspure.net/get-started.html)).
+1. Add the analyzer to the project so the agent can run `fspure analyze` (the Traditional Setup on this page, or [fspure.net/get-started](https://fspure.net/get-started.html)).
 2. Point the agent at the code that should stay pure, for example:
 
    > Make `src/Core` purer. Ignore `src/Host`.
@@ -125,7 +127,7 @@ Then run `/fspure:fspure-reduce-impurity`, or just describe the task and let Cla
 3. The agent loops: build → `fspure analyze --fail-on-impure` → rewrite → repeat.
 4. It is done when the report is clean, or when only a little impurity remains and it belongs at the edge of the app.
 
-### What a rewrite looks like
+#### What a rewrite looks like
 
 ```fsharp
 // before                         // after
