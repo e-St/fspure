@@ -1,4 +1,4 @@
-## Using the fspure skill
+## Agent based usage of fspure
 
 The **fspure-reduce-impurity** skill teaches your coding agent to push side effects out of F# core logic. You describe what should stay pure; the agent runs `fspure analyze` and rewrites each impure call so the effect is passed in as a function argument.
 

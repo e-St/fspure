@@ -38,7 +38,7 @@ Then open http://127.0.0.1:5500/ (Simple Browser) and `.generated/docs/` (Markdo
 
 | File | Used by |
 |------|---------|
-| `readme-top.md` | `templates/README.md.scriban` — title, intro, screenshot |
+| `readme-top.md` | `templates/README.md.scriban` — logo, intro, screenshot |
 | `skill-usage.md` | `templates/README.md.scriban`, `templates/customer.md.scriban` — how to install and use the agent skill |
 
-Maintainer layout, repo map, and task commands live in [CONTRIBUTING.md](../CONTRIBUTING.md), not in the product README.
+Maintainer layout, repo map, and task commands live in [CONTRIBUTING.md](../CONTRIBUTING.md), not in the product README. Fixture snippets live in [EXAMPLES.md](../EXAMPLES.md).

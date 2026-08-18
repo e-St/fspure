@@ -10,7 +10,7 @@
 
 Everyday commits and PRs **must not** change fspure.net.
 
-Generated Markdown and the static site are written under **`.generated/`** (gitignored). The one exception is the GitHub landing **`README.md`**, which `sync-readme` writes from human files + templates and CI commits. Nothing generated is committed under `src/`.
+Generated Markdown and the static site are written under **`.generated/`** (gitignored). The committed exceptions are the GitHub landing **`README.md`** and **`src/docs/EXAMPLES.md`**, which `sync-readme` writes from human files + templates and CI commits.
 
 ## One-time GitHub setup
 
@@ -42,10 +42,10 @@ dotnet run --project src/DocsGenerator -- serve
 | What | Where |
 |------|--------|
 | **fspure.net (local)** | http://127.0.0.1:5500/ — Command Palette → **Simple Browser: Show** and paste that URL, or Live Preview on `.generated/site/index.html` |
-| **Generated Markdown** | `.generated/docs/README.md`, `customer.md`, `ARCHITECTURE.md` — open and **Markdown: Open Preview** |
+| **Generated Markdown** | `.generated/docs/README.md`, `customer.md`, `ARCHITECTURE.md`, `EXAMPLES.md` — open and **Markdown: Open Preview** |
 | **Watch** | Edits under `src/docs/` regenerate both automatically |
 
-This does **not** write the GitHub landing `README.md` (use `sync-readme` when you want that) and does **not** publish fspure.net.
+This does **not** write the GitHub landing `README.md` or `src/docs/EXAMPLES.md` (use `sync-readme` when you want that) and does **not** publish fspure.net.
 
 ```text
 dotnet run --project src/DocsGenerator -- stable          # one-shot generate
@@ -57,10 +57,10 @@ dotnet run --project src/DocsGenerator -- serve --port 5500
 ```text
 nix run .#docs -- preview                          # or: fspure-docs preview
 dotnet run --project src/Fspure.Tasks -- docs preview  # CI / no Nix
-dotnet run --project src/Fspure.Tasks -- docs sync-readme  # write root README.md
+dotnet run --project src/Fspure.Tasks -- docs sync-readme  # write root README.md + src/docs/EXAMPLES.md
 # → .generated/site/preview/<branch>/
 # CI: Docs preview → gh-pages under /preview/<ref>/
-# CI: Sync docs markdown → commit README.md from human files
+# CI: Sync docs markdown → commit README.md + src/docs/EXAMPLES.md from human files
 ```
 
 Open:
@@ -73,8 +73,8 @@ https://e-st.github.io/fspure/preview/<sanitized-ref>/
 
 Runs inside **Official release** after packages publish:
 
-1. `sync-readme`: generate Markdown + site → `.generated/`, write root `README.md`  
-2. Commit `README.md` if it changed  
+1. `sync-readme`: generate Markdown + site → `.generated/`, write root `README.md` + `src/docs/EXAMPLES.md`  
+2. Commit those files if they changed  
 3. Publish `.generated/site/` to **gh-pages root** with **`cname: fspure.net`**
 
 Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (generate only)**.
@@ -112,15 +112,14 @@ The product README is: human prologue (intro + screenshot) → generated **60-se
 
 ```markdown
 <!-- <human id="readme-top"> -->
-# fspure
-…screenshot…
+…logo, screenshot…
 <!-- </human> -->
 
 ## 60-second install
 …
 
 <!-- <human id="skill-usage"> -->
-## Using the fspure skill
+## Agent based usage of fspure
 …
 ```
 
@@ -128,7 +127,7 @@ The product README is: human prologue (intro + screenshot) → generated **60-se
 - `{{ human_opt "id" }}` — optional empty.  
 - Source of truth is always `src/docs/human/`, not the generated file.
 
-Root `README.md` on GitHub is the **generated product README** (prologue + 60-second install + skill usage). Maintainer layout lives in [CONTRIBUTING.md](CONTRIBUTING.md). It is written by:
+Root `README.md` on GitHub is the **generated product README** (prologue + 60-second install + skill usage + what you get). Examples live in [EXAMPLES.md](EXAMPLES.md). Maintainer layout lives in [CONTRIBUTING.md](CONTRIBUTING.md). They are written by:
 
 ```text
 dotnet run --project src/DocsGenerator -- sync-readme
@@ -137,13 +136,13 @@ dotnet run --project src/DocsGenerator -- sync-readme --check   # CI: fail if st
 
 | When | What happens |
 |------|----------------|
-| **Official release** | `sync-readme` then commit `README.md` + publish fspure.net |
-| **Push / PR** that touches `src/docs/human/`, templates, or the generator | Workflow **Sync docs markdown** regenerates and commits `README.md` |
+| **Official release** | `sync-readme` then commit `README.md` + `src/docs/EXAMPLES.md` + publish fspure.net |
+| **Push / PR** that touches `src/docs/human/`, templates, or the generator | Workflow **Sync docs markdown** regenerates and commits those files |
 | **Docs generator check** | Renders preview artifacts (no commit) and asserts the skill section is present |
 
-Do not hand-edit the generated half of `README.md`. Edit `src/docs/human/<id>.md` or `src/docs/templates/README.md.scriban`, then let the workflow (or `sync-readme`) rewrite the root file.
+Do not hand-edit generated `README.md` or `src/docs/EXAMPLES.md`. Edit `src/docs/human/<id>.md` or the Scriban templates, then let the workflow (or `sync-readme`) rewrite them.
 
-`.generated/` stays gitignored (site HTML, extra markdown). Only the GitHub landing `README.md` is committed.
+`.generated/` stays gitignored (site HTML, extra markdown). Committed generated Markdown is `README.md` and `src/docs/EXAMPLES.md`.
 
 ## Snippet markers (code from the repo)
 

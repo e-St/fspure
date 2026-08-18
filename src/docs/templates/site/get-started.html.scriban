@@ -80,7 +80,7 @@
       for everyday app code.
     </p>
 
-    <h2 id="agent-skill">Using the fspure skill</h2>
+    <h2 id="agent-skill">Agent based usage of fspure</h2>
     <p>
       The <strong>fspure-reduce-impurity</strong> skill teaches your coding agent to push
       side effects out of F# core logic. You describe what should stay pure; the agent

@@ -71,40 +71,7 @@ Full end-user guide (dev containers, fstarter, troubleshooting): **[customer.md]
 
 If a function only calls pure things, it is pure. If it (or anything it calls) does I/O or mutation, it is impure. You keep the messy stuff at the boundary of your app.
 
----
-
-## Real code, real labels
-
-These snippets are **copied from this repo’s tests** at generate time (not hand-typed in the README).
-
-### Pure vs impure (customer e2e fixture)
-
-```fsharp
-{{ snip "customer-pure-impure" }}
-```
-
-Source: `src/tests/e2e/customer-fixture/Program.fs`
-
-### Library one-liner (embed pure.json in your DLL)
-
-```xml
-{{ snip "ready-lib-package-ref" }}
-```
-
-Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Fspure.ReadyLib.fsproj`
-
-```fsharp
-{{ snip "ready-lib-api" }}
-```
-
-Source: `src/samples/fspure-ready-lib/src/Fspure.ReadyLib/Library.fs`
-
-More: **[src/samples/fspure-ready-lib](src/samples/fspure-ready-lib/)**.
-
----
-
-## Links
-
+- [Real code, real labels](src/docs/EXAMPLES.md)
 - [Customer / install guide](customer.md)
 - [Agent CLI](src/docs/AGENT.md)
 - [Contributing / repo map](src/docs/CONTRIBUTING.md)

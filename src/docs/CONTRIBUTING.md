@@ -51,6 +51,7 @@ dotnet run --project src/Fspure.Tasks -- docs stable
 
 ## Maintainer docs
 
+- [EXAMPLES.md](EXAMPLES.md) — generated fixture / ready-lib snippets
 - [LANGUAGES.md](LANGUAGES.md) — F# first
 - [DOCS.md](DOCS.md) — docs / human anchors
 - [RELEASING.md](RELEASING.md) — release flow

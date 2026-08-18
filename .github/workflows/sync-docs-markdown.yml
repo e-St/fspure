@@ -1,10 +1,10 @@
 # Keep the GitHub landing README in lockstep with src/docs/human/ + templates.
 #
 # Source of truth:  src/docs/human/*.md  and  src/docs/templates/*.scriban
-# Committed output: README.md
+# Committed output: README.md, src/docs/EXAMPLES.md
 # Site HTML:        generated on Official release (fspure.net) and Docs preview (github.io)
 #
-# PRs: regenerate and push README.md onto the PR branch (forks: fail if stale).
+# PRs: regenerate and push committed Markdown onto the PR branch (forks: fail if stale).
 # main / official release / dispatch: regenerate and commit to the branch.
 name: Sync docs markdown
 
@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   sync:
-    name: Sync root README.md from human files
+    name: Sync committed generated Markdown
     runs-on: ubuntu-latest
     if: github.repository == 'e-St/fspure'
     steps:
@@ -61,7 +61,7 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Generate and write README.md
+      - name: Generate and write committed Markdown
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
@@ -72,7 +72,7 @@ jobs:
             dotnet run --project src/DocsGenerator -- sync-readme
           fi
 
-      - name: Commit README.md if changed
+      - name: Commit generated Markdown if changed
         env:
           EVENT_NAME: ${{ github.event_name }}
           PR_IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository && 'true' || 'false' }}
@@ -81,22 +81,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add README.md
+          git add README.md src/docs/EXAMPLES.md
 
           if git diff --staged --quiet; then
-            echo "README.md already matches src/docs/human/ + templates."
+            echo "Committed generated Markdown already matches src/docs/human/ + templates."
             exit 0
           fi
 
           if [[ "$EVENT_NAME" == "pull_request" && "$PR_IS_FORK" == "true" ]]; then
-            echo "::error::README.md is stale relative to src/docs/human/ and templates."
+            echo "::error::Generated Markdown is stale relative to src/docs/human/ and templates."
             echo "Run locally: dotnet run --project src/DocsGenerator -- sync-readme"
-            echo "Then commit README.md"
+            echo "Then commit README.md and src/docs/EXAMPLES.md"
             git --no-pager diff --cached --stat
             exit 1
           fi
 
-          git commit -m "docs: sync README.md from human files
+          git commit -m "docs: sync README.md and EXAMPLES.md from human files
 
           Automated by Sync docs markdown. Source: src/docs/human/ + src/docs/templates/."
 
@@ -105,4 +105,4 @@ jobs:
           else
             git push
           fi
-          echo "Pushed regenerated README.md."
+          echo "Pushed regenerated README.md and src/docs/EXAMPLES.md."

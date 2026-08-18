@@ -43,8 +43,11 @@ jobs:
           dotnet run --project src/DocsGenerator -- preview "ci-check"
           test -f .generated/site/preview/ci-check/README.md
           test -f .generated/site/preview/ci-check/customer.md
-          grep -q "Using the fspure skill" .generated/site/preview/ci-check/README.md
-          grep -q "Using the fspure skill" .generated/site/preview/ci-check/customer.md
+          test -f .generated/site/preview/ci-check/EXAMPLES.md
+          grep -q "Agent based usage of fspure" .generated/site/preview/ci-check/README.md
+          grep -q "Agent based usage of fspure" .generated/site/preview/ci-check/customer.md
+          grep -q "Real code, real labels" .generated/site/preview/ci-check/EXAMPLES.md
+          grep -q "let pureAdd" .generated/site/preview/ci-check/EXAMPLES.md
           grep -q "id=\"agent-skill\"" .generated/site/preview/ci-check/get-started.html
           grep -q "aria-label=\"GitHub\"" .generated/site/preview/ci-check/index.html
           grep -q "aria-label=\"Releases\"" .generated/site/preview/ci-check/index.html

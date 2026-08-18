@@ -71,24 +71,44 @@ module Render =
         outputs
         |> List.tryFind (fun o -> o.RelativePath.Equals(relativePath, StringComparison.OrdinalIgnoreCase))
 
-    let repoReadmePath (repoRoot: string) = Path.Combine(repoRoot, "README.md")
+    /// Generated Markdown that is committed so GitHub links resolve.
+    let committedDocs: (string * string) list =
+        [
+            "README.md", "README.md"
+            "EXAMPLES.md", Path.Combine("src", "docs", "EXAMPLES.md")
+        ]
 
-    /// Write the generated product README to the repo root (GitHub landing page).
-    let writeRepoReadme (repoRoot: string) (content: string) : string =
-        let dest = repoReadmePath repoRoot
-        let body = normalizeRepoMarkdown content
-        File.WriteAllText(dest, body)
+    let committedPath (repoRoot: string) (repoRelative: string) =
+        Path.Combine(repoRoot, repoRelative.Replace('/', Path.DirectorySeparatorChar))
+
+    let writeCommitted (repoRoot: string) (repoRelative: string) (content: string) : string =
+        let dest = committedPath repoRoot repoRelative
+
+        match Path.GetDirectoryName dest |> Option.ofObj with
+        | Some dir when dir <> "" -> Directory.CreateDirectory dir |> ignore
+        | _ -> ()
+
+        File.WriteAllText(dest, normalizeRepoMarkdown content)
         dest
 
-    /// True when the committed root README matches the generated body (timestamps ignored).
-    let repoReadmeMatches (repoRoot: string) (content: string) : bool =
+    let committedMatches (repoRoot: string) (repoRelative: string) (content: string) : bool =
         let expected = normalizeRepoMarkdown content
-        let path = repoReadmePath repoRoot
+        let path = committedPath repoRoot repoRelative
 
         if not (File.Exists path) then
             false
         else
             normalizeRepoMarkdown (File.ReadAllText path) = expected
+
+    let repoReadmePath (repoRoot: string) = committedPath repoRoot "README.md"
+
+    /// Write the generated product README to the repo root (GitHub landing page).
+    let writeRepoReadme (repoRoot: string) (content: string) : string =
+        writeCommitted repoRoot "README.md" content
+
+    /// True when the committed root README matches the generated body (timestamps ignored).
+    let repoReadmeMatches (repoRoot: string) (content: string) : bool =
+        committedMatches repoRoot "README.md" content
 
     let renderAll (templatesDir: string) (model: DocsModel) : OutputFile list =
         if not (Directory.Exists templatesDir) then

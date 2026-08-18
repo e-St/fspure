@@ -18,9 +18,9 @@ type private Args =
         SiteOut: string option
         MarkdownOut: string
         Templates: string
-        /// Also write generated README.md to the repo root (GitHub landing page).
+        /// Also write generated committed Markdown (README + EXAMPLES).
         WriteRepoReadme: bool
-        /// Compare generated README.md to the committed root file; do not write it.
+        /// Compare generated committed Markdown to the files on disk; do not write them.
         CheckRepoReadme: bool
     }
 
@@ -31,8 +31,8 @@ fspure-docs — generate Markdown / static site from Scriban templates (F#).
 High-level (preferred — no shell orchestration):
   fspure-docs preview [ref]              → .generated/site/preview/<ref>/  (github.io)
   fspure-docs stable [version]           → .generated/docs + .generated/site  (fspure.net)
-  fspure-docs sync-readme [version]      → stable + write repo-root README.md from human/templates
-  fspure-docs sync-readme --check        → exit 1 if root README.md is stale
+  fspure-docs sync-readme [version]      → stable + write README.md and src/docs/EXAMPLES.md
+  fspure-docs sync-readme --check        → exit 1 if committed generated Markdown is stale
   fspure-docs serve [--port N]           → generate fspure.net + markdown, watch, serve locally
                                            (VS Code: Tasks → docs: serve local fspure.net)
 
@@ -285,7 +285,7 @@ let private parseArgs (argv: string[]) : Args =
                 rest
                 |> Array.tryFind (fun a -> not (a.StartsWith("-", StringComparison.Ordinal)))
 
-            // sync-readme is stable generation plus a committed root README.md.
+            // sync-readme is stable generation plus committed generated Markdown.
             let expanded =
                 expandHighLevel root0 (if mode = "sync-readme" then "stable" else mode) arg
 
@@ -343,27 +343,58 @@ let private generate (args: Args) : int =
 
         Render.writeOutputs args.Root args.MarkdownOut args.SiteOut args.WriteMarkdown outputs
 
-        match Render.tryFindOutput outputs "README.md" with
-        | None when args.WriteRepoReadme || args.CheckRepoReadme ->
-            eprintfn "ERROR: README.md.scriban did not produce README.md"
-            1
-        | Some readme when args.CheckRepoReadme ->
-            if Render.repoReadmeMatches args.Root readme.Content then
-                printfn "OK: root README.md matches generated human+templates"
-                0
-            else
-                eprintfn "ERROR: root README.md is stale."
-                eprintfn "Run: dotnet run --project src/DocsGenerator -- sync-readme"
-                eprintfn "Source of truth: src/docs/human/ + src/docs/templates/README.md.scriban"
+        if not args.WriteRepoReadme && not args.CheckRepoReadme then
+            printfn "OK"
+            0
+        else
+            let resolved =
+                Render.committedDocs
+                |> List.map (fun (name, destRel) ->
+                    name, destRel, Render.tryFindOutput outputs name)
+
+            let missing =
+                resolved
+                |> List.choose (fun (name, _, found) ->
+                    match found with
+                    | None -> Some name
+                    | Some _ -> None)
+
+            if not missing.IsEmpty then
+                for name in missing do
+                    eprintfn "ERROR: %s.scriban did not produce %s" name name
+
                 1
-        | Some readme when args.WriteRepoReadme ->
-            let dest = Render.writeRepoReadme args.Root readme.Content
-            printfn "  wrote %s" (Path.GetRelativePath(args.Root, dest).Replace('\\', '/'))
-            printfn "OK"
-            0
-        | _ ->
-            printfn "OK"
-            0
+            elif args.CheckRepoReadme then
+                let stale =
+                    resolved
+                    |> List.choose (fun (name, destRel, found) ->
+                        match found with
+                        | Some o when not (Render.committedMatches args.Root destRel o.Content) ->
+                            Some destRel
+                        | _ -> None)
+
+                if stale.IsEmpty then
+                    printfn "OK: committed Markdown matches generated human+templates"
+                    0
+                else
+                    eprintfn "ERROR: committed generated Markdown is stale:"
+
+                    for path in stale do
+                        eprintfn "  %s" path
+
+                    eprintfn "Run: dotnet run --project src/DocsGenerator -- sync-readme"
+                    eprintfn "Source of truth: src/docs/human/ + src/docs/templates/"
+                    1
+            else
+                for _, destRel, found in resolved do
+                    match found with
+                    | Some o ->
+                        let dest = Render.writeCommitted args.Root destRel o.Content
+                        printfn "  wrote %s" (Path.GetRelativePath(args.Root, dest).Replace('\\', '/'))
+                    | None -> ()
+
+                printfn "OK"
+                0
 
 let private serve (argv: string[]) : int =
     let root = findRepoRoot (Directory.GetCurrentDirectory())

@@ -44,6 +44,7 @@ jobs:
           VER="${{ inputs.version }}"
           dotnet run --project src/DocsGenerator -- stable "$VER"
           test -f .generated/docs/README.md
+          test -f .generated/docs/EXAMPLES.md
           test -d .generated/site
 
       - name: Upload generated site
