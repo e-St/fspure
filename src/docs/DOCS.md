@@ -94,10 +94,10 @@ Manual generate-only (does **not** touch fspure.net): workflow **Docs stable (ge
 
 ## Human anchors
 
-The product README is: human prologue (intro + screenshot) → generated **60-second install** → human **skill usage** → remaining generated sections.
+The product README is: human prologue (intro + screenshot + why/how) → generated **60-second install** → human **skill usage** → remaining generated sections.
 
 1. Edit `src/docs/human/readme-top.md` (or add `src/docs/human/<id>.md`).
-2. In the Scriban template, keep install immediately under the screenshot:
+2. In the Scriban template, keep install after the human prologue:
 
 ```scriban
 {{ human "readme-top" }}
@@ -112,7 +112,7 @@ The product README is: human prologue (intro + screenshot) → generated **60-se
 
 ```markdown
 <!-- <human id="readme-top"> -->
-…logo, screenshot…
+…logo, screenshot, why/how…
 <!-- </human> -->
 
 ## 60-second install
@@ -127,7 +127,7 @@ The product README is: human prologue (intro + screenshot) → generated **60-se
 - `{{ human_opt "id" }}` — optional empty.  
 - Source of truth is always `src/docs/human/`, not the generated file.
 
-Root `README.md` on GitHub is the **generated product README** (prologue + 60-second install + skill usage + what you get). Examples live in [EXAMPLES.md](EXAMPLES.md). Maintainer layout lives in [CONTRIBUTING.md](CONTRIBUTING.md). They are written by:
+Root `README.md` on GitHub is the **generated product README** (prologue + why/how + 60-second install + skill usage + what you get). Examples live in [EXAMPLES.md](EXAMPLES.md). Maintainer layout lives in [CONTRIBUTING.md](CONTRIBUTING.md). They are written by:
 
 ```text
 dotnet run --project src/DocsGenerator -- sync-readme
