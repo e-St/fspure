@@ -25,7 +25,7 @@ It does that by defining a pure subset and marking everything else as impure. Th
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
   Channel: preview | Ref: main | Version: 0.4.0
-  Generated: 2026-08-18T21:39:43Z
+  Generated: 2026-08-31T20:06:44Z
 -->
 
 
