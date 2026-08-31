@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Install fsharp-pure-decorations.
 # Prefer packaging the in-repo VSIX (matches e2e phase2 / known-good labels).
-# Fall back to Open VSX if local packaging fails.
+# Fall back to the baked image VSIX, then Open VSX, if local packaging fails.
 #
-# Soft-skip when the VS Code CLI is missing or not usable (common in postCreate
-# before attach, and in headless CI). postAttachCommand re-runs setup.
+# postCreate often runs before the `code` CLI works. Do not skip this: the
+# pure/impure labels come from this extension, not from Ionide LineLens.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EXT_DIR="$ROOT/vscode-extension"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+EXT_DIR="$ROOT/src/editor/vscode-extension"
 PUBLISHER_EXT="e-st.fsharp-pure-decorations"
+OPENVSX_API="https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest"
+BAKED_VSIX="/usr/local/share/fspure/fsharp-pure-decorations.vsix"
 
 # True only if `code` is on PATH and can report a version (stubs that print
 # "code or code-insiders is not installed" count as unavailable).
@@ -23,61 +25,175 @@ code_cli_usable() {
   return 0
 }
 
-skip_no_code() {
-  echo "WARNING: VS Code 'code' CLI not usable; skip extension install." >&2
-  echo "         After attach, re-run: bash src/devcontainer/setup-fspure-ide.sh" >&2
-  exit 0
+# postCreate often runs before the `code` CLI works. Do not skip this: the
+# pure/impure labels come from this extension, not from Ionide LineLens.
+extension_dirs() {
+  local d
+  for d in \
+    "${HOME}/.vscode-remote/extensions" \
+    "${HOME}/.vscode-server/extensions" \
+    ${VSCODE_EXTENSIONS:+"$VSCODE_EXTENSIONS"}; do
+    printf '%s\n' "$d"
+  done
 }
 
-install_from_local() {
-  local vsix
-  vsix="$(mktemp --suffix=.vsix)"
-  # shellcheck disable=SC2064
-  trap "rm -f '$vsix'" RETURN
-  pushd "$EXT_DIR" >/dev/null
-  # vsce packages without publishing; needs network for first npx fetch.
-  npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository --out "$vsix"
-  popd >/dev/null
-  code --install-extension "$vsix" --force
+extension_on_disk() {
+  local d
+  while IFS= read -r d; do
+    [[ -d "$d" ]] || continue
+    if compgen -G "$d/${PUBLISHER_EXT}-*" > /dev/null; then
+      return 0
+    fi
+  done < <(extension_dirs)
+  return 1
 }
 
-install_from_openvsx() {
-  local vsix
-  vsix="$(mktemp --suffix=.vsix)"
-  # shellcheck disable=SC2064
-  trap "rm -f '$vsix'" RETURN
+register_extension_json() {
+  local ext_root="$1"
+  local dest="$2"
+  local publisher="$3"
+  local name="$4"
+  local version="$5"
+  local json="$ext_root/extensions.json"
+  python3 - "$json" "$dest" "$publisher.$name" "$version" <<'PY'
+import json, os, sys, time
+path, dest, ext_id, version = sys.argv[1:5]
+entries = []
+if os.path.isfile(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            entries = json.load(f)
+        if not isinstance(entries, list):
+            entries = []
+    except json.JSONDecodeError:
+        entries = []
+entries = [e for e in entries if (e.get("identifier") or {}).get("id") != ext_id]
+entries.append({
+    "identifier": {"id": ext_id},
+    "version": version,
+    "location": {"$mid": 1, "path": dest, "scheme": "file"},
+    "relativeLocation": os.path.basename(dest),
+    "metadata": {
+        "installedTimestamp": int(time.time() * 1000),
+        "pinned": True,
+        "source": "vsix",
+    },
+})
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(entries, f)
+PY
+}
+
+is_valid_vsix() {
+  local vsix="$1"
+  [[ -f "$vsix" && -s "$vsix" ]] || return 1
+  unzip -tqq "$vsix" >/dev/null 2>&1 || return 1
+  unzip -p "$vsix" extension/package.json >/dev/null 2>&1
+}
+
+unpack_vsix() {
+  local vsix="$1"
+  local tmp pkg publisher name version dest d
+  tmp="$(mktemp -d)"
+  unzip -qo "$vsix" -d "$tmp"
+  pkg="$tmp/extension/package.json"
+  if [[ ! -f "$pkg" ]]; then
+    rm -rf "$tmp"
+    echo "ERROR: $vsix is not a VS Code VSIX (missing extension/package.json)" >&2
+    return 1
+  fi
+  publisher="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["publisher"])' "$pkg")"
+  name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "$pkg")"
+  version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$pkg")"
+  while IFS= read -r d; do
+    mkdir -p "$d"
+    dest="$d/${publisher}.${name}-${version}"
+    mkdir -p "$dest"
+    cp -a "$tmp/extension/." "$dest/"
+    if [[ -f "$tmp/extension.vsixmanifest" ]]; then
+      cp -f "$tmp/extension.vsixmanifest" "$dest/.vsixmanifest"
+    fi
+    register_extension_json "$d" "$dest" "$publisher" "$name" "$version"
+    echo "    unpacked → $dest"
+  done < <(extension_dirs)
+  rm -rf "$tmp"
+}
+
+package_local_vsix() {
+  local dest="$1"
+  if [[ ! -f "$EXT_DIR/package.json" ]]; then
+    echo "    skip local package: missing $EXT_DIR/package.json" >&2
+    return 1
+  fi
+  echo "==> fsharp-pure-decorations: package from local tree"
+  if ! (
+    cd "$EXT_DIR"
+    npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository --out "$dest"
+  ); then
+    echo "    local vsce package failed." >&2
+    return 1
+  fi
+  if ! is_valid_vsix "$dest"; then
+    echo "    local VSIX is not a valid zip with extension/package.json" >&2
+    return 1
+  fi
+  return 0
+}
+
+download_openvsx_vsix() {
+  local dest="$1"
   local url
-  url="$(curl -fsSL "https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest" \
+  url="$(curl -fsSL "$OPENVSX_API" \
     | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")"
-  curl -fsSL -o "$vsix" "$url"
-  code --install-extension "$vsix" --force
+  curl -fsSL -o "$dest" "$url"
 }
 
-if ! code_cli_usable; then
-  skip_no_code
-fi
+install_extension() {
+  local vsix="" tmp=""
+  if extension_on_disk; then
+    echo "✅ $PUBLISHER_EXT already on disk"
+    return 0
+  fi
 
-echo "==> fsharp-pure-decorations: package + install from local tree"
-if install_from_local; then
-  echo "✅ Installed $PUBLISHER_EXT from local VSIX"
-  exit 0
-fi
+  tmp="$(mktemp --suffix=.vsix)"
+  if package_local_vsix "$tmp"; then
+    vsix="$tmp"
+  elif [[ -f "$BAKED_VSIX" ]] && is_valid_vsix "$BAKED_VSIX"; then
+    echo "==> fsharp-pure-decorations: baked VSIX"
+    vsix="$BAKED_VSIX"
+    rm -f "$tmp"
+    tmp=""
+  else
+    echo "==> fsharp-pure-decorations: try Open VSX"
+    if download_openvsx_vsix "$tmp" && is_valid_vsix "$tmp"; then
+      vsix="$tmp"
+    else
+      echo "    Open VSX VSIX missing or invalid." >&2
+      rm -f "$tmp"
+      tmp=""
+    fi
+  fi
 
-echo "    Local VSIX install failed."
-# CLI may have disappeared or become unusable mid-run (e.g. postCreate race).
-if ! code_cli_usable; then
-  skip_no_code
-fi
+  if [[ -z "$vsix" ]]; then
+    echo "ERROR: no fsharp-pure-decorations VSIX (local package failed, baked missing, Open VSX failed)." >&2
+    return 1
+  fi
 
-echo "==> fsharp-pure-decorations: try Open VSX"
-if install_from_openvsx; then
-  echo "✅ Installed $PUBLISHER_EXT from Open VSX"
-  exit 0
-fi
+  unpack_vsix "$vsix"
+  if code_cli_usable; then
+    code --install-extension "$vsix" --force >/dev/null || true
+  else
+    echo "    code CLI not usable; installed via filesystem unpack"
+  fi
+  [[ -z "$tmp" ]] || rm -f "$tmp"
 
-if ! code_cli_usable; then
-  skip_no_code
-fi
+  if extension_on_disk; then
+    echo "✅ $PUBLISHER_EXT on disk (pure/impure labels)"
+    return 0
+  fi
+  echo "ERROR: could not install $PUBLISHER_EXT; pure/impure labels will not show." >&2
+  return 1
+}
 
-echo "ERROR: could not install $PUBLISHER_EXT" >&2
-exit 1
+install_extension

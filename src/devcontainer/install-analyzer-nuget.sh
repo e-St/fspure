@@ -10,8 +10,8 @@ set -euo pipefail
 # shellcheck source=nuget-tmp-env.sh
 source "$(dirname "$0")/nuget-tmp-env.sh"
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WORKSPACE_ANALYZERS="$ROOT/analyzers/dotnet/fs"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+export WORKSPACE_ANALYZERS="$ROOT/analyzers/dotnet/fs"
 GLOBAL_PACKAGES="${NUGET_PACKAGES:-$HOME/.nuget/packages}"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

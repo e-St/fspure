@@ -28,6 +28,7 @@
         "FSharp.linter": true,
         "FSharp.enableAnalyzers": true,
         "FSharp.analyzersPath": [
+          "/usr/local/share/fspure/analyzers",
           "analyzers",
           "packages/Analyzers"
         ],

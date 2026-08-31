@@ -7,7 +7,9 @@
 # DLL into <repo>/analyzers/dotnet/fs/ so Ionide's default path "analyzers"
 # finds it (FSAC does not expand ${userHome} or ~ in FSharp.analyzersPath).
 #
-# Extension: package in-repo VSIX (same packaging path as e2e phase2), else Open VSX.
+# Extension: package in-repo VSIX (src/editor/vscode-extension), else baked
+# /usr/local/share/fspure/fsharp-pure-decorations.vsix, else Open VSX.
+# Always unpack onto disk (code CLI is often unusable in postCreate).
 #
 # Not used by CI: analyzer pack/build uses src/FSharp.PureAnalyzer/.devcontainer/;
 # e2e uses src/tests/e2e/phase2/.devcontainer/ (see .devcontainer/README.md).
@@ -22,7 +24,9 @@ fi
 # shellcheck source=nuget-tmp-env.sh
 source "$(dirname "$0")/nuget-tmp-env.sh"
 
-cd "$(dirname "$0")"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
+cd "$HERE"
 bash install-analyzer-nuget.sh
 bash install-openvsx-extension.sh
 bash install-fspure-cli.sh
@@ -30,5 +34,5 @@ bash install-fspure-skill.sh
 
 echo ""
 echo "✅ fspure IDE setup done."
-echo "   Analyzer drop: $(cd .. && pwd)/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
+echo "   Analyzer drop: $ROOT/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
 echo "   If pure/impure labels are missing: Developer: Reload Window"
