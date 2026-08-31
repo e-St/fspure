@@ -17,8 +17,8 @@ from pathlib import Path
 METADATA_PATHS = {".fspure-sync-source"}
 
 FILE_NOTES = {
-    ".devcontainer/setup-fspure.sh": "Codespace install script (analyzer, CLI, Copilot skill)",
-    ".devcontainer/devcontainer.json": "Ionide / decorations / LineLens settings",
+    ".devcontainer/setup-fspure.sh": "Codespace install script (baked analyzer, decorations VSIX unpack, CLI, Copilot skill)",
+    ".devcontainer/devcontainer.json": "postCreate-only Ionide / decorations / LineLens settings",
     "Directory.Build.props": "strict F# compiler rules from the fspure pack",
     ".gitignore": "ignore Ionide `analyzers/` drop",
 }
@@ -143,9 +143,12 @@ def lead_sentence(
         bits = [f"{short} `{a or '—'}` → `{b}`" for _, short, a, b in changed]
         return "Updates fspure pins in the template: " + "; ".join(bits) + "."
     if ".devcontainer/setup-fspure.sh" in paths:
-        return "Updates how the Codespace installs fspure (analyzer drop, CLI, Copilot skill). Pins are unchanged."
+        return (
+            "Updates how the Codespace installs fspure (baked analyzer, decorations VSIX unpack, CLI, Copilot skill). "
+            "Pins are unchanged."
+        )
     if ".devcontainer/devcontainer.json" in paths:
-        return "Updates fspure Ionide / decorations settings in the Codespace. Pins are unchanged."
+        return "Updates fspure Ionide / decorations settings in the Codespace (postCreate-only). Pins are unchanged."
     if "Directory.Build.props" in paths:
         return "Updates the fspure compiler rules copied into fstarter. Pins are unchanged."
     return "Updates the fspure integration pack in this template."

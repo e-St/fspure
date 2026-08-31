@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Install fspure into an fstarter Codespace / dev container.
-# - FSharp.PureAnalyzer from nuget.org (pinned version) → workspace analyzers/dotnet/fs/
-# - fsharp-pure-decorations from Open VSX VSIX (not MS Marketplace id)
-# - standalone `fspure` CLI → ~/.local/bin (so Copilot does not download releases)
-# - Copilot skill via non-interactive `gh skill install`
+# Fast path: copy artifacts already baked into ghcr.io/e-st/fstarter.
+# Fallback: nuget / GitHub / Open VSX (older images, or a missing pin).
+#
+# - FSharp.PureAnalyzer → workspace analyzers/dotnet/fs/ (Ionide)
+# - fsharp-pure-decorations from a baked Open VSX VSIX (not MS Marketplace id)
+# - standalone `fspure` CLI on PATH
+# - Copilot skill fspure-reduce-impurity
 #
 # Version pin: FSPURE_ANALYZER_VERSION env, or .devcontainer/fspure-versions.env
 # (synced from e-St/fspure src/scripts/integrations/fstarter/versions.env).
@@ -25,6 +28,11 @@ WORKSPACE_ANALYZERS="$ROOT/analyzers/dotnet/fs"
 GLOBAL_PACKAGES="${NUGET_PACKAGES:-$HOME/.nuget/packages}"
 PUBLISHER_EXT="e-st.fsharp-pure-decorations"
 OPENVSX_API="https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest"
+BAKED_ROOT="/usr/local/share/fspure"
+BAKED_ANALYZERS="$BAKED_ROOT/analyzers/dotnet/fs"
+BAKED_SKILL="$BAKED_ROOT/skills/fspure-reduce-impurity/SKILL.md"
+BAKED_VSIX="$BAKED_ROOT/fsharp-pure-decorations.vsix"
+USER_SKILL="${HOME}/.copilot/skills/fspure-reduce-impurity/SKILL.md"
 
 # Load pin from synced versions file (preferred) or env.
 if [[ -f "$DC_DIR/fspure-versions.env" ]]; then
@@ -52,23 +60,12 @@ code_cli_usable() {
   return 0
 }
 
-mirror_from_global() {
-  local src schema pkg_dir
-  pkg_dir="$GLOBAL_PACKAGES/fsharp.pureanalyzer/${FSPURE_ANALYZER_VERSION}"
-  src="$pkg_dir/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
-  if [[ ! -f "$src" ]]; then
-    # Fall back to newest installed layout (upgrade path / floating restore).
-    src="$(
-      find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" \
-        -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
-        | sort -V \
-        | tail -1 || true
-    )"
-  fi
-  if [[ -z "${src:-}" || ! -f "$src" ]]; then
-    return 1
-  fi
-  schema="$(dirname "$src")/FSharp.PureSchema.dll"
+copy_analyzer_dlls() {
+  local src_dir="$1"
+  local src schema
+  src="$src_dir/FSharp.PureAnalyzer.dll"
+  [[ -f "$src" ]] || return 1
+  schema="$src_dir/FSharp.PureSchema.dll"
   mkdir -p "$WORKSPACE_ANALYZERS"
   cp -f "$src" "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll"
   if [[ -f "$schema" ]]; then
@@ -80,6 +77,28 @@ mirror_from_global() {
   if [[ -f "$WORKSPACE_ANALYZERS/FSharp.PureSchema.dll" ]]; then
     echo "    workspace → $WORKSPACE_ANALYZERS/FSharp.PureSchema.dll"
   fi
+}
+
+mirror_from_baked() {
+  copy_analyzer_dlls "$BAKED_ANALYZERS"
+}
+
+mirror_from_global() {
+  local src pkg_dir
+  pkg_dir="$GLOBAL_PACKAGES/fsharp.pureanalyzer/${FSPURE_ANALYZER_VERSION}"
+  src="$pkg_dir/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
+  if [[ ! -f "$src" ]]; then
+    src="$(
+      find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" \
+        -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
+        | sort -V \
+        | tail -1 || true
+    )"
+  fi
+  if [[ -z "${src:-}" || ! -f "$src" ]]; then
+    return 1
+  fi
+  copy_analyzer_dlls "$(dirname "$src")"
 }
 
 install_analyzer_nuget() {
@@ -97,37 +116,139 @@ install_analyzer_nuget() {
   )
 }
 
-install_extension_openvsx() {
-  local vsix url
-  vsix="$(mktemp --suffix=.vsix)"
-  # shellcheck disable=SC2064
-  trap "rm -f '$vsix'" RETURN
-  echo "==> fsharp-pure-decorations: Open VSX VSIX"
-  url="$(curl -fsSL "$OPENVSX_API" \
-    | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")"
-  curl -fsSL -o "$vsix" "$url"
-  code --install-extension "$vsix" --force
+# postCreate often runs before the `code` CLI works. Do not skip this: the
+# pure/impure labels come from this extension, not from Ionide LineLens.
+extension_dirs() {
+  local d
+  for d in \
+    "${HOME}/.vscode-remote/extensions" \
+    "${HOME}/.vscode-server/extensions" \
+    ${VSCODE_EXTENSIONS:+"$VSCODE_EXTENSIONS"}; do
+    printf '%s\n' "$d"
+  done
 }
 
-echo "==> fspure setup (fstarter)"
-echo "    analyzer pin: $FSPURE_ANALYZER_VERSION"
+extension_on_disk() {
+  local d
+  while IFS= read -r d; do
+    [[ -d "$d" ]] || continue
+    if compgen -G "$d/${PUBLISHER_EXT}-*" > /dev/null; then
+      return 0
+    fi
+  done < <(extension_dirs)
+  return 1
+}
 
-if install_analyzer_nuget && mirror_from_global; then
-  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} installed and mirrored for Ionide"
-else
-  echo "ERROR: could not install or mirror FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} from nuget.org" >&2
-  exit 1
-fi
+register_extension_json() {
+  local ext_root="$1"
+  local dest="$2"
+  local publisher="$3"
+  local name="$4"
+  local version="$5"
+  local json="$ext_root/extensions.json"
+  python3 - "$json" "$dest" "$publisher.$name" "$version" <<'PY'
+import json, os, sys, time
+path, dest, ext_id, version = sys.argv[1:5]
+entries = []
+if os.path.isfile(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            entries = json.load(f)
+        if not isinstance(entries, list):
+            entries = []
+    except json.JSONDecodeError:
+        entries = []
+entries = [e for e in entries if (e.get("identifier") or {}).get("id") != ext_id]
+entries.append({
+    "identifier": {"id": ext_id},
+    "version": version,
+    "location": {"$mid": 1, "path": dest, "scheme": "file"},
+    "relativeLocation": os.path.basename(dest),
+    "metadata": {
+        "installedTimestamp": int(time.time() * 1000),
+        "pinned": True,
+        "source": "vsix",
+    },
+})
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(entries, f)
+PY
+}
 
-if code_cli_usable; then
-  if install_extension_openvsx; then
-    echo "✅ Installed $PUBLISHER_EXT (Open VSX VSIX)"
-  else
-    echo "WARNING: Open VSX VSIX install failed." >&2
+unpack_vsix() {
+  local vsix="$1"
+  local tmp pkg publisher name version dest d
+  tmp="$(mktemp -d)"
+  unzip -qo "$vsix" -d "$tmp"
+  pkg="$tmp/extension/package.json"
+  if [[ ! -f "$pkg" ]]; then
+    rm -rf "$tmp"
+    echo "ERROR: $vsix is not a VS Code VSIX (missing extension/package.json)" >&2
+    return 1
   fi
-else
-  echo "WARNING: VS Code 'code' CLI not usable; skip extension install." >&2
-fi
+  publisher="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["publisher"])' "$pkg")"
+  name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "$pkg")"
+  version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$pkg")"
+  while IFS= read -r d; do
+    mkdir -p "$d"
+    dest="$d/${publisher}.${name}-${version}"
+    mkdir -p "$dest"
+    cp -a "$tmp/extension/." "$dest/"
+    if [[ -f "$tmp/extension.vsixmanifest" ]]; then
+      cp -f "$tmp/extension.vsixmanifest" "$dest/.vsixmanifest"
+    fi
+    register_extension_json "$d" "$dest" "$publisher" "$name" "$version"
+    echo "    unpacked → $dest"
+  done < <(extension_dirs)
+  rm -rf "$tmp"
+}
+
+download_openvsx_vsix() {
+  local dest="$1"
+  local url
+  url="$(curl -fsSL "$OPENVSX_API" \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")"
+  curl -fsSL -o "$dest" "$url"
+}
+
+install_extension() {
+  local vsix="" tmp=""
+  if extension_on_disk; then
+    echo "✅ $PUBLISHER_EXT already on disk"
+    return 0
+  fi
+  if [[ -f "$BAKED_VSIX" ]]; then
+    vsix="$BAKED_VSIX"
+    echo "==> fsharp-pure-decorations: baked VSIX"
+  else
+    tmp="$(mktemp --suffix=.vsix)"
+    echo "==> fsharp-pure-decorations: Open VSX VSIX"
+    if download_openvsx_vsix "$tmp"; then
+      vsix="$tmp"
+    else
+      rm -f "$tmp"
+      tmp=""
+    fi
+  fi
+  if [[ -z "$vsix" ]]; then
+    echo "ERROR: no fsharp-pure-decorations VSIX (baked missing, Open VSX failed)." >&2
+    return 1
+  fi
+  unpack_vsix "$vsix"
+  if code_cli_usable; then
+    code --install-extension "$vsix" --force >/dev/null || true
+  else
+    echo "    code CLI not usable; installed via filesystem unpack"
+  fi
+  [[ -z "$tmp" ]] || rm -f "$tmp"
+  if extension_on_disk; then
+    echo "✅ $PUBLISHER_EXT on disk (pure/impure labels)"
+    return 0
+  fi
+  echo "ERROR: could not install $PUBLISHER_EXT; pure/impure labels will not show." >&2
+  return 1
+}
 
 ensure_github_cli() {
   if command -v gh >/dev/null 2>&1 && gh skill --help >/dev/null 2>&1; then
@@ -182,6 +303,10 @@ install_fspure_cli() {
     echo "✅ fspure CLI $(command -v fspure)"
     return 0
   fi
+  if [[ -x /usr/local/bin/fspure ]] && /usr/local/bin/fspure analyze --help >/dev/null 2>&1; then
+    echo "✅ fspure CLI /usr/local/bin/fspure"
+    return 0
+  fi
   case "$(uname -m)" in
     x86_64 | amd64) ;;
     *)
@@ -206,6 +331,16 @@ install_fspure_cli() {
 }
 
 install_copilot_skill() {
+  mkdir -p "$(dirname "$USER_SKILL")"
+  if [[ -f "$USER_SKILL" ]]; then
+    echo "✅ Copilot skill fspure-reduce-impurity (already present)"
+    return 0
+  fi
+  if [[ -f "$BAKED_SKILL" ]]; then
+    cp -f "$BAKED_SKILL" "$USER_SKILL"
+    echo "✅ Copilot skill fspure-reduce-impurity (baked)"
+    return 0
+  fi
   ensure_github_cli || true
   if ! command -v gh >/dev/null 2>&1; then
     echo "WARNING: gh not on PATH; skip fspure Copilot skill." >&2
@@ -230,6 +365,21 @@ install_copilot_skill() {
   echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network / ref ${FSPURE_SKILL_REF}?)." >&2
 }
 
+echo "==> fspure setup (fstarter)"
+echo "    analyzer pin: $FSPURE_ANALYZER_VERSION"
+
+if mirror_from_baked; then
+  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} mirrored from image"
+elif [[ -f "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll" ]]; then
+  echo "✅ FSharp.PureAnalyzer already in workspace"
+elif install_analyzer_nuget && mirror_from_global; then
+  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} installed and mirrored for Ionide"
+else
+  echo "ERROR: could not install or mirror FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} from nuget.org" >&2
+  exit 1
+fi
+
+install_extension
 install_fspure_cli || true
 install_copilot_skill
 

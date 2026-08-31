@@ -9,6 +9,10 @@
 #   .devcontainer/devcontainer.json   (fspure-enabled settings; keeps other .devcontainer files)
 #   .devcontainer/fspure-versions.env
 #   .fspure-sync-source (metadata)
+#
+# Refuses to copy an overlay that would undo e-St/fstarter: no postAttachCommand,
+# no features/github-cli, baked-first analyzer + decorations VSIX unpack even when
+# the `code` CLI is unusable (labels are not Ionide).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -21,8 +25,12 @@ ANALYZER_VERSION_ARG="${2:-}"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# shellcheck source=integrations/fstarter/assert-overlay-contract.sh
+source "$PACK/assert-overlay-contract.sh"
+
 [[ -n "$FSTARTER" && -d "$FSTARTER" ]] || die "usage: $0 /path/to/fstarter [analyzer-version]"
 [[ -d "$OVERLAY/.devcontainer" ]] || die "missing overlay at $OVERLAY"
+assert_fstarter_overlay_contract "$OVERLAY" || die "overlay would undo e-St/fstarter"
 
 # Resolve analyzer version
 if [[ -n "$ANALYZER_VERSION_ARG" ]]; then
@@ -47,6 +55,8 @@ chmod +x "$DC/setup-fspure.sh"
 if [[ -f "$OVERLAY/.devcontainer/devcontainer.json" ]]; then
   cp -f "$OVERLAY/.devcontainer/devcontainer.json" "$DC/devcontainer.json"
 fi
+
+assert_fstarter_overlay_contract "$FSTARTER"
 
 # Strict compiler rules (same as monorepo / sample) — root Directory.Build.props of fstarter.
 if [[ -f "$OVERLAY/Directory.Build.props" ]]; then
@@ -104,7 +114,7 @@ echo "  FSPURE_ANALYZER_VERSION=$ANALYZER_VERSION"
 echo "  FSPURE_SKILL_REF=$SKILL_REF"
 echo "  FSPURE_CLI_RELEASE=$CLI_RELEASE"
 echo "  files:"
-echo "    .devcontainer/setup-fspure.sh  (installs gh + Copilot skill if needed)"
+echo "    .devcontainer/setup-fspure.sh  (baked-first analyzer + decorations VSIX unpack)"
 echo "    .devcontainer/devcontainer.json"
 echo "    .devcontainer/fspure-versions.env"
 echo "    Directory.Build.props (strict F# / C# compiler rules)"

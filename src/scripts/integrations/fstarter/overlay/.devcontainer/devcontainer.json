@@ -3,7 +3,6 @@
   "image": "ghcr.io/e-st/fstarter:latest",
   "remoteUser": "vscode",
   "postCreateCommand": "bash .devcontainer/setup-fspure.sh",
-  "postAttachCommand": "bash .devcontainer/setup-fspure.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -35,6 +34,7 @@
         "FSharp.linter": true,
         "FSharp.enableAnalyzers": true,
         "FSharp.analyzersPath": [
+          "/usr/local/share/fspure/analyzers",
           "analyzers",
           "packages/Analyzers"
         ],
@@ -65,9 +65,6 @@
         }
       }
     }
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "remoteEnv": {
     "DOTNET_ROLL_FORWARD": "Major",

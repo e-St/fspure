@@ -63,7 +63,11 @@ jobs:
         id: ver
         run: |
           set -euo pipefail
-          chmod +x src/scripts/prepare-fstarter-update.sh src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
+          chmod +x src/scripts/prepare-fstarter-update.sh \
+            src/scripts/integrations/fstarter/assert-overlay-contract.sh \
+            src/scripts/integrations/fstarter/test-overlay-contract.sh \
+            src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
+          bash src/scripts/integrations/fstarter/test-overlay-contract.sh
 
           # Priority: workflow input → release tag → versions.env → nuget.org latest stable
           INPUT="${{ github.event.inputs.analyzer_version }}"

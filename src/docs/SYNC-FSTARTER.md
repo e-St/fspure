@@ -35,9 +35,18 @@ flowchart LR
 
 **Not overwritten:** `Dockerfile`, `newf.sh`, `bundlef.sh`, and other fstarter-owned scripts.
 
+The overlay must **not** undo e-St/fstarter. `prepare-fstarter-update.sh` refuses to copy a pack that would:
+
+- restore `postAttachCommand` (setup is **postCreate-only**)
+- add a `features` / `github-cli` block
+- drop `/usr/local/share/fspure/analyzers` from `FSharp.analyzersPath`
+- skip `e-st.fsharp-pure-decorations` when the `code` CLI is unusable
+
+`fsharp-pure-decorations` is Open VSX only (not MS Marketplace). Listing it in `devcontainer.json` is not enough: `setup-fspure.sh` unpacks `/usr/local/share/fspure/fsharp-pure-decorations.vsix` (else Open VSX) into `~/.vscode-remote/extensions` and `~/.vscode-server/extensions` as `publisher.name-version`, copies `extension.vsixmanifest` to `.vsixmanifest`, and registers the id in that folder’s `extensions.json`. If `code` is usable it also runs `code --install-extension`, but filesystem unpack is the source of truth. Setup **fails** if the extension is still missing — pure/impure labels come from that extension, not Ionide. Analyzer DLLs copy from `/usr/local/share/fspure/analyzers/dotnet/fs` first. Skill fallback still uses `--agent github-copilot`, `--scope user`, and `--pin`.
+
 ## Version pin
 
-`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, and `FSPURE_CLI_RELEASE` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin installs that exact package from nuget.org. The skill ref is the official tag `fspure-reduce-impurity-v{version}` after a skill publish (otherwise `main` until that first tag exists). It is passed to `gh skill install --pin` with `--agent github-copilot` (no TTY). The CLI release is the standalone `fspure` binary installed to `~/.local/bin`. Do not omit `--agent`: `gh` then prompts and Codespaces cancel. A fork of fstarter keeps that pin until it merges an fstarter update.
+`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, and `FSPURE_CLI_RELEASE` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin is the nuget.org fallback when the image has no baked DLLs. The skill ref is the official tag `fspure-reduce-impurity-v{version}` after a skill publish (otherwise `main` until that first tag exists). Image bake and setup copy the skill first; `gh skill install --pin` with `--agent github-copilot` (no TTY) is the fallback. The CLI release is the standalone `fspure` binary (`/usr/local/bin` in the image, else `~/.local/bin`). Do not omit `--agent`: `gh` then prompts and Codespaces cancel. A fork of fstarter keeps that pin until it merges an fstarter update.
 
 Priority when resolving the pin:
 
