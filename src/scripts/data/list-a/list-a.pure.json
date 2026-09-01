@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "packageId": "FSharp.Core\u002BBCL",
   "packageVersion": "10.1.0",
-  "generatedAt": "2026-08-01T06:47:48.4165189\u002B00:00",
+  "generatedAt": "2026-09-01T06:05:28.7060363\u002B00:00",
   "generator": "fsharp-pure-analyzer/fspure-collector/0.1.0",
   "pureMethods": [
     {
