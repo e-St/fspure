@@ -1,3 +1,4 @@
+[<Xunit.Collection("CompositionCache")>]
 module FSharp.PureAnalyzer.Tests.OverrideTests
 
 open System

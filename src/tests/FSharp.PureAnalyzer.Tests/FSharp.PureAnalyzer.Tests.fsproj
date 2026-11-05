@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="TestProcess.fs" />
+    <Compile Include="CompositionCacheCollection.fs" />
     <Compile Include="CompositionTests.fs" />
     <Compile Include="OverrideTests.fs" />
     <Compile Include="PathResolutionTests.fs" />
