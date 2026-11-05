@@ -1,8 +1,8 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/customer.md.scriban
-  Channel: stable | Ref: v0.4.1 | Version: 0.4.1
-  Generated: 2026-11-05T17:19:15Z
+  Channel: stable | Ref: v0.4.2 | Version: 0.4.2
+  Generated: 2026-11-05T18:05:18Z
 -->
 
 # Using fspure (get started)
@@ -31,13 +31,13 @@ Use the steps below if you already have a repo and only want to add fspure.
 ### 1. Analyzer
 
 ```bash
-dotnet add package FSharp.PureAnalyzer --version 0.4.1
+dotnet add package FSharp.PureAnalyzer --version 0.4.2
 ```
 
 Paket:
 
 ```paket
-nuget FSharp.PureAnalyzer 0.4.1
+nuget FSharp.PureAnalyzer 0.4.2
 ```
 
 Point Ionide at a real folder. Easiest: copy `analyzers/dotnet/fs/` from the package into `./analyzers` in your workspace.
@@ -93,8 +93,8 @@ Recommended extras (LineLens + hide grey diagnostic noise) — full Ionide block
   "FSharp.linter": true,
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [
-    "/usr/local/share/fspure/analyzers",
     "analyzers",
+    "/usr/local/share/fspure/analyzers",
     "packages/Analyzers"
   ],
   "FSharp.unusedDeclarationsAnalyzer": true,
@@ -264,6 +264,6 @@ See [src/samples/fspure-ready-lib](../src/samples/fspure-ready-lib/).
 
 ## Versions
 
-- Analyzer: **0.4.1**  
-- Collector: **0.1.1**  
-- Docs channel: **stable** (`v0.4.1`)
+- Analyzer: **0.4.2**  
+- Collector: **0.1.2**  
+- Docs channel: **stable** (`v0.4.2`)
