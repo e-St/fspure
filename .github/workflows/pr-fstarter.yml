@@ -126,6 +126,17 @@ jobs:
           echo "cli_release=$CLI_RELEASE" >> "$GITHUB_OUTPUT"
           echo "extension_version=$EXT_VER" >> "$GITHUB_OUTPUT"
 
+      # dotnet nuget push returns before the flat container lists the nupkg.
+      # fstarter CI bakes the image by curling that URL; a 404 fails the build
+      # (0.4.2 was listed ~6 minutes after the pin commit that opened PR #27).
+      - name: Wait until nuget.org serves the analyzer pin
+        run: |
+          set -euo pipefail
+          chmod +x src/scripts/release/wait-nuget-nupkg.sh
+          bash src/scripts/release/wait-nuget-nupkg.sh \
+            FSharp.PureAnalyzer \
+            "${{ steps.ver.outputs.version }}"
+
       - name: Clone fstarter
         env:
           FSPURE_FSTARTER_TOKEN: ${{ secrets.FSPURE_FSTARTER_TOKEN }}

@@ -75,7 +75,7 @@ Triggers **Official release**:
 7. `sync-readme`: regenerate root `README.md` and `src/docs/EXAMPLES.md` from `src/docs/human/` + templates, commit if needed
 8. Publish **fspure.net** from `.generated/site`
 9. Dispatch **Sync fspure-ready-lib** + **PR fspure updates to fstarter**  
-   (`GITHUB_TOKEN` Releases do not fire `on: release`, so this dispatch is required. It passes analyzer, skill, CLI, and extension pins and fails the job if fstarter dispatch fails. Do not auto-merge the fstarter PR.)
+   (`GITHUB_TOKEN` Releases do not fire `on: release`, so this dispatch is required. It passes analyzer, skill, CLI, and extension pins and fails the job if fstarter dispatch fails. Do not auto-merge the fstarter PR. That workflow waits until nuget.org’s flat container serves the analyzer nupkg before opening the PR — a push is accepted minutes before the URL the image bake curls stops 404ing.)
 
 ### Trusted Publishing (required once)
 
@@ -99,7 +99,7 @@ You may keep the existing policy for `nuget_publish.yml` as a manual fallback.
 | `src/fspure-collector/*.fsproj` | `<Version>` |
 | `src/editor/vscode-extension/package.json` | `version` |
 | `src/samples/fspure-ready-lib/Directory.Packages.props` | `FspureAnalyzerVersion` |
-| `src/samples/fspure-ready-lib/src/scripts/resolve-fspure-analyzer-version.sh` | fallback |
+| `src/samples/fspure-ready-lib/scripts/resolve-fspure-analyzer-version.sh` | fallback |
 | `src/scripts/integrations/fstarter/versions.env` | `FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF=fspure-reduce-impurity-v{skill}`, `FSPURE_EXTENSION_VERSION` |
 | `plugins/fspure/.claude-plugin/plugin.json` | skill / marketplace plugin version |
 | Sample / root README examples | version strings |

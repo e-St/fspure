@@ -62,6 +62,7 @@ src/scripts/integrations/fstarter/
     .devcontainer/
       devcontainer.json        # postCreate-only; workspace analyzers path first; no features
       setup-fspure.sh          # pin wins over a stale image bake; VSIX unpack
+      bake-fspure.sh           # image bake: poll nuget.org, then GitHub Release nupkg
 ```
 
 Do **not** restore `postAttachCommand` or a `features` / `github-cli` block. `e-st.fsharp-pure-decorations` is Open VSX only — `setup-fspure.sh` unpacks the pinned VSIX even when `code` is unusable, and installs the analyzer pin when the image bake is older. `prepare-fstarter-update.sh` refuses an overlay that would undo that.

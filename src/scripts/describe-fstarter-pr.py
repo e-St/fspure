@@ -18,6 +18,7 @@ METADATA_PATHS = {".fspure-sync-source"}
 
 FILE_NOTES = {
     ".devcontainer/setup-fspure.sh": "Codespace install script (pinned analyzer, decorations VSIX unpack, CLI, Copilot skill)",
+    ".devcontainer/bake-fspure.sh": "image bake polls nuget.org and falls back to the GitHub Release nupkg",
     ".devcontainer/devcontainer.json": "postCreate-only Ionide / decorations / LineLens settings",
     "Directory.Build.props": "strict F# compiler rules from the fspure pack",
     ".gitignore": "ignore Ionide `analyzers/` drop",
@@ -100,6 +101,8 @@ def title_for(
     if not phrases:
         if ".devcontainer/setup-fspure.sh" in path_set:
             phrases.append("update Codespace setup")
+        if ".devcontainer/bake-fspure.sh" in path_set:
+            phrases.append("retry analyzer image bake until nuget.org lists the pin")
         if ".devcontainer/devcontainer.json" in path_set:
             phrases.append("update Codespace settings")
         if "Directory.Build.props" in path_set:

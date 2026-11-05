@@ -6,6 +6,7 @@
 #
 # Writes:
 #   .devcontainer/setup-fspure.sh
+#   .devcontainer/bake-fspure.sh      (image bake; polls nuget.org, falls back to GitHub Release)
 #   .devcontainer/devcontainer.json   (fspure-enabled settings; keeps other .devcontainer files)
 #   .devcontainer/fspure-versions.env
 #   .fspure-sync-source (metadata)
@@ -52,6 +53,8 @@ mkdir -p "$DC"
 # Copy fspure-owned files only (do not delete Dockerfile, newf.sh, etc.).
 cp -f "$OVERLAY/.devcontainer/setup-fspure.sh" "$DC/setup-fspure.sh"
 chmod +x "$DC/setup-fspure.sh"
+cp -f "$OVERLAY/.devcontainer/bake-fspure.sh" "$DC/bake-fspure.sh"
+chmod +x "$DC/bake-fspure.sh"
 
 if [[ -f "$OVERLAY/.devcontainer/devcontainer.json" ]]; then
   cp -f "$OVERLAY/.devcontainer/devcontainer.json" "$DC/devcontainer.json"
@@ -124,6 +127,7 @@ echo "  FSPURE_CLI_RELEASE=$CLI_RELEASE"
 echo "  FSPURE_EXTENSION_VERSION=${EXT_VERSION:-<unset>}"
 echo "  files:"
 echo "    .devcontainer/setup-fspure.sh  (baked-first analyzer + decorations VSIX unpack)"
+echo "    .devcontainer/bake-fspure.sh   (poll nuget.org; GitHub Release nupkg fallback)"
 echo "    .devcontainer/devcontainer.json"
 echo "    .devcontainer/fspure-versions.env"
 echo "    Directory.Build.props (strict F# / C# compiler rules)"

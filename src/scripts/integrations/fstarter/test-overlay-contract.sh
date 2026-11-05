@@ -18,6 +18,7 @@ trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/.devcontainer"
 cp -f "$HERE/overlay/.devcontainer/devcontainer.json" "$scratch/.devcontainer/"
 cp -f "$HERE/overlay/.devcontainer/setup-fspure.sh" "$scratch/.devcontainer/"
+cp -f "$HERE/overlay/.devcontainer/bake-fspure.sh" "$scratch/.devcontainer/"
 
 python3 - "$scratch/.devcontainer/devcontainer.json" <<'PY'
 import json, sys
@@ -49,6 +50,20 @@ if assert_fstarter_overlay_contract "$scratch" >/dev/null 2>&1; then
   fail "accepted setup that skips VSIX when code is unusable"
 fi
 pass "rejects skip-extension-install setup"
+
+cp -f "$HERE/overlay/.devcontainer/bake-fspure.sh" "$scratch/.devcontainer/"
+python3 - "$scratch/.devcontainer/bake-fspure.sh" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+text = p.read_text().replace("nuget.org not ready", "nuget.org missing")
+text = text.replace("releases/tags/", "no-release-fallback/")
+p.write_text(text)
+PY
+if assert_fstarter_overlay_contract "$scratch" >/dev/null 2>&1; then
+  fail "accepted bake that does not poll nuget.org or fall back to the GitHub Release nupkg"
+fi
+pass "rejects bake that 404s on nuget listing lag"
 
 # Filesystem unpack is the source of truth (postCreate often has no usable `code`).
 unpack_home="$(mktemp -d)"
@@ -115,6 +130,17 @@ grep -q 'baked_analyzer_matches_pin && mirror_from_baked' "$dest/.devcontainer/s
   || fail "prepare dropped pin check before baked analyzer copy"
 grep -q '^FSPURE_EXTENSION_VERSION=' "$dest/.devcontainer/fspure-versions.env" \
   || fail "prepare dropped extension pin"
+grep -q 'nuget.org not ready' "$dest/.devcontainer/bake-fspure.sh" \
+  || fail "prepare did not copy bake-fspure.sh nuget poll"
+grep -q 'FSharp.PureAnalyzer.${FSPURE_ANALYZER_VERSION}.nupkg' "$dest/.devcontainer/bake-fspure.sh" \
+  || fail "prepare did not copy GitHub Release nupkg fallback"
 pass "prepare-fstarter-update.sh copies a contract-ok overlay"
+
+chmod +x "$ROOT/src/scripts/release/wait-nuget-nupkg.sh"
+bash "$ROOT/src/scripts/release/wait-nuget-nupkg.sh" FSharp.PureAnalyzer 0.4.2 60
+if NUGET_WAIT_INTERVAL=1 bash "$ROOT/src/scripts/release/wait-nuget-nupkg.sh" FSharp.PureAnalyzer 0.0.0-missing 2; then
+  fail "wait-nuget-nupkg.sh accepted a missing package"
+fi
+pass "wait-nuget-nupkg.sh"
 
 echo "all overlay contract tests passed"

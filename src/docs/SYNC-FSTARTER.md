@@ -27,13 +27,14 @@ flowchart LR
 | Path in fstarter | Source |
 |------------------|--------|
 | `.devcontainer/setup-fspure.sh` | `src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
+| `.devcontainer/bake-fspure.sh` | overlay (image bake: poll nuget.org, then GitHub Release nupkg) |
 | `.devcontainer/devcontainer.json` | overlay (fspure Ionide / decorations settings) |
 | `.devcontainer/fspure-versions.env` | generated pins (`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, `FSPURE_CLI_RELEASE`, `FSPURE_EXTENSION_VERSION`) |
 | `Directory.Build.props` | strict compiler rules (FS0025, TreatWarningsAsErrors, Nullable) |
 | `.fspure-sync-source` | sync metadata |
 | `.gitignore` | ensures `**/analyzers/` is ignored |
 
-**Not overwritten:** `Dockerfile`, `newf.sh`, `bundlef.sh`, and other fstarter-owned scripts.
+**Not overwritten:** `Dockerfile`, `newf.sh`, `bundlef.sh`, and other fstarter-owned scripts. `bake-fspure.sh` is copied: the image build downloads the analyzer pin, and a short `curl --retry` 404s while nuget.org is still indexing.
 
 The overlay must **not** undo e-St/fstarter. `prepare-fstarter-update.sh` refuses to copy a pack that would:
 
@@ -103,3 +104,5 @@ cd /tmp/fstarter && git status && git diff
 ## Relation to nuget.org publish
 
 After an official publish, **Official release** writes the pins and dispatches **PR fspure updates to fstarter**. Do not rely on `on: release`: Releases created with `GITHUB_TOKEN` do not start that event. A push of `versions.env` or the overlay to `main` also opens the PR, which is how a pin fix lands without a new release.
+
+`dotnet nuget push` returns before `api.nuget.org/v3-flatcontainer` lists the nupkg (0.4.2 was still 404 about six minutes after the pin commit; fstarter’s image build then failed). **PR fspure updates to fstarter** waits until that URL returns 200 before opening the PR. The copied `bake-fspure.sh` also polls the flat container and, if it is still missing, downloads `FSharp.PureAnalyzer.{version}.nupkg` from the `v{version}` GitHub Release.

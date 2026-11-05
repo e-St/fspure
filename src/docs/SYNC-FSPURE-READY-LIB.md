@@ -16,7 +16,7 @@ https://github.com/e-St/fspure-ready-lib
 
 The workflow **Sync fspure-ready-lib**:
 
-1. Copies `src/samples/fspure-ready-lib/` into a clone of the satellite (rsync; excludes `bin`/`obj`/`artifacts`).
+1. Copies `src/samples/fspure-ready-lib/` into a clone of the satellite (`rsync -a --checksum --delete`; excludes `bin`/`obj`/`artifacts`). Checksum compare is required: a same-second checkout makes size+mtime rsync skip same-length pin edits such as `0.4.0` → `0.4.2`.
 2. Creates **one synthetic git commit** on the satellite (`sync from e-St/fspure@<sha>`).
 3. **`git push`**es to `main`.
 
@@ -92,6 +92,8 @@ Both are pushed by the monorepo sync so the **same sample tree** is tested again
 |---------|-----|
 | Secret not set | Add `FSPURE_READY_LIB_PUSH_TOKEN` on **fspure** |
 | `403` on push | PAT needs **Contents: Write** on **fspure-ready-lib** |
+| Sync commit only updates `.fspure-sync-source` | Workflow must `rsync --checksum` (size+mtime check drops same-length version pins) |
+| Satellite CI `src/scripts/*.sh: No such file` | Sample helpers live in `scripts/` at the satellite root, not `src/scripts/` |
 | Fork runs sync | Blocked by `if: github.repository == 'e-St/fspure'` |
 
 ---

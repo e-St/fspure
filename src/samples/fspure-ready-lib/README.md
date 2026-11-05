@@ -75,7 +75,7 @@ consumer + fsharp-analyzers → hard PURE003 / PURE002
 bash src/scripts/fspure-ready-lib-gate.sh
 # or: bash src/tests/e2e/ready-lib/run.sh
 # or from this folder when nested in monorepo:
-bash src/scripts/ci-build-and-assert.sh   # auto-delegates to monorepo gate
+bash scripts/ci-build-and-assert.sh   # auto-delegates to monorepo gate
 ```
 
 Workflow: `e-St/fspure` → `.github/workflows/fspure-ready-lib-gate.yml`.
@@ -89,7 +89,7 @@ nuget.org `0.3.2` is analyzer-only and **cannot** embed pure.json.
 export FSPURE_ANALYZER_CHANNEL=github-latest
 export REQUIRE_GITHUB_PACKAGES=1
 export GITHUB_TOKEN=...   # packages:read
-bash src/scripts/ci-build-and-assert.sh
+bash scripts/ci-build-and-assert.sh
 ```
 
 Publishing `Fspure.ReadyLib` is optional (`Publish prerelease` workflow).
@@ -106,7 +106,7 @@ src/Fspure.ReadyLib/     # the publishable class library
 tests/AssertEmbed/       # PE reader: assert embedded pure.json
 tests/Consumer/          # PackageReference or ProjectReference (Phase 5 flag)
 tests/golden/            # pure-method contract for ReadyLib public surface
-src/scripts/                 # CI helpers; monorepo gate when nested
+scripts/                 # CI helpers (satellite root); monorepo gate when nested
 .github/workflows/       # satellite CI / optional publish (marketing)
 Directory.Build.props    # turns embed on for the library
 ```

@@ -68,7 +68,10 @@ jobs:
           DST="$RUNNER_TEMP/fspure-ready-lib"
           test -d "$SRC"
 
-          rsync -a --delete \
+          # --checksum: default rsync skips files whose size and mtime match.
+          # Git checkout/clone stamp mtimes with "now", so a same-second sync
+          # drops same-length edits (0.4.0 → 0.4.2) and only the stamp file commits.
+          rsync -a --checksum --delete \
             --exclude '.git/' \
             --exclude 'artifacts/' \
             --exclude '**/bin/' \
@@ -76,6 +79,28 @@ jobs:
             --exclude '**/.vs/' \
             --exclude '**/TestResults/' \
             "$SRC/" "$DST/"
+
+          if ! diff -rq \
+            --exclude '.git' \
+            --exclude '.fspure-sync-source' \
+            --exclude 'artifacts' \
+            --exclude 'bin' \
+            --exclude 'obj' \
+            --exclude '.vs' \
+            --exclude 'TestResults' \
+            "$SRC" "$DST"; then
+            echo "::error::Satellite tree does not match src/samples/fspure-ready-lib after rsync."
+            diff -rq \
+              --exclude '.git' \
+              --exclude '.fspure-sync-source' \
+              --exclude 'artifacts' \
+              --exclude 'bin' \
+              --exclude 'obj' \
+              --exclude '.vs' \
+              --exclude 'TestResults' \
+              "$SRC" "$DST" || true
+            exit 1
+          fi
 
           {
             echo "source_repo=e-St/fspure"

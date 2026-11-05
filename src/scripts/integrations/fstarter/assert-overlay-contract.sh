@@ -14,6 +14,11 @@ assert_fstarter_overlay_contract() {
     echo "ERROR: missing $setup" >&2
     return 1
   fi
+  local bake="$root/.devcontainer/bake-fspure.sh"
+  if [[ ! -f "$bake" ]]; then
+    echo "ERROR: missing $bake" >&2
+    return 1
+  fi
 
   if ! python3 - "$dc_json" <<'PY'
 import json, sys
@@ -107,6 +112,29 @@ if errors:
 PY
   then
     echo "ERROR: setup-fspure.sh would undo e-St/fstarter ($root)" >&2
+    return 1
+  fi
+
+  # Image bake curls the flat container. curl --retry does not retry HTTP 404,
+  # and nuget.org can list a just-pushed nupkg minutes later.
+  if ! python3 - "$bake" <<'PY'
+import pathlib, sys
+text = pathlib.Path(sys.argv[1]).read_text()
+errors = []
+if "api.nuget.org/v3-flatcontainer/fsharp.pureanalyzer/" not in text:
+    errors.append("must download the analyzer pin from the nuget.org flat container")
+if "nuget.org not ready" not in text or "FSPURE_NUGET_WAIT_SECONDS" not in text:
+    errors.append("must poll nuget.org across the listing lag (curl --retry does not retry 404)")
+if "releases/tags/" not in text or "FSharp.PureAnalyzer.${FSPURE_ANALYZER_VERSION}.nupkg" not in text:
+    errors.append("must fall back to the GitHub Release nupkg when nuget.org is still 404")
+if errors:
+    print("ERROR: bake-fspure.sh would fail fstarter image CI:", file=sys.stderr)
+    for err in errors:
+        print(f"  - {err}", file=sys.stderr)
+    sys.exit(1)
+PY
+  then
+    echo "ERROR: bake-fspure.sh would fail fstarter image CI ($root)" >&2
     return 1
   fi
 }
