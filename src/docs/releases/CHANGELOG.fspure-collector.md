@@ -4,6 +4,8 @@ All notable changes to the NuGet **dotnet tool** `fspure-collector` are document
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-11-05
+
 ### Draft (from git log — edit freely)
 
 - fix propagation to fspure-ready-lib and fstarter (9a69a30)

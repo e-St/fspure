@@ -12,7 +12,7 @@
     <ToolCommandName>fspure-collector</ToolCommandName>
     <IsPackable>true</IsPackable>
     <PackageId>fspure-collector</PackageId>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Description>Generate PureFile (.pure.json) pure-method whitelists from managed assemblies for fspure / FSharp.PureAnalyzer.</Description>
     <PackageTags>fsharp;fspure;pure;functional;dotnet-tool</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

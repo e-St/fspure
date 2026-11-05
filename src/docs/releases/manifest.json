@@ -2,56 +2,10 @@
   "schemaVersion": 1,
   "description": "Source of truth for last official versions. A Release PR sets pending; merge runs the official publish.",
   "lastOfficial": {
-    "FSharp.PureAnalyzer": "0.4.2",
-    "fspure-collector": "0.1.2",
-    "fsharp-pure-decorations": "0.2.7",
-    "fspure-reduce-impurity": "0.1.3"
+    "FSharp.PureAnalyzer": "0.4.3",
+    "fspure-collector": "0.1.3",
+    "fsharp-pure-decorations": "0.2.8",
+    "fspure-reduce-impurity": "0.1.4"
   },
-  "pending": {
-    "preparedAtUtc": "2026-11-05T18:41:29Z",
-    "preparedBy": "e-St",
-    "instructions": "Edit each component's `to` version and `publish` flag. Edit the matching CHANGELOG.* Unreleased section. Merge this PR to trigger official publish.",
-    "components": {
-      "FSharp.PureAnalyzer": {
-        "from": "0.4.2",
-        "to": "0.4.3",
-        "publish": true,
-        "paths": [
-          "src/FSharp.PureAnalyzer/",
-          "src/FSharp.PureSchema/",
-          "src/Fspure.Embed/"
-        ],
-        "changelog": "src/docs/releases/CHANGELOG.FSharp.PureAnalyzer.md"
-      },
-      "fspure-collector": {
-        "from": "0.1.2",
-        "to": "0.1.3",
-        "publish": true,
-        "paths": [
-          "src/fspure-collector/",
-          "src/FSharp.PureSchema/"
-        ],
-        "changelog": "src/docs/releases/CHANGELOG.fspure-collector.md"
-      },
-      "fsharp-pure-decorations": {
-        "from": "0.2.7",
-        "to": "0.2.8",
-        "publish": true,
-        "paths": [
-          "src/editor/vscode-extension/"
-        ],
-        "changelog": "src/docs/releases/CHANGELOG.fsharp-pure-decorations.md"
-      },
-      "fspure-reduce-impurity": {
-        "from": "0.1.3",
-        "to": "0.1.4",
-        "publish": true,
-        "paths": [
-          "plugins/fspure/"
-        ],
-        "changelog": "src/docs/releases/CHANGELOG.fspure-reduce-impurity.md",
-        "tag": "fspure-reduce-impurity-v0.1.4"
-      }
-    }
-  }
+  "pending": null
 }
