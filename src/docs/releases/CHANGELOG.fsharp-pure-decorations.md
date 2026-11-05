@@ -4,6 +4,10 @@ All notable changes to the Open VSX extension **fsharp-pure-decorations** are do
 
 ## [Unreleased]
 
+### Draft (from git log — edit freely)
+
+- chore(release): apply official version pins after publish (62a0a95)
+
 ## [0.2.6] — 2026-11-05
 
 ### Draft (from git log — edit freely)
