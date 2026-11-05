@@ -4,6 +4,8 @@ All notable changes to the Open VSX extension **fsharp-pure-decorations** are do
 
 ## [Unreleased]
 
+## [0.2.6] — 2026-11-05
+
 ### Draft (from git log — edit freely)
 
 - Finish monorepo F# tasks: phase1, asserts; single-file VS Code host. (c253f5d)

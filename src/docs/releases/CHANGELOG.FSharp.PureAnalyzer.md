@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-11-05
+
 ### Draft (from git log — edit freely)
 
 - fix ionide dependency (9614483)
