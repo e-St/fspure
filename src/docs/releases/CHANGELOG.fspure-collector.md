@@ -4,7 +4,9 @@ All notable changes to the NuGet **dotnet tool** `fspure-collector` are document
 
 ## [Unreleased]
 
-<!-- Filled by Prepare release PR from git log — edit freely before merge. -->
+### Draft (from git log — edit freely)
+
+- Restructure monorepo into src/tests/editor/docs/scripts. (0fd0a59)
 
 ## [0.1.0] — 2026-08-10
 
