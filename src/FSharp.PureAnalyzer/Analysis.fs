@@ -100,8 +100,17 @@ module Analysis =
             if current.Count > 0 then
                 nonLocalMutation.Add(current.Peek()) |> ignore
 
-        /// localMutables: `let mutable` keys and local `let r = ref ...` keys
+        /// localMutables: `let mutable` keys and local `let r = ref ...` keys.
+        /// FCS inserts error-recovery expressions while a file is still checking.
+        /// Reading their children throws; skip that node so one incomplete expr
+        /// does not drop every pure/impure diagnostic in the file.
         let rec visitExpr (localMutables: HashSet<string>) (e: FSharpExpr) =
+            try
+                visitExprCore localMutables e
+            with ex when ex.Message.StartsWith("error recovery", StringComparison.Ordinal) ->
+                ()
+
+        and visitExprCore (localMutables: HashSet<string>) (e: FSharpExpr) =
             match e with
             | Call(objExprOpt, memberOrFunc, _, _, argExprs) as callExpr ->
                 if isColonEquals memberOrFunc then

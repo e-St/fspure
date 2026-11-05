@@ -13,7 +13,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ionide.ionide-fsharp",
+        "ionide.ionide-fsharp@7.31.1",
         "ionide.ionide-paket",
         "ionide.ionide-fantomas",
         "ms-dotnettools.csharp",

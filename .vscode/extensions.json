@@ -1,6 +1,6 @@
 {
   "recommendations": [
-    "ionide.ionide-fsharp",
+    "ionide.ionide-fsharp@7.31.1",
     "ms-vscode.live-preview"
   ]
 }
