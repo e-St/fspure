@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Draft (from git log — edit freely)
+
+- fix propagation to fspure-ready-lib and fstarter (9a69a30)
+- chore(release): apply official version pins after publish (9971ecb)
+
 ## [0.4.2] — 2026-11-05
 
 ### Draft (from git log — edit freely)
