@@ -2,7 +2,7 @@
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/EXAMPLES.md.scriban
   Channel: preview | Ref: main | Version: 0.4.2
-  Generated: 2026-11-05T18:34:14Z
+  Generated: 2026-11-05T18:43:41Z
 -->
 
 # Real code, real labels
