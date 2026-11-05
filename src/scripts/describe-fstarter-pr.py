@@ -17,7 +17,7 @@ from pathlib import Path
 METADATA_PATHS = {".fspure-sync-source"}
 
 FILE_NOTES = {
-    ".devcontainer/setup-fspure.sh": "Codespace install script (baked analyzer, decorations VSIX unpack, CLI, Copilot skill)",
+    ".devcontainer/setup-fspure.sh": "Codespace install script (pinned analyzer, decorations VSIX unpack, CLI, Copilot skill)",
     ".devcontainer/devcontainer.json": "postCreate-only Ionide / decorations / LineLens settings",
     "Directory.Build.props": "strict F# compiler rules from the fspure pack",
     ".gitignore": "ignore Ionide `analyzers/` drop",
@@ -27,6 +27,7 @@ PIN_KEYS = (
     ("FSPURE_ANALYZER_VERSION", "analyzer", "FSharp.PureAnalyzer"),
     ("FSPURE_SKILL_REF", "skill", "Skill (`gh skill --pin`)"),
     ("FSPURE_CLI_RELEASE", "CLI", "CLI release"),
+    ("FSPURE_EXTENSION_VERSION", "extension", "Extension (`e-st.fsharp-pure-decorations`)"),
 )
 
 
@@ -139,12 +140,17 @@ def lead_sentence(
             )
         if short == "CLI":
             return f"Codespaces will install the standalone `fspure` CLI from GitHub Release `{b}` (was `{a or '—'}`)."
+        if short == "extension":
+            return (
+                f"Codespaces will install **fsharp-pure-decorations** `{b}` "
+                f"(was `{a or '—'}`)."
+            )
     if changed:
         bits = [f"{short} `{a or '—'}` → `{b}`" for _, short, a, b in changed]
         return "Updates fspure pins in the template: " + "; ".join(bits) + "."
     if ".devcontainer/setup-fspure.sh" in paths:
         return (
-            "Updates how the Codespace installs fspure (baked analyzer, decorations VSIX unpack, CLI, Copilot skill). "
+            "Updates how the Codespace installs fspure (pinned analyzer, decorations VSIX unpack, CLI, Copilot skill). "
             "Pins are unchanged."
         )
     if ".devcontainer/devcontainer.json" in paths:
@@ -269,7 +275,8 @@ def main() -> int:
         "",
         "Does **not** overwrite `Dockerfile`, `newf.sh`, or other fstarter-owned files.",
         "",
-        "After merge: rebuild the Codespace / container so `setup-fspure.sh` applies this.",
+        "After merge, fstarter rebuilds `ghcr.io/e-st/fstarter:latest` because `.devcontainer/**` changed.",
+        "`setup-fspure.sh` still installs these pins over a stale image until that rebuild finishes.",
         "",
     ]
     body = "\n".join(lines)

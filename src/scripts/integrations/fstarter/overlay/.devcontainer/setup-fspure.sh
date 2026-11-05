@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Install fspure into an fstarter Codespace / dev container.
-# Fast path: copy artifacts already baked into ghcr.io/e-st/fstarter.
-# Fallback: nuget / GitHub / Open VSX (older images, or a missing pin).
+# Pins win. Copy image artifacts only when /usr/local/share/fspure/versions.env
+# matches .devcontainer/fspure-versions.env. A stale bake must not stay on PATH
+# or in Ionide's analyzer drop.
 #
-# - FSharp.PureAnalyzer → workspace analyzers/dotnet/fs/ (Ionide)
-# - fsharp-pure-decorations from a baked Open VSX VSIX (not MS Marketplace id)
-# - standalone `fspure` CLI on PATH
-# - Copilot skill fspure-reduce-impurity
+# - FSharp.PureAnalyzer → workspace analyzers/dotnet/fs/ (Ionide; ahead of the bake)
+# - fsharp-pure-decorations at FSPURE_EXTENSION_VERSION (Open VSX; baked VSIX if it matches)
+# - standalone `fspure` CLI on PATH (~/.local/bin ahead of /usr/local/bin)
+# - Copilot skill fspure-reduce-impurity at FSPURE_SKILL_REF
 #
-# Version pin: FSPURE_ANALYZER_VERSION env, or .devcontainer/fspure-versions.env
+# Version pin: env, or .devcontainer/fspure-versions.env
 # (synced from e-St/fspure src/scripts/integrations/fstarter/versions.env).
 set -euo pipefail
 
@@ -49,6 +50,65 @@ FSPURE_ANALYZER_VERSION="${FSPURE_ANALYZER_VERSION:-0.4.0}"
 FSPURE_SKILL_REF="${FSPURE_SKILL_REF:-main}"
 # Standalone linux-x64 CLI (GitHub Release tag). Not the analyzer nuget version.
 FSPURE_CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
+# Empty means Open VSX latest (older pins files).
+FSPURE_EXTENSION_VERSION="${FSPURE_EXTENSION_VERSION:-}"
+
+read_env_value() {
+  local file="$1" key="$2"
+  [[ -f "$file" ]] || return 1
+  python3 - "$file" "$key" <<'PY'
+import sys
+path, key = sys.argv[1:]
+for line in open(path, encoding="utf-8"):
+    line = line.strip()
+    if not line or line.startswith("#") or "=" not in line:
+        continue
+    k, _, v = line.partition("=")
+    if k.strip() == key:
+        print(v.strip())
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
+
+# Image bake records the versions it copied. A newer pin must not reuse that bake.
+baked_analyzer_matches_pin() {
+  local baked
+  baked="$(read_env_value "$BAKED_ROOT/versions.env" FSPURE_ANALYZER_VERSION 2>/dev/null || true)"
+  [[ -n "$baked" && "$baked" == "$FSPURE_ANALYZER_VERSION" ]]
+}
+
+vsix_version() {
+  unzip -p "$1" extension/package.json \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])'
+}
+
+cli_release_size() {
+  curl -fsSL --retry 2 --retry-delay 1 \
+    -H "Accept: application/vnd.github+json" \
+    -H "User-Agent: fspure-setup" \
+    "https://api.github.com/repos/e-St/fspure/releases/tags/${FSPURE_CLI_RELEASE}" \
+    | python3 -c 'import json,sys
+rel=json.load(sys.stdin)
+for a in rel.get("assets") or []:
+    if a.get("name") == "fspure":
+        print(a.get("size") or "")
+        raise SystemExit(0)
+raise SystemExit(1)
+'
+}
+
+# True when the binary works and matches the published release asset.
+# If the release cannot be queried, a working binary is kept.
+cli_matches_release() {
+  local bin="$1" remote size
+  [[ -x "$bin" ]] || return 1
+  "$bin" analyze --help >/dev/null 2>&1 || return 1
+  remote="$(cli_release_size 2>/dev/null || true)"
+  [[ -n "$remote" ]] || return 0
+  size="$(stat -c %s "$bin" 2>/dev/null || echo 0)"
+  [[ "$size" == "$remote" ]]
+}
 
 code_cli_usable() {
   command -v code >/dev/null 2>&1 || return 1
@@ -139,6 +199,15 @@ extension_on_disk() {
   return 1
 }
 
+extension_version_on_disk() {
+  local want="$1" d
+  [[ -n "$want" ]] || return 1
+  while IFS= read -r d; do
+    [[ -d "$d/${PUBLISHER_EXT}-${want}" ]] && return 0
+  done < <(extension_dirs)
+  return 1
+}
+
 register_extension_json() {
   local ext_root="$1"
   local dest="$2"
@@ -213,22 +282,42 @@ download_openvsx_vsix() {
 }
 
 install_extension() {
-  local vsix="" tmp=""
-  if extension_on_disk; then
+  local vsix="" tmp="" baked_ver="" api url
+  if [[ -n "${FSPURE_EXTENSION_VERSION:-}" ]] && extension_version_on_disk "$FSPURE_EXTENSION_VERSION"; then
+    echo "✅ $PUBLISHER_EXT ${FSPURE_EXTENSION_VERSION} already on disk"
+    return 0
+  fi
+  if [[ -z "${FSPURE_EXTENSION_VERSION:-}" ]] && extension_on_disk; then
     echo "✅ $PUBLISHER_EXT already on disk"
     return 0
   fi
   if [[ -f "$BAKED_VSIX" ]]; then
+    baked_ver="$(vsix_version "$BAKED_VSIX" 2>/dev/null || true)"
+  fi
+  if [[ -n "$baked_ver" && ( -z "${FSPURE_EXTENSION_VERSION:-}" || "$baked_ver" == "$FSPURE_EXTENSION_VERSION" ) ]]; then
     vsix="$BAKED_VSIX"
-    echo "==> fsharp-pure-decorations: baked VSIX"
+    echo "==> fsharp-pure-decorations: baked VSIX ${baked_ver}"
   else
     tmp="$(mktemp --suffix=.vsix)"
-    echo "==> fsharp-pure-decorations: Open VSX VSIX"
-    if download_openvsx_vsix "$tmp"; then
+    if [[ -n "${FSPURE_EXTENSION_VERSION:-}" ]]; then
+      api="https://open-vsx.org/api/e-St/fsharp-pure-decorations/${FSPURE_EXTENSION_VERSION}"
+      echo "==> fsharp-pure-decorations ${FSPURE_EXTENSION_VERSION}: Open VSX"
+    else
+      api="$OPENVSX_API"
+      echo "==> fsharp-pure-decorations: Open VSX latest"
+    fi
+    if url="$(curl -fsSL "$api" | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")" \
+      && curl -fsSL -o "$tmp" "$url"; then
       vsix="$tmp"
     else
       rm -f "$tmp"
       tmp=""
+      if [[ -n "${FSPURE_EXTENSION_VERSION:-}" && -n "$baked_ver" && "$baked_ver" != "$FSPURE_EXTENSION_VERSION" ]]; then
+        echo "ERROR: Open VSX ${FSPURE_EXTENSION_VERSION} unavailable; refusing baked VSIX ${baked_ver}" >&2
+      elif [[ -f "$BAKED_VSIX" ]]; then
+        echo "WARNING: could not download extension; using baked VSIX ${baked_ver:-unknown}" >&2
+        vsix="$BAKED_VSIX"
+      fi
     fi
   fi
   if [[ -z "$vsix" ]]; then
@@ -242,11 +331,15 @@ install_extension() {
     echo "    code CLI not usable; installed via filesystem unpack"
   fi
   [[ -z "$tmp" ]] || rm -f "$tmp"
-  if extension_on_disk; then
+  if [[ -n "${FSPURE_EXTENSION_VERSION:-}" ]] && extension_version_on_disk "$FSPURE_EXTENSION_VERSION"; then
+    echo "✅ $PUBLISHER_EXT ${FSPURE_EXTENSION_VERSION} on disk (pure/impure labels)"
+    return 0
+  fi
+  if [[ -z "${FSPURE_EXTENSION_VERSION:-}" ]] && extension_on_disk; then
     echo "✅ $PUBLISHER_EXT on disk (pure/impure labels)"
     return 0
   fi
-  echo "ERROR: could not install $PUBLISHER_EXT; pure/impure labels will not show." >&2
+  echo "ERROR: could not install $PUBLISHER_EXT ${FSPURE_EXTENSION_VERSION:-}; pure/impure labels will not show." >&2
   return 1
 }
 
@@ -299,12 +392,14 @@ ensure_local_bin_on_path() {
 
 install_fspure_cli() {
   ensure_local_bin_on_path
-  if command -v fspure >/dev/null 2>&1 && fspure analyze --help >/dev/null 2>&1; then
-    echo "✅ fspure CLI $(command -v fspure)"
+  local dest="${HOME}/.local/bin/fspure"
+  # ~/.local/bin is ahead of the image binary. Replace it when the release changed.
+  if cli_matches_release "$dest"; then
+    echo "✅ fspure CLI ${dest} (${FSPURE_CLI_RELEASE})"
     return 0
   fi
-  if [[ -x /usr/local/bin/fspure ]] && /usr/local/bin/fspure analyze --help >/dev/null 2>&1; then
-    echo "✅ fspure CLI /usr/local/bin/fspure"
+  if cli_matches_release /usr/local/bin/fspure && [[ ! -e "$dest" ]]; then
+    echo "✅ fspure CLI /usr/local/bin/fspure (${FSPURE_CLI_RELEASE})"
     return 0
   fi
   case "$(uname -m)" in
@@ -314,7 +409,6 @@ install_fspure_cli() {
       return 1
       ;;
   esac
-  local dest="${HOME}/.local/bin/fspure"
   local url="https://github.com/e-St/fspure/releases/download/${FSPURE_CLI_RELEASE}/fspure"
   echo "==> Installing fspure CLI (${FSPURE_CLI_RELEASE}) → ${dest}"
   if ! curl -fsSL -o "$dest" "$url"; then
@@ -330,15 +424,21 @@ install_fspure_cli() {
   echo "✅ fspure CLI ${dest}"
 }
 
+skill_matches_pin() {
+  [[ -f "$USER_SKILL" ]] || return 1
+  python3 - "$USER_SKILL" "$FSPURE_SKILL_REF" <<'PY'
+import sys
+text = open(sys.argv[1], encoding="utf-8").read(8000)
+pin = sys.argv[2]
+ok = f"github-pinned: {pin}" in text or f"github-ref: refs/tags/{pin}" in text
+raise SystemExit(0 if ok else 1)
+PY
+}
+
 install_copilot_skill() {
   mkdir -p "$(dirname "$USER_SKILL")"
-  if [[ -f "$USER_SKILL" ]]; then
-    echo "✅ Copilot skill fspure-reduce-impurity (already present)"
-    return 0
-  fi
-  if [[ -f "$BAKED_SKILL" ]]; then
-    cp -f "$BAKED_SKILL" "$USER_SKILL"
-    echo "✅ Copilot skill fspure-reduce-impurity (baked)"
+  if skill_matches_pin; then
+    echo "✅ Copilot skill fspure-reduce-impurity (${FSPURE_SKILL_REF})"
     return 0
   fi
   ensure_github_cli || true
@@ -363,19 +463,23 @@ install_copilot_skill() {
     return 0
   fi
   echo "WARNING: could not install e-St/fspure fspure-reduce-impurity (gh auth / network / ref ${FSPURE_SKILL_REF}?)." >&2
+  local baked_ref=""
+  baked_ref="$(read_env_value "$BAKED_ROOT/versions.env" FSPURE_SKILL_REF 2>/dev/null || true)"
+  if [[ -f "$BAKED_SKILL" && ( -z "$baked_ref" || "$baked_ref" == "$FSPURE_SKILL_REF" ) ]]; then
+    cp -f "$BAKED_SKILL" "$USER_SKILL"
+    echo "✅ Copilot skill fspure-reduce-impurity (baked, matches pin)"
+  fi
 }
 
 echo "==> fspure setup (fstarter)"
 echo "    analyzer pin: $FSPURE_ANALYZER_VERSION"
 
-if mirror_from_baked; then
-  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} mirrored from image"
-elif [[ -f "$WORKSPACE_ANALYZERS/FSharp.PureAnalyzer.dll" ]]; then
-  echo "✅ FSharp.PureAnalyzer already in workspace"
+if baked_analyzer_matches_pin && mirror_from_baked; then
+  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} mirrored from image (matches pin)"
 elif install_analyzer_nuget && mirror_from_global; then
-  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} installed and mirrored for Ionide"
+  echo "✅ FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} installed from nuget.org"
 else
-  echo "ERROR: could not install or mirror FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} from nuget.org" >&2
+  echo "ERROR: could not install FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION} (baked image does not match the pin)" >&2
   exit 1
 fi
 

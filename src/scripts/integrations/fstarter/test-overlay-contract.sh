@@ -103,7 +103,18 @@ if grep -q '"features"' "$dest/.devcontainer/devcontainer.json"; then
   fail "prepare copied features"
 fi
 grep -q '/usr/local/share/fspure/analyzers' "$dest/.devcontainer/devcontainer.json" || fail "prepare dropped baked analyzersPath"
+python3 - "$dest/.devcontainer/devcontainer.json" <<'PY' || fail "workspace analyzers path is not ahead of the bake"
+import json, sys
+from pathlib import Path
+paths = json.loads(Path(sys.argv[1]).read_text())["customizations"]["vscode"]["settings"]["FSharp.analyzersPath"]
+baked = "/usr/local/share/fspure/analyzers"
+assert paths.index("analyzers") < paths.index(baked)
+PY
 grep -q 'unpack_vsix' "$dest/.devcontainer/setup-fspure.sh" || fail "prepare dropped VSIX unpack"
+grep -q 'baked_analyzer_matches_pin && mirror_from_baked' "$dest/.devcontainer/setup-fspure.sh" \
+  || fail "prepare dropped pin check before baked analyzer copy"
+grep -q '^FSPURE_EXTENSION_VERSION=' "$dest/.devcontainer/fspure-versions.env" \
+  || fail "prepare dropped extension pin"
 pass "prepare-fstarter-update.sh copies a contract-ok overlay"
 
 echo "all overlay contract tests passed"

@@ -21,6 +21,7 @@ permissions:
   packages: write
   id-token: write
   pull-requests: read
+  actions: write
 
 concurrency:
   group: official-release
@@ -178,9 +179,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Best-effort: workflows must exist and allow workflow_dispatch
+          # GITHUB_TOKEN-created Releases do not trigger on: release, so this
+          # dispatch is what updates the fstarter devcontainer pins (and, after
+          # that PR merges, ghcr.io/e-st/fstarter:latest).
           gh workflow run "Sync fspure-ready-lib" --ref main || true
-          gh workflow run "PR fspure updates to fstarter" --ref main || true
+          # shellcheck disable=SC1091
+          set -a
+          source src/scripts/integrations/fstarter/versions.env
+          set +a
+          : "${FSPURE_ANALYZER_VERSION:?missing analyzer pin after publish}"
+          : "${FSPURE_SKILL_REF:?missing skill pin after publish}"
+          : "${FSPURE_CLI_RELEASE:?missing CLI pin after publish}"
+          : "${FSPURE_EXTENSION_VERSION:?missing extension pin after publish}"
+          gh workflow run "PR fspure updates to fstarter" --ref main \
+            -f "analyzer_version=${FSPURE_ANALYZER_VERSION}" \
+            -f "skill_ref=${FSPURE_SKILL_REF}" \
+            -f "cli_release=${FSPURE_CLI_RELEASE}" \
+            -f "extension_version=${FSPURE_EXTENSION_VERSION}"
 
       - name: Generate stable docs + sync committed Markdown
         if: steps.guard.outputs.skip != 'true'

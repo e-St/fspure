@@ -28,7 +28,7 @@ flowchart LR
 |------------------|--------|
 | `.devcontainer/setup-fspure.sh` | `src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh` |
 | `.devcontainer/devcontainer.json` | overlay (fspure Ionide / decorations settings) |
-| `.devcontainer/fspure-versions.env` | generated pins (`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`) |
+| `.devcontainer/fspure-versions.env` | generated pins (`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, `FSPURE_CLI_RELEASE`, `FSPURE_EXTENSION_VERSION`) |
 | `Directory.Build.props` | strict compiler rules (FS0025, TreatWarningsAsErrors, Nullable) |
 | `.fspure-sync-source` | sync metadata |
 | `.gitignore` | ensures `**/analyzers/` is ignored |
@@ -42,18 +42,20 @@ The overlay must **not** undo e-St/fstarter. `prepare-fstarter-update.sh` refuse
 - drop `/usr/local/share/fspure/analyzers` from `FSharp.analyzersPath`
 - skip `e-st.fsharp-pure-decorations` when the `code` CLI is unusable
 
-`fsharp-pure-decorations` is Open VSX only (not MS Marketplace). Listing it in `devcontainer.json` is not enough: `setup-fspure.sh` unpacks `/usr/local/share/fspure/fsharp-pure-decorations.vsix` (else Open VSX) into `~/.vscode-remote/extensions` and `~/.vscode-server/extensions` as `publisher.name-version`, copies `extension.vsixmanifest` to `.vsixmanifest`, and registers the id in that folder’s `extensions.json`. If `code` is usable it also runs `code --install-extension`, but filesystem unpack is the source of truth. Setup **fails** if the extension is still missing — pure/impure labels come from that extension, not Ionide. Analyzer DLLs copy from `/usr/local/share/fspure/analyzers/dotnet/fs` first. Skill fallback still uses `--agent github-copilot`, `--scope user`, and `--pin`.
+`fsharp-pure-decorations` is Open VSX only (not MS Marketplace). Listing it in `devcontainer.json` is not enough: `setup-fspure.sh` unpacks the pinned version (baked VSIX only when it matches `FSPURE_EXTENSION_VERSION`, otherwise that Open VSX version) into `~/.vscode-remote/extensions` and `~/.vscode-server/extensions` as `publisher.name-version`, copies `extension.vsixmanifest` to `.vsixmanifest`, and registers the id in that folder’s `extensions.json`. If `code` is usable it also runs `code --install-extension`, but filesystem unpack is the source of truth. Setup **fails** if the pinned extension is still missing — pure/impure labels come from that extension, not Ionide. Analyzer DLLs copy from the image only when `/usr/local/share/fspure/versions.env` matches the pin; otherwise nuget.org installs the pin into workspace `analyzers/`. That workspace path is listed **before** `/usr/local/share/fspure/analyzers`, because Ionide loads the first hit. Skill install uses `--agent github-copilot`, `--scope user`, `--pin`, and `--force` when the user skill is not already that pin. Do not auto-merge the fstarter PR.
 
 ## Version pin
 
-`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, and `FSPURE_CLI_RELEASE` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. The analyzer pin is the nuget.org fallback when the image has no baked DLLs. The skill ref is the official tag `fspure-reduce-impurity-v{version}` after a skill publish (otherwise `main` until that first tag exists). Image bake and setup copy the skill first; `gh skill install --pin` with `--agent github-copilot` (no TTY) is the fallback. The CLI release is the standalone `fspure` binary (`/usr/local/bin` in the image, else `~/.local/bin`). Do not omit `--agent`: `gh` then prompts and Codespaces cancel. A fork of fstarter keeps that pin until it merges an fstarter update.
+`FSPURE_ANALYZER_VERSION`, `FSPURE_SKILL_REF`, `FSPURE_CLI_RELEASE`, and `FSPURE_EXTENSION_VERSION` are written to `.devcontainer/fspure-versions.env` and read by `setup-fspure.sh`. A matching image bake is an optimization. A stale `ghcr.io/e-st/fstarter:latest` must not win: setup installs the analyzer pin from nuget.org, the extension pin from Open VSX, the skill pin with `gh skill install --pin --force`, and the CLI pin into `~/.local/bin` (ahead of `/usr/local/bin`) when the release asset differs. The skill ref is the official tag `fspure-reduce-impurity-v{version}`. Do not omit `--agent`: `gh` then prompts and Codespaces cancel. A fork of fstarter keeps that pin until it merges an fstarter update. Merging the PR changes `.devcontainer/**`, which rebuilds the image; until that rebuild finishes, setup still installs these pins.
 
 Priority when resolving the pin:
 
 1. Workflow input `analyzer_version` (manual dispatch)
-2. GitHub Release tag (e.g. `v0.4.0` → `0.4.0`)
+2. Analyzer GitHub Release tag `vX.Y.Z` only (`vscode-extension-v*` and `fspure-reduce-impurity-v*` must not overwrite the analyzer pin)
 3. `src/scripts/integrations/fstarter/versions.env` in fspure
 4. Latest stable version on nuget.org
+
+Skill, CLI, and extension pins come from the matching workflow inputs, else `versions.env`. `GITHUB_TOKEN` Releases do **not** fire `on: release`. **Official release** must dispatch this workflow after the pin commit and must not ignore that failure.
 
 ## One-time setup
 
@@ -100,9 +102,4 @@ cd /tmp/fstarter && git status && git diff
 
 ## Relation to nuget.org publish
 
-After **Publish Pure Analyzer to nuget.org** ships a new `FSharp.PureAnalyzer` version:
-
-1. Bump `src/scripts/integrations/fstarter/versions.env` (or pass `analyzer_version` on dispatch).
-2. Run **PR fspure updates to fstarter** (or push the versions.env change to main).
-
-Optional: chain from release only — the release event already triggers this workflow.
+After an official publish, **Official release** writes the pins and dispatches **PR fspure updates to fstarter**. Do not rely on `on: release`: Releases created with `GITHUB_TOKEN` do not start that event. A push of `versions.env` or the overlay to `main` also opens the PR, which is how a pin fix lands without a new release.

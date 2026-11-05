@@ -12,6 +12,16 @@ EXT_DIR="$ROOT/src/editor/vscode-extension"
 PUBLISHER_EXT="e-st.fsharp-pure-decorations"
 OPENVSX_API="https://open-vsx.org/api/e-St/fsharp-pure-decorations/latest"
 BAKED_VSIX="/usr/local/share/fspure/fsharp-pure-decorations.vsix"
+CALLER_EXTENSION="${FSPURE_EXTENSION_VERSION:-}"
+VERSIONS="$ROOT/src/scripts/integrations/fstarter/versions.env"
+if [[ -f "$VERSIONS" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  # shellcheck source=/dev/null
+  source "$VERSIONS"
+  set +a
+fi
+FSPURE_EXTENSION_VERSION="${CALLER_EXTENSION:-${FSPURE_EXTENSION_VERSION:-}}"
 
 # True only if `code` is on PATH and can report a version (stubs that print
 # "code or code-insiders is not installed" count as unavailable).
@@ -46,6 +56,25 @@ extension_on_disk() {
     fi
   done < <(extension_dirs)
   return 1
+}
+
+extension_version_on_disk() {
+  local want="$1" d
+  [[ -n "$want" ]] || return 1
+  while IFS= read -r d; do
+    [[ -d "$d/${PUBLISHER_EXT}-${want}" ]] && return 0
+  done < <(extension_dirs)
+  return 1
+}
+
+local_extension_version() {
+  [[ -f "$EXT_DIR/package.json" ]] || return 1
+  python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$EXT_DIR/package.json"
+}
+
+vsix_version() {
+  unzip -p "$1" extension/package.json \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])'
 }
 
 register_extension_json() {
@@ -143,29 +172,48 @@ package_local_vsix() {
 
 download_openvsx_vsix() {
   local dest="$1"
+  local api="${2:-$OPENVSX_API}"
   local url
-  url="$(curl -fsSL "$OPENVSX_API" \
+  url="$(curl -fsSL "$api" \
     | python3 -c "import json,sys; print(json.load(sys.stdin)['files']['download'])")"
   curl -fsSL -o "$dest" "$url"
 }
 
 install_extension() {
-  local vsix="" tmp=""
-  if extension_on_disk; then
-    echo "✅ $PUBLISHER_EXT already on disk"
+  local vsix="" tmp="" pin="${FSPURE_EXTENSION_VERSION:-}" local_ver="" intended="" baked_ver=""
+  local_ver="$(local_extension_version 2>/dev/null || true)"
+  # Package the in-repo tree only when it is the released pin. Otherwise install the pin.
+  if [[ -n "$local_ver" && ( -z "$pin" || "$local_ver" == "$pin" ) ]]; then
+    intended="$local_ver"
+  else
+    intended="$pin"
+  fi
+  if [[ -n "$intended" ]] && extension_version_on_disk "$intended"; then
+    echo "✅ $PUBLISHER_EXT ${intended} already on disk"
     return 0
   fi
 
   tmp="$(mktemp --suffix=.vsix)"
-  if package_local_vsix "$tmp"; then
+  if [[ -n "$local_ver" && "$local_ver" == "${pin:-$local_ver}" ]] && package_local_vsix "$tmp"; then
+    vsix="$tmp"
+  elif [[ -n "$pin" ]] \
+    && download_openvsx_vsix "$tmp" "https://open-vsx.org/api/e-St/fsharp-pure-decorations/${pin}" \
+    && is_valid_vsix "$tmp"; then
+    echo "==> fsharp-pure-decorations ${pin}: Open VSX"
     vsix="$tmp"
   elif [[ -f "$BAKED_VSIX" ]] && is_valid_vsix "$BAKED_VSIX"; then
-    echo "==> fsharp-pure-decorations: baked VSIX"
-    vsix="$BAKED_VSIX"
-    rm -f "$tmp"
-    tmp=""
-  else
-    echo "==> fsharp-pure-decorations: try Open VSX"
+    baked_ver="$(vsix_version "$BAKED_VSIX" 2>/dev/null || true)"
+    if [[ -z "$intended" || -z "$baked_ver" || "$baked_ver" == "$intended" ]]; then
+      echo "==> fsharp-pure-decorations: baked VSIX ${baked_ver:-unknown}"
+      vsix="$BAKED_VSIX"
+      rm -f "$tmp"
+      tmp=""
+    fi
+  fi
+
+  if [[ -z "$vsix" && -z "$pin" ]]; then
+    echo "==> fsharp-pure-decorations: try Open VSX latest"
+    tmp="${tmp:-$(mktemp --suffix=.vsix)}"
     if download_openvsx_vsix "$tmp" && is_valid_vsix "$tmp"; then
       vsix="$tmp"
     else
@@ -176,7 +224,8 @@ install_extension() {
   fi
 
   if [[ -z "$vsix" ]]; then
-    echo "ERROR: no fsharp-pure-decorations VSIX (local package failed, baked missing, Open VSX failed)." >&2
+    rm -f "$tmp"
+    echo "ERROR: no fsharp-pure-decorations VSIX (local package failed, baked missing or stale, Open VSX failed)." >&2
     return 1
   fi
 
@@ -188,7 +237,11 @@ install_extension() {
   fi
   [[ -z "$tmp" ]] || rm -f "$tmp"
 
-  if extension_on_disk; then
+  if [[ -n "$intended" ]] && extension_version_on_disk "$intended"; then
+    echo "✅ $PUBLISHER_EXT ${intended} on disk (pure/impure labels)"
+    return 0
+  fi
+  if [[ -z "$intended" ]] && extension_on_disk; then
     echo "✅ $PUBLISHER_EXT on disk (pure/impure labels)"
     return 0
   fi

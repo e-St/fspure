@@ -24,6 +24,18 @@ on:
         description: "FSharp.PureAnalyzer version to pin (empty = versions.env or nuget.org latest stable)"
         required: false
         default: ""
+      skill_ref:
+        description: "Copilot skill pin (empty = versions.env)"
+        required: false
+        default: ""
+      cli_release:
+        description: "Standalone fspure CLI release tag (empty = versions.env)"
+        required: false
+        default: ""
+      extension_version:
+        description: "fsharp-pure-decorations version (empty = versions.env)"
+        required: false
+        default: ""
       dry_run:
         description: "Prepare branch commit but do not push or open PR"
         type: boolean
@@ -69,19 +81,21 @@ jobs:
             src/scripts/integrations/fstarter/overlay/.devcontainer/setup-fspure.sh
           bash src/scripts/integrations/fstarter/test-overlay-contract.sh
 
-          # Priority: workflow input → release tag → versions.env → nuget.org latest stable
+          # Priority: workflow input → analyzer release tag vX.Y.Z → versions.env → nuget.org.
+          # Skill, extension, and CLI tags must not overwrite the analyzer pin.
+          # GITHUB_TOKEN Releases do not trigger this event; official-release dispatches instead.
           INPUT="${{ github.event.inputs.analyzer_version }}"
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG="${{ github.ref_name }}"
-            TAG="${TAG#v}"
-            # Ignore collector-only style tags
-            if [[ "$TAG" != fspure-collector-* ]]; then
-              INPUT="${INPUT:-$TAG}"
+            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              INPUT="${INPUT:-${TAG#v}}"
+            else
+              echo "Ignoring non-analyzer release tag: $TAG"
             fi
           fi
 
-          # Always load pack pins first so a skill/CLI pin is not dropped when
-          # the analyzer version comes from a release tag or workflow input.
+          # Always load pack pins first so a skill/CLI/extension pin is not dropped
+          # when the analyzer version comes from a release tag or workflow input.
           # shellcheck disable=SC1091
           set -a
           source src/scripts/integrations/fstarter/versions.env
@@ -101,11 +115,16 @@ jobs:
             echo "Using versions.env / nuget.org: $VER"
           fi
 
-          SKILL_REF="${FSPURE_SKILL_REF:-main}"
-          CLI_RELEASE="${FSPURE_CLI_RELEASE:-fspure-latest}"
+          SKILL_REF="${{ github.event.inputs.skill_ref }}"
+          SKILL_REF="${SKILL_REF:-${FSPURE_SKILL_REF:-main}}"
+          CLI_RELEASE="${{ github.event.inputs.cli_release }}"
+          CLI_RELEASE="${CLI_RELEASE:-${FSPURE_CLI_RELEASE:-fspure-latest}}"
+          EXT_VER="${{ github.event.inputs.extension_version }}"
+          EXT_VER="${EXT_VER:-${FSPURE_EXTENSION_VERSION:-}}"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "skill_ref=$SKILL_REF" >> "$GITHUB_OUTPUT"
           echo "cli_release=$CLI_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "extension_version=$EXT_VER" >> "$GITHUB_OUTPUT"
 
       - name: Clone fstarter
         env:
@@ -121,6 +140,7 @@ jobs:
           FSPURE_ANALYZER_VERSION: ${{ steps.ver.outputs.version }}
           FSPURE_SKILL_REF: ${{ steps.ver.outputs.skill_ref }}
           FSPURE_CLI_RELEASE: ${{ steps.ver.outputs.cli_release }}
+          FSPURE_EXTENSION_VERSION: ${{ steps.ver.outputs.extension_version }}
         run: |
           set -euo pipefail
           bash src/scripts/prepare-fstarter-update.sh \

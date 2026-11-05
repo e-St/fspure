@@ -62,10 +62,28 @@ sub1(
     r"(<FspureAnalyzerVersion Condition=\"'\$\(FspureAnalyzerVersion\)' == ''\">)[^<]+(</FspureAnalyzerVersion>)",
     rf"\g<1>{analyzer}\g<2>",
 )
-sub1(
+def set_env(path: pathlib.Path, key: str, value: str) -> None:
+    text = path.read_text() if path.exists() else ""
+    pat = rf"(?m)^{re.escape(key)}=.*$"
+    if re.search(pat, text):
+        text = re.sub(pat, f"{key}={value}", text, count=1)
+    else:
+        if text and not text.endswith("\n"):
+            text += "\n"
+        text += f"{key}={value}\n"
+    path.write_text(text)
+    print("updated", path, key, value)
+
+
+set_env(
     root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
-    r"(FSPURE_ANALYZER_VERSION=).*",
-    rf"\g<1>{analyzer}",
+    "FSPURE_ANALYZER_VERSION",
+    analyzer,
+)
+set_env(
+    root / "src" / "scripts" / "integrations" / "fstarter" / "versions.env",
+    "FSPURE_EXTENSION_VERSION",
+    extension,
 )
 # Skill pin is independent of the analyzer tag. Only rewrite after an official skill publish.
 if skill:

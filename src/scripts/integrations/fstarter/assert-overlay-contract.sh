@@ -32,8 +32,11 @@ if data.get("postCreateCommand") != "bash .devcontainer/setup-fspure.sh":
     )
 settings = data.get("customizations", {}).get("vscode", {}).get("settings", {})
 paths = settings.get("FSharp.analyzersPath") or []
-if "/usr/local/share/fspure/analyzers" not in paths:
+baked = "/usr/local/share/fspure/analyzers"
+if baked not in paths:
     errors.append("FSharp.analyzersPath must include /usr/local/share/fspure/analyzers")
+elif "analyzers" not in paths or paths.index("analyzers") > paths.index(baked):
+    errors.append("workspace analyzers path must precede /usr/local/share/fspure/analyzers")
 exts = data.get("customizations", {}).get("vscode", {}).get("extensions") or []
 if "e-st.fsharp-pure-decorations" not in exts:
     errors.append("must list e-st.fsharp-pure-decorations (Open VSX only; still unpack VSIX in setup)")
@@ -76,7 +79,9 @@ has_baked_analyzers = (
     )
 )
 if not has_baked_analyzers:
-    errors.append("must prefer baked analyzer at /usr/local/share/fspure/analyzers/dotnet/fs")
+    errors.append("must be able to copy a matching bake from /usr/local/share/fspure/analyzers/dotnet/fs")
+if "baked_analyzer_matches_pin && mirror_from_baked" not in text:
+    errors.append("must copy baked analyzer DLLs only when the image versions.env matches the pin")
 for needle in (".vscode-remote/extensions", ".vscode-server/extensions"):
     if needle not in text:
         errors.append(f"must unpack VSIX into {needle}")

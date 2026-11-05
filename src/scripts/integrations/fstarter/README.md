@@ -53,18 +53,18 @@ let add a b =  // unit -> 'a -> unit  impure
 
 ```text
 src/scripts/integrations/fstarter/
-  versions.env                 # FSPURE_ANALYZER_VERSION pin
+  versions.env                 # analyzer, skill, CLI, extension pins
   optional-newf.md             # optional newf.sh notes
   assert-overlay-contract.sh   # refuse postAttach / features / skipped VSIX
   test-overlay-contract.sh
   overlay/
     Directory.Build.props      # same strict F# rules as fspure monorepo
     .devcontainer/
-      devcontainer.json        # postCreate-only; baked analyzersPath; no features
-      setup-fspure.sh          # baked-first analyzer + decorations VSIX unpack
+      devcontainer.json        # postCreate-only; workspace analyzers path first; no features
+      setup-fspure.sh          # pin wins over a stale image bake; VSIX unpack
 ```
 
-Do **not** restore `postAttachCommand` or a `features` / `github-cli` block. `e-st.fsharp-pure-decorations` is Open VSX only — `setup-fspure.sh` unpacks the baked VSIX even when `code` is unusable. `prepare-fstarter-update.sh` refuses an overlay that would undo that.
+Do **not** restore `postAttachCommand` or a `features` / `github-cli` block. `e-st.fsharp-pure-decorations` is Open VSX only — `setup-fspure.sh` unpacks the pinned VSIX even when `code` is unusable, and installs the analyzer pin when the image bake is older. `prepare-fstarter-update.sh` refuses an overlay that would undo that.
 
 ## Optional: newf package reference
 

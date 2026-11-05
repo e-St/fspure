@@ -3,12 +3,14 @@
 #
 # Install analyzer + decorations extension for interactive Codespaces / VS Code.
 #
-# Analyzer: nuget.org when available, else pack this repo; always mirror the
-# DLL into <repo>/analyzers/dotnet/fs/ so Ionide's default path "analyzers"
-# finds it (FSAC does not expand ${userHome} or ~ in FSharp.analyzersPath).
+# Analyzer: nuget.org at the versions.env pin, else pack this repo; always
+# mirror that DLL into <repo>/analyzers/dotnet/fs/. Ionide's workspace path
+# "analyzers" is listed ahead of the image bake (FSAC does not expand
+# ${userHome} or ~ in FSharp.analyzersPath).
 #
-# Extension: package in-repo VSIX (src/editor/vscode-extension), else baked
-# /usr/local/share/fspure/fsharp-pure-decorations.vsix, else Open VSX.
+# Extension: package the in-repo VSIX when package.json matches the pin,
+# else the pinned Open VSX version. A baked VSIX is used only when it matches.
+# An older on-disk extension is not treated as current.
 # Always unpack onto disk (code CLI is often unusable in postCreate).
 #
 # Not used by CI: analyzer pack/build uses src/FSharp.PureAnalyzer/.devcontainer/;

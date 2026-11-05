@@ -13,17 +13,32 @@ source "$(dirname "$0")/nuget-tmp-env.sh"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 export WORKSPACE_ANALYZERS="$ROOT/analyzers/dotnet/fs"
 GLOBAL_PACKAGES="${NUGET_PACKAGES:-$HOME/.nuget/packages}"
+CALLER_ANALYZER="${FSPURE_ANALYZER_VERSION:-}"
+VERSIONS="$ROOT/src/scripts/integrations/fstarter/versions.env"
+if [[ -f "$VERSIONS" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  # shellcheck source=/dev/null
+  source "$VERSIONS"
+  set +a
+fi
+FSPURE_ANALYZER_VERSION="${CALLER_ANALYZER:-${FSPURE_ANALYZER_VERSION:-}}"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 mirror_workspace_drop_from_global() {
-  # Find newest installed version under the global packages folder.
+  # Prefer the released pin. Newest-in-cache is only a layout fallback.
   local src schema
-  src="$(
-    find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
-      | sort -V \
-      | tail -1 || true
-  )"
+  if [[ -n "${FSPURE_ANALYZER_VERSION:-}" ]]; then
+    src="$GLOBAL_PACKAGES/fsharp.pureanalyzer/${FSPURE_ANALYZER_VERSION}/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll"
+  fi
+  if [[ -z "${src:-}" || ! -f "$src" ]]; then
+    src="$(
+      find "$GLOBAL_PACKAGES/fsharp.pureanalyzer" -path '*/analyzers/dotnet/fs/FSharp.PureAnalyzer.dll' 2>/dev/null \
+        | sort -V \
+        | tail -1 || true
+    )"
+  fi
   if [[ -z "$src" || ! -f "$src" ]]; then
     return 1
   fi
@@ -48,10 +63,14 @@ install_from_nuget_org() {
   # by some SDK paths; we restore via `dotnet add package` next.
   dotnet new classlib -n install -f net10.0 --force --language C# >/dev/null
   cd install
-  dotnet add package FSharp.PureAnalyzer
+  if [[ -n "${FSPURE_ANALYZER_VERSION:-}" ]]; then
+    dotnet add package FSharp.PureAnalyzer --version "$FSPURE_ANALYZER_VERSION"
+  else
+    dotnet add package FSharp.PureAnalyzer
+  fi
 }
 
-echo "==> FSharp.PureAnalyzer: try nuget.org"
+echo "==> FSharp.PureAnalyzer ${FSPURE_ANALYZER_VERSION:-latest}: try nuget.org"
 if install_from_nuget_org; then
   echo "✅ Installed FSharp.PureAnalyzer from nuget.org"
   if mirror_workspace_drop_from_global; then
