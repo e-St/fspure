@@ -4,7 +4,10 @@ All notable changes to the Open VSX extension **fsharp-pure-decorations** are do
 
 ## [Unreleased]
 
-<!-- Filled by Prepare release PR from git log — edit freely before merge. -->
+### Draft (from git log — edit freely)
+
+- Finish monorepo F# tasks: phase1, asserts; single-file VS Code host. (c253f5d)
+- Restructure repo: editable sources under src/, generated under .generated/ (896b9e3)
 
 ## [0.2.5] — 2026-07-30
 
