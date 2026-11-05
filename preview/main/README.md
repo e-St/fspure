@@ -24,12 +24,12 @@ It does that by defining a pure subset and marking everything else as impure. Th
   GENERATED below this line — do not hand-edit.
   Template: src/docs/templates/README.md.scriban
   Human prologue: src/docs/human/readme-top.md  (always first; never generated above)
-  Channel: preview | Ref: main | Version: 0.4.1
-  Generated: 2026-11-05T18:03:48Z
+  Channel: preview | Ref: main | Version: 0.4.2
+  Generated: 2026-11-05T18:25:13Z
 -->
 
 
-> **Preview docs** for `main` (0.4.1).  
+> **Preview docs** for `main` (0.4.2).  
 > Stable install guide always lives on [main / fspure.net](https://fspure.net).  
 > This page: https://e-st.github.io/fspure/preview/main
 
@@ -43,13 +43,13 @@ You can wire the analyzer and badges into your editor yourself, or let an agent 
 #### 1. Analyzer (NuGet)
 
 ```bash
-dotnet add package FSharp.PureAnalyzer --version 0.4.1
+dotnet add package FSharp.PureAnalyzer --version 0.4.2
 ```
 
 Paket:
 
 ```paket
-nuget FSharp.PureAnalyzer 0.4.1
+nuget FSharp.PureAnalyzer 0.4.2
 ```
 
 Copy the package’s `analyzers/dotnet/fs/` folder into a workspace folder named `analyzers` (Ionide needs a **real path** — no `~` or `${userHome}`).
@@ -171,4 +171,4 @@ If a function only calls pure things, it is pure. If it (or anything it calls) d
 - [NuGet: FSharp.PureAnalyzer](https://www.nuget.org/packages/FSharp.PureAnalyzer)
 - [Open VSX extension](https://open-vsx.org/extension/e-st/fsharp-pure-decorations)
 
-Versions in this build: analyzer **0.4.1**, collector **0.1.1**.
+Versions in this build: analyzer **0.4.2**, collector **0.1.2**.

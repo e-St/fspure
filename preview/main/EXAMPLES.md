@@ -1,8 +1,8 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/EXAMPLES.md.scriban
-  Channel: preview | Ref: main | Version: 0.4.1
-  Generated: 2026-11-05T18:03:48Z
+  Channel: preview | Ref: main | Version: 0.4.2
+  Generated: 2026-11-05T18:25:13Z
 -->
 
 # Real code, real labels

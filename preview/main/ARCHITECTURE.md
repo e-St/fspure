@@ -1,7 +1,7 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/ARCHITECTURE.md.scriban
-  Channel: preview | Ref: main | Generated: 2026-11-05T18:03:48Z
+  Channel: preview | Ref: main | Generated: 2026-11-05T18:25:13Z
 -->
 
 # fspure architecture (short)
