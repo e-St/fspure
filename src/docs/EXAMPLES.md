@@ -1,7 +1,7 @@
 <!--
   GENERATED FILE — do not edit by hand.
   Template: src/docs/templates/EXAMPLES.md.scriban
-  Channel: stable | Ref: v0.4.2 | Version: 0.4.2
+  Channel: stable | Ref: v0.4.3 | Version: 0.4.3
   Generated: (synced)
 -->
 
