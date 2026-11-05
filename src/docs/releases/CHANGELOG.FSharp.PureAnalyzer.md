@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.2] — 2026-11-05
+
 ### Draft (from git log — edit freely)
 
 - chore(release): apply official version pins after publish (62a0a95)

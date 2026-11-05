@@ -6,6 +6,8 @@ Official versions are GitHub tags `fspure-reduce-impurity-v{version}`. `gh skill
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-11-05
+
 ### Draft (from git log — edit freely)
 
 - chore(release): apply official version pins after publish (62a0a95)

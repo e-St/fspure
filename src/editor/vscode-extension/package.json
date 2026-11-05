@@ -2,7 +2,7 @@
   "name": "fsharp-pure-decorations",
   "displayName": "F# Pure Analyzer Decorations",
   "description": "Shows pure/impure badges at end-of-line (after Ionide LineLens signatures) for FSharp.PureAnalyzer diagnostics (PURE002 / PURE003).",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "publisher": "e-st",
   "license": "MIT",
   "repository": {
